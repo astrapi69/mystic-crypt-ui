@@ -28,6 +28,7 @@ import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectStreamException;
+import java.nio.file.Files;
 import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.Security;
@@ -263,9 +264,11 @@ public class ApplicationXmlFileReader
 	 * them being taken for a wrong password or key file. A file the format reader refuses as no
 	 * database (an {@link IllegalArgumentException}, or a block size no password database has) says
 	 * that, and a failed decryption says in the unlock prompt's words that the password or the key
-	 * file is wrong (#1005). The text of the exception is never shown: it stays in the log. Only a
-	 * failure that carries a message written for the user, such as a missing key file, keeps
-	 * showing it.
+	 * file is wrong (#1005). A decryption that authenticates nothing and gave back no xml at all is
+	 * such a failed decryption, not a database that was decrypted: its padding check passed by
+	 * chance ({@link VaultNotDecryptedException}, #1188). The text of the exception is never shown:
+	 * it stays in the log. Only a failure that carries a message written for the user, such as a
+	 * missing key file, keeps showing it.
 	 *
 	 * @param factors
 	 *            what the sign-in asked for
@@ -275,6 +278,12 @@ public class ApplicationXmlFileReader
 	 */
 	private static RuntimeException notOpened(final Factors factors, final Exception exception)
 	{
+		// first: its cause is the VaultContentUnreadableException the next branches would show
+		if (causeOf(exception, VaultNotDecryptedException.class) != null)
+		{
+			log.log(Level.SEVERE, exception.getMessage(), exception);
+			return refusal(factors.title(), factors.wrong(), exception);
+		}
 		VaultHoldsAForeignTypeException foreign = causeOf(exception,
 			VaultHoldsAForeignTypeException.class);
 		if (foreign != null)
@@ -396,6 +405,16 @@ public class ApplicationXmlFileReader
 		{
 			return VaultXmlCodec.toModel(xml);
 		}
+		catch (VaultContentUnreadableException unreadable)
+		{
+			// the marker is read again only here, where it decides what the failure means: the
+			// format it names authenticates, the one before it does not (#1188)
+			if (PasswordVaultFormat.isCurrentFormat(Files.readAllBytes(applicationFile.toPath())))
+			{
+				throw unreadable;
+			}
+			throw notDecryptedWhenNoXml(unreadable);
+		}
 		finally
 		{
 			SecretBuffers.wipe(xml);
@@ -412,7 +431,15 @@ public class ApplicationXmlFileReader
 		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
 		String encryptedXml = decryptedWithKeyFile(privateKey, encryptedBytes);
 		String xml = decryptedWithPassword(encryptedXml, password);
-		applicationModelBean = throughTheCodec(xml);
+		try
+		{
+			applicationModelBean = throughTheCodec(xml);
+		}
+		catch (VaultContentUnreadableException unreadable)
+		{
+			// the password layer authenticates in neither of its formats (#1188)
+			throw notDecryptedWhenNoXml(unreadable);
+		}
 		// the key is not in the file and must not be (#350): it comes from the key file whoever
 		// signed in just picked, and the model needs it for the next save and for the plugins that
 		// read it. The key-only path below does the same thing for the same reason
@@ -477,6 +504,26 @@ public class ApplicationXmlFileReader
 				throw notTheCurrentFormat;
 			}
 		}
+	}
+
+	/**
+	 * What content that a decryption without authentication gave back, and that the reader could
+	 * not read, means: the format before the marker, and the password layer of a database with a
+	 * password and a key file in either of its formats, end their decryption with a padding check
+	 * and nothing else. A wrong key passes it about once in 256 tries (#1188), and what comes out
+	 * then is no xml at all: that is a failed decryption, which the sign-in calls a wrong password
+	 * or key file (#1005). Well-formed xml this version cannot read stays what it is on these paths
+	 * as on every other, the database that was decrypted and holds what this version cannot build
+	 * (#624), as a newer version's database does
+	 *
+	 * @param unreadable
+	 *            what the reader threw for the content
+	 * @return the failure to throw: a {@link VaultNotDecryptedException} when the content is no
+	 *         xml, the given one otherwise
+	 */
+	private static Exception notDecryptedWhenNoXml(final VaultContentUnreadableException unreadable)
+	{
+		return unreadable.isNoXml() ? new VaultNotDecryptedException(unreadable) : unreadable;
 	}
 
 	/**

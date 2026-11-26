@@ -25,12 +25,16 @@
 package io.github.astrapi69.mystic.crypt.app.file.xml;
 
 import com.thoughtworks.xstream.XStreamException;
+import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.mapper.CannotResolveClassException;
 
 /**
  * A vault decrypted, and its content could not be read: the password or key file was right, and the
  * file holds something this version cannot build. The sign-in says so and names the reason, instead
  * of calling the password or the key file wrong (#624, decided by the maintainer).
+ * <p>
+ * Where the decryption authenticates nothing, content that is no xml at all ({@link #isNoXml()})
+ * proves no key right: the reader turns it into a {@link VaultNotDecryptedException} there (#1188).
  * <p>
  * The reason never quotes the content: the only text taken from the failure is a type name, which
  * is no secret. Anything else is named by the kind of failure alone, because a parser's message can
@@ -70,6 +74,26 @@ public class VaultContentUnreadableException extends IllegalArgumentException
 	public String getReason()
 	{
 		return reason;
+	}
+
+	/**
+	 * Whether the content is no xml at all: the parser refused the document itself, which XStream
+	 * reports as a {@link StreamException}, rather than the reader a type or a field of a
+	 * well-formed one. After a decryption that authenticates nothing this is what a wrong key
+	 * leaves, and such a database was not decrypted (#1188, {@link VaultNotDecryptedException})
+	 *
+	 * @return true if the parser refused the content
+	 */
+	public boolean isNoXml()
+	{
+		for (Throwable cause = getCause(); cause != null; cause = cause.getCause())
+		{
+			if (cause instanceof StreamException)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static String reasonOf(final Throwable failure)

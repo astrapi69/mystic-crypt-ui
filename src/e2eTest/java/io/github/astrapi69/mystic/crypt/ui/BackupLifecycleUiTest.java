@@ -121,8 +121,8 @@ class BackupLifecycleUiTest extends AbstractUiTest
 	 * The sign-in fails by the factor that is refused every time: a foreign key file on both
 	 * key-file ways, whose key layer is unwrapped with RSA OAEP, and a wrong password only on the
 	 * password way, whose format authenticates. The password layer of a database with both factors
-	 * does not authenticate, so a wrong password drawn per run passes its padding now and then, and
-	 * the codec then reports the rubbish as an unreadable database instead of the refusal
+	 * does not authenticate, so a wrong password drawn per run passes its padding now and then; up
+	 * to #1188 the codec then reported the rubbish as an unreadable database instead of the refusal
 	 */
 	@ParameterizedTest(name = "{0}")
 	@EnumSource(WayIn.class)
