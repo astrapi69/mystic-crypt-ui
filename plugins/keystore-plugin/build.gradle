@@ -59,17 +59,11 @@ dependencies {
     // and the BaseWizardState/BaseWizardStateMachineModel state machine it runs on
     compileOnly libs.swing.wizard
     compileOnly libs.state.pattern
-    // X500Name, used to build the subject of a self-signed certificate, lives in bcutil; the host
-    // brings both jars at runtime, so they stay compileOnly here like everything else
+    // the host brings the jar at runtime, so it stays compileOnly here like everything else
     compileOnly libs.bcprov.jdk18on
-    compileOnly libs.bcutil.jdk18on
     // CertFactory declares OperatorCreationException from bcpkix in its throws clause, so javac
     // needs that jar on the compile classpath even though this code never names the type
     compileOnly libs.bcpkix.jdk18on
-
-    // the command line side: the host puts picocli on the classpath, so like everything else it
-    // is only needed to compile against here
-    compileOnly libs.picocli
 
     // the shared tool window layout comes from the host, which brings MigLayout with it
     compileOnly libs.miglayout.swing

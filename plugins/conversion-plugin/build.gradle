@@ -50,14 +50,11 @@ dependencies {
     // the panels bind their components to one model object per panel (JMTextField and friends)
     compileOnly libs.swing.model.components
     compileOnly libs.swing.base.components
-    compileOnly libs.throwable
     compileOnly libs.resourcebundle.core
     // the conversion wizard's base classes: AbstractWizardPanel/BaseWizardContentPanel and the
     // BaseWizardState/BaseWizardStateMachineModel state machine it runs on
     compileOnly libs.swing.wizard
     compileOnly libs.state.pattern
-    compileOnly libs.lombok
-    annotationProcessor libs.lombok
 
     // the shared tool window layout comes from the host, which brings MigLayout with it
     compileOnly libs.miglayout.swing
