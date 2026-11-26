@@ -188,15 +188,26 @@ class CliLauncherTest(unittest.TestCase):
         self.assertEqual(0, completed.returncode, completed.stderr)
         self.assertEqual([self.expected_run("installer", "--help")], self.runs())
 
-    def test_through_a_symlink_without_readlink_f_the_search_file_is_not_found(self):
+    def test_through_a_symlink_without_readlink_f_the_installation_is_found(self):
         self.installer_java("25.0.5")
         self.readlink_without_f()
         link_directory = self.link()
         completed = self.run_starter("--help", command="mystic-crypt",
                                      path=f"{link_directory}:{self.bin}:{self.tools}")
-        self.assertNotEqual(0, completed.returncode)
-        self.assertIn("find-java.sh is missing", completed.stderr)
-        self.assertEqual([], self.runs())
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        self.assertEqual([self.expected_run("installer", "--help")], self.runs())
+
+    def test_a_chain_of_relative_links_without_readlink_f_is_followed_to_the_starter(self):
+        self.installer_java("25.0.5")
+        self.readlink_without_f()
+        (self.work / "first").mkdir()
+        (self.work / "first" / "mystic-crypt").symlink_to("../second/mystic-crypt")
+        (self.work / "second").mkdir()
+        (self.work / "second" / "mystic-crypt").symlink_to("../install dir/mystic-crypt")
+        completed = self.run_starter("--help", command="mystic-crypt",
+                                     path=f"{self.work / 'first'}:{self.bin}:{self.tools}")
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        self.assertEqual([self.expected_run("installer", "--help")], self.runs())
 
     def test_the_jvm_flags_reach_java_before_the_jar(self):
         self.path_java("25.0.1")

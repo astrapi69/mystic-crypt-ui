@@ -11,7 +11,25 @@
 # When no Java fits, the reason goes to standard error only - a terminal tool opens no dialog -
 # and the exit code is non-zero.
 
-SELF="$(readlink -f "$0" 2>/dev/null || echo "$0")"
+# readlink -f is GNU's and macOS 12.3 and newer; a readlink without it refuses the option, and the
+# starter then follows the chain of links one step at a time with plain readlink, which every
+# system has. Left alone, the path of the link would be taken for the installation's directory.
+SELF="$(readlink -f "$0" 2>/dev/null)"
+if [ -z "$SELF" ]; then
+  SELF=$0
+  hops=0
+  while [ -L "$SELF" ] && [ "$hops" -lt 40 ]; do
+    hops=$((hops + 1))
+    target="$(readlink "$SELF")" || break
+    case $target in
+      /*) SELF=$target ;;
+      *) case $SELF in */*) SELF="${SELF%/*}/$target" ;; *) SELF=$target ;; esac ;;
+    esac
+  done
+  case $SELF in */*) ;; *) SELF=./$SELF ;; esac
+  # the directory without the ".." and the links the chain went through, as readlink -f gives it
+  if directory="$(cd "${SELF%/*}" 2>/dev/null && pwd -P)"; then SELF="$directory/${SELF##*/}"; fi
+fi
 DIR="${SELF%/*}"
 
 if ! . "$DIR/find-java.sh"; then
