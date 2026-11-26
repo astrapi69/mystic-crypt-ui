@@ -65,12 +65,7 @@ dependencies {
     // the contribution classes implement the host's extension points, so the host jar has to be on
     // the test classpath to load them - for the main sources they stay compileOnly
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
-    testImplementation libs.miglayout.swing
     testImplementation libs.pf4j
-    testImplementation libs.resourcebundle.core
-    testImplementation libs.swing.model.components
-    testImplementation libs.model.data
-    testImplementation libs.swing.base.components
     testRuntimeOnly libs.junit.platform.launcher
 }
 
@@ -110,7 +105,9 @@ sourceSets {
 }
 
 dependencies {
-    zipTestImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
+    // the host jar is only loaded at runtime: the zip tests start the plugin on a class path with the host,
+    // and their sources import nothing of it
+    zipTestRuntimeOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     zipTestImplementation libs.pf4j
     zipTestImplementation libs.junit.jupiter
     zipTestRuntimeOnly libs.junit.platform.launcher
