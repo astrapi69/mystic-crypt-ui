@@ -29,6 +29,7 @@ if [ "$1" = "-version" ]; then
   echo 'OpenJDK Runtime Environment (stub)' >&2
   exit 0
 fi
+echo "options {name} ${{JDK_JAVA_OPTIONS-unset}}" >> "$STUB_LOG"
 {{ printf 'run {name}'; printf ' [%s]' "$@"; echo; }} >> "$STUB_LOG"
 if [ -n "${{STUB_STDIN:-}}" ]; then
   cat > "$STUB_STDIN"
@@ -118,9 +119,10 @@ class CliLauncherTest(unittest.TestCase):
         return link_directory
 
     def run_starter(self, *arguments, command=None, path=None, standard_input=None,
-                    stdin_file=None):
+                    stdin_file=None, extra_environment=None):
         environment = {"PATH": path or f"{self.bin}:{self.tools}", "HOME": str(self.work),
                        "STUB_LOG": str(self.log)}
+        environment.update(extra_environment or {})
         if stdin_file:
             environment["STUB_STDIN"] = str(stdin_file)
         return subprocess.run([command or str(self.install / "mystic-crypt"), *arguments],
@@ -235,6 +237,20 @@ class CliLauncherTest(unittest.TestCase):
         self.run_starter("hash", "--password-stdin", standard_input="a line\nanother\n",
                          stdin_file=received)
         self.assertEqual("a line\nanother\n", received.read_text())
+
+    def options(self):
+        return [call for call in self.calls() if call.startswith("options ")]
+
+    def test_jdk_java_options_reach_java_unchanged_through_the_starter(self):
+        self.path_java("25.0.1")
+        given = "-Dmystic.crypt.ui.plugins.dir=/a dir/with space -Dother=\"x y\""
+        self.run_starter("--help", extra_environment={"JDK_JAVA_OPTIONS": given})
+        self.assertEqual([f"options path {given}"], self.options())
+
+    def test_without_jdk_java_options_the_starter_sets_none(self):
+        self.path_java("25.0.1")
+        self.run_starter("--help")
+        self.assertEqual(["options path unset"], self.options())
 
     def test_the_exit_code_of_the_command_is_the_starters(self):
         self.path_java("25.0.1", exit_code=3)
