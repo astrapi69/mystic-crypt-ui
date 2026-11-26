@@ -16,7 +16,7 @@
 //   crypt-api (certificate): Algorithm, bcpkix (OperatorCreationException; certificate, conversion, keygen,
 //   keystore, pqc-signature), mystic-crypt (keystore, pqc-signature: brings crypt-api),
 //   the host jar (conversion, keystore: PluginMenuContribution),
-//   swing-table-components (obfuscation: GenericTableModel).
+//   swing-table-components (lethenon, obfuscation: GenericTableModel).
 // A plugin build with no entry has none. A new entry names the type javac needs; it is not a place for a dependency
 // that is merely unproven.
 def keptUnusedDependencies = [
@@ -28,6 +28,7 @@ def keptUnusedDependencies = [
                               "io.github.astrapi69:swing-base-components"],
     "keystore-plugin"      : ["io.github.astrapi69:mystic-crypt-ui", "org.bouncycastle:bcpkix-jdk18on",
                               "io.github.astrapi69:mystic-crypt", "io.github.astrapi69:swing-base-components"],
+    "lethenon-plugin"      : ["io.github.astrapi69:swing-table-components"],
     "obfuscation-plugin"   : ["io.github.astrapi69:swing-base-components",
                               "io.github.astrapi69:swing-table-components"],
     "pqc-signature-plugin" : ["org.bouncycastle:bcpkix-jdk18on", "io.github.astrapi69:mystic-crypt"],
