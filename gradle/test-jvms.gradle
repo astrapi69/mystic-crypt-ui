@@ -22,14 +22,16 @@
 // The temporary directory: on Linux the JDK sets java.io.tmpdir to /tmp whatever TMPDIR says, and @TempDir,
 // File.createTempFile and the libraries follow java.io.tmpdir. A release gate gives its runs TMPDIR on a disk with
 // room (RL-124; the 8.7 gate probably died of a /tmp another program had filled, #522), so a TMPDIR the build was
-// started with reaches every test JVM as java.io.tmpdir; without it the JDK's default stays.
+// started with reaches every test JVM as java.io.tmpdir; without it the JDK's default stays. Only a TMPDIR that
+// names an existing absolute directory of this machine is forwarded: the plugin builds also run on macOS and
+// Windows (lethenon-plugin-platforms.yml), and java.io.tmpdir has to be a directory the test JVM can write to.
 tasks.withType(Test).configureEach {
     maxHeapSize = '512m'
     maxParallelForks = 1
     systemProperty 'user.language', 'en'
     systemProperty 'user.country', 'US'
     def temporaryDirectory = System.getenv('TMPDIR')
-    if (temporaryDirectory) {
+    if (temporaryDirectory && new File(temporaryDirectory).with { it.absolute && it.directory }) {
         systemProperty 'java.io.tmpdir', temporaryDirectory
     }
 }

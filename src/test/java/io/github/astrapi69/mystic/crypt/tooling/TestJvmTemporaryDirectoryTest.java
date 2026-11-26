@@ -27,6 +27,8 @@ package io.github.astrapi69.mystic.crypt.tooling;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import java.io.File;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +38,7 @@ import org.junit.jupiter.api.Test;
  * the libraries follow {@code java.io.tmpdir}, not the variable. The runs of {@code gradle.yml} and
  * {@code e2e.yml}, the release gate among them, start every step with {@code TMPDIR} on the
  * runner's work disk; this test reads what the test JVM got. It runs only where the build was
- * started with {@code TMPDIR}.
+ * started with a {@code TMPDIR} that names an existing absolute directory.
  */
 class TestJvmTemporaryDirectoryTest
 {
@@ -46,8 +48,10 @@ class TestJvmTemporaryDirectoryTest
 	void temporaryDirectory_isTmpdir_whenTheBuildWasStartedWithTmpdir()
 	{
 		String temporaryDirectory = System.getenv("TMPDIR");
-		assumeTrue(temporaryDirectory != null && !temporaryDirectory.isBlank(),
-			"the build was started without TMPDIR");
+		assumeTrue(
+			temporaryDirectory != null && new File(temporaryDirectory).isAbsolute()
+				&& new File(temporaryDirectory).isDirectory(),
+			"the build was started without TMPDIR naming an existing absolute directory");
 
 		assertEquals(temporaryDirectory, System.getProperty("java.io.tmpdir"));
 	}
