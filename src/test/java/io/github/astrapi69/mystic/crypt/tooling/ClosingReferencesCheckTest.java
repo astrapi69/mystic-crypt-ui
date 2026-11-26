@@ -239,67 +239,52 @@ class ClosingReferencesCheckTest
 	}
 
 	/**
-	 * Wrong types in the input, pinned as the script handles them today (develop 714c0e61, #555): a
-	 * traceback with exit 1 for most, a silent read of the wrong thing for the rest. The docstring
-	 * promises exit 2 "on input it cannot read"; the fix turns every row of this table to exit 2
-	 * and the first line "closing-references: cannot read the input".
+	 * Wrong types in the input: the docstring promises exit 2 "on input it cannot read", and an
+	 * input of the wrong type is such an input. Before the fix most rows ended in a traceback with
+	 * exit 1 and the rest were read as something else without a word (#555).
 	 */
-	record Today(String name, String repository, String body, String commits, String closing,
-		int exit, String outputStart) {
-		@Override
-		public String toString()
-		{
-			return name;
-		}
-	}
-
-	static Stream<Today> wrongTypes()
+	static Stream<Raw> wrongTypes()
 	{
 		String repository = "\"" + REPOSITORY + "\"";
-		String trace = "Traceback";
-		String read = "closing-references: ";
 		return Stream.of(
-			new Today("a body that is a number ends in a traceback", repository, "5", "[]", "[]", 1,
-				trace),
-			new Today("a body that is true ends in a traceback", repository, "true", "[]", "[]", 1,
-				trace),
-			new Today("a body that is a list ends in a traceback", repository, "[\"Closes #1\"]",
-				"[]", "[]", 1, trace),
-			new Today("a commit message of null ends in a traceback", repository, "\"\"", "[null]",
-				"[]", 1, trace),
-			new Today("a commit message that is a number ends in a traceback", repository, "\"\"",
-				"[5]", "[]", 1, trace),
-			new Today("a reported reference of null ends in a traceback", repository, "\"\"", "[]",
-				"[null]", 1, trace),
-			new Today("a reported reference that is a number ends in a traceback", repository,
-				"\"\"", "[]", "[5]", 1, trace),
-			new Today("a repository that is a list ends in a traceback", "[\"a\"]", "\"\"", "[]",
-				"[\"#1\"]", 1, trace),
-			new Today("a repository of null with a reference to read ends in a traceback", "null",
-				"\"Closes #1\"", "[]", "[]", 1, trace),
-			new Today("a repository of null passes when nothing is found", "null", "\"\"", "[]",
-				"[]", 0, read),
-			new Today("commits that are one string are read letter by letter and pass", repository,
-				"\"\"", "\"fix: x\\n\\nCloses #1\"", "[]", 0, read),
-			new Today("commits that are an object are read by their keys and pass", repository,
-				"\"\"", "{\"Closes #2\": 1}", "[]", 0, read),
-			new Today("reported references that are an object are read by their keys and refused",
-				repository, "\"\"", "[]", "{\"" + REPOSITORY + "#1\": 1}", 1, read),
-			new Today("a body that is an empty object is read as empty and passes", repository,
-				"{}", "[]", "[]", 0, read),
-			new Today("a body that is the number 0 is read as empty and passes", repository, "0",
-				"[]", "[]", 0, read));
+			new Raw("a body that is a number is unreadable", repository, "5", "[]", "[]", 2),
+			new Raw("a body that is true is unreadable", repository, "true", "[]", "[]", 2),
+			new Raw("a body that is a list is unreadable", repository, "[\"Closes #1\"]", "[]",
+				"[]", 2),
+			new Raw("a commit message of null is unreadable", repository, "\"\"", "[null]", "[]",
+				2),
+			new Raw("a commit message that is a number is unreadable", repository, "\"\"", "[5]",
+				"[]", 2),
+			new Raw("a reported reference of null is unreadable", repository, "\"\"", "[]",
+				"[null]", 2),
+			new Raw("a reported reference that is a number is unreadable", repository, "\"\"", "[]",
+				"[5]", 2),
+			new Raw("a repository that is a list is unreadable", "[\"a\"]", "\"\"", "[]",
+				"[\"#1\"]", 2),
+			new Raw("a repository of null with a reference to read is unreadable", "null",
+				"\"Closes #1\"", "[]", "[]", 2),
+			new Raw("a repository of null is unreadable", "null", "\"\"", "[]", "[]", 2),
+			new Raw("commits that are one string are unreadable", repository, "\"\"",
+				"\"fix: x\\n\\nCloses #1\"", "[]", 2),
+			new Raw("commits that are an object are unreadable", repository, "\"\"",
+				"{\"Closes #2\": 1}", "[]", 2),
+			new Raw("reported references that are an object are unreadable", repository, "\"\"",
+				"[]", "{\"" + REPOSITORY + "#1\": 1}", 2),
+			new Raw("a body that is an empty object is unreadable", repository, "{}", "[]", "[]",
+				2),
+			new Raw("a body that is the number 0 is unreadable", repository, "0", "[]", "[]", 2));
 	}
 
 	@ParameterizedTest(name = "{0}")
 	@MethodSource("wrongTypes")
-	void inputOfTheWrongType_isHandledAsTheScriptDoesToday(final Today today) throws Exception
+	void inputOfTheWrongType_isAFailureNotATraceback(final Raw raw) throws Exception
 	{
-		Run run = run(input(today.repository(), today.body(), today.commits(), today.closing()));
+		Run run = run(input(raw.repository(), raw.body(), raw.commits(), raw.closing()));
 
-		// the fix turns this: exit 2 and "closing-references: cannot read the input" for every row
-		assertEquals(today.exit(), run.exit(), run.output());
-		assertTrue(run.output().startsWith(today.outputStart()), run.output());
+		assertEquals(raw.exit(), run.exit(), run.output());
+		assertTrue(run.output().startsWith("closing-references: cannot read the input"),
+			run.output());
+		assertFalse(run.output().contains("Traceback"), run.output());
 	}
 
 	private static String input(final String body, final String commits, final String closing)

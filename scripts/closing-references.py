@@ -38,6 +38,8 @@ CLOSING_LINE = re.compile(
 
 ONE_REFERENCE = re.compile(r"(?:([A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+))?#(\d+)")
 
+REPOSITORY_NAME = re.compile(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+")
+
 
 def canonical(reference, repository):
     match = ONE_REFERENCE.fullmatch(reference.strip())
@@ -46,12 +48,32 @@ def canonical(reference, repository):
     return f"{(match.group(1) or repository).lower()}#{match.group(2)}"
 
 
+def list_of_strings(value, field):
+    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+        raise ValueError(f"{field} is not a list of strings")
+    return value
+
+
+def read_input(data):
+    """Returns the repository, the texts to search and the references GitHub reported; raises
+    ValueError for an input of the wrong shape or type."""
+    if not isinstance(data, dict):
+        raise ValueError("the input is not an object")
+    repository = data["repository"]
+    if not isinstance(repository, str) or not REPOSITORY_NAME.fullmatch(repository):
+        raise ValueError("repository is not a string of the form owner/name")
+    body = data["body"]
+    if body is not None and not isinstance(body, str):
+        raise ValueError("body is neither a string nor null")
+    commits = list_of_strings(data["commits"], "commits")
+    closing = list_of_strings(data["closing"], "closing")
+    return (repository, [body or ""] + commits,
+            [canonical(reference, repository) for reference in closing])
+
+
 def main():
     try:
-        data = json.load(sys.stdin)
-        repository = data["repository"]
-        texts = [data["body"] or ""] + list(data["commits"])
-        reported = [canonical(reference, repository) for reference in data["closing"]]
+        repository, texts, reported = read_input(json.load(sys.stdin))
     except (ValueError, KeyError, TypeError) as unreadable:
         print(f"closing-references: cannot read the input: {unreadable}")
         return 2
