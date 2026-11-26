@@ -198,14 +198,11 @@ jobs:
         if: ${{ inputs.force && !inputs.dependency-updates }}
         run: scripts/check-forced-run-results.sh "$(cat "$RUNNER_TEMP/forced-run-started")" build/test-results/test
       - name: Check for unused dependencies
-        # Reports a declared dependency nothing uses, in the host and in every plugin build that applies the
-        # dependency-analysis plugin (gradle/dependency-analysis.gradle, gradle/plugin-dependency-analysis.gradle).
-        # It reads the classes the build above compiled, so it runs after it. Report only until the last group of
-        # removals is merged (the maintainer's decision of 2026-11-18): no pull request may turn red through it, not
-        # even when the analysis itself fails, so the step may fail without failing the job. The pull request that
-        # sets the severity to "fail" removes continue-on-error
+        # Fails on a declared dependency nothing uses, in the host and in every plugin build
+        # (gradle/dependency-analysis.gradle, gradle/plugin-dependency-analysis.gradle). It reads the classes the
+        # build above compiled, so it runs after it. It was report only (continue-on-error) until the last group of
+        # removals was merged, the maintainer's decision of 2026-11-18; #1197 and #1200 were the last.
         if: ${{ !inputs.dependency-updates }}
-        continue-on-error: true
         run: make dependency-analysis
       - name: Upload the test reports
         # a failing UI test prints only its top stack frame to the console; the full trace lives in
