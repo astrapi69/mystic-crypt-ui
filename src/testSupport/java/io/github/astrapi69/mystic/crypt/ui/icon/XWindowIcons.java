@@ -37,12 +37,14 @@ import java.util.regex.Pattern;
 /**
  * Reads the icon a window carries on the X server, which is the icon a window manager shows in the
  * title bar, the task bar and the window switcher: the window's {@code _NET_WM_ICON}, found by the
- * window's title with {@code wmctrl -l} and read with {@code xprop} (#815). A window that carries
- * no icon of its own gets the one AWT takes from its owner, so this is what the user sees, not what
- * a Java property says.
+ * window's title in the X server's window tree ({@code xwininfo -root -tree}) and read with
+ * {@code xprop} (#815). A window that carries no icon of its own gets the one AWT takes from its
+ * owner, so this is what the user sees, not what a Java property says.
  * <p>
- * Both programs are part of every test display (the own-display plugin's harness waits for
- * {@code wmctrl}, and {@code xprop} comes with x11-utils), and both talk to the display the test
+ * The window tree comes from the X server itself. {@code wmctrl -l}, which this used first, reads
+ * the window manager's {@code _NET_CLIENT_LIST} and failed on develop for ten seconds in a row with
+ * "BadWindow" when that list still held a window that was gone (run 45830430466). Both programs
+ * used now come with x11-utils, which every test display has, and both talk to the display the test
  * JVM was given in {@code DISPLAY}.
  */
 public final class XWindowIcons
@@ -56,6 +58,10 @@ public final class XWindowIcons
 
 	private static final Pattern NUMBER = Pattern.compile("\\d+");
 
+	/** A window of the tree with a title: its id and its title */
+	private static final Pattern TREE_LINE = Pattern
+		.compile("\\s*(0x[0-9a-fA-F]+) \"(.*)\": \\(.*");
+
 	private XWindowIcons()
 	{
 	}
@@ -68,7 +74,7 @@ public final class XWindowIcons
 	 *            the window's title, exactly
 	 * @return 256 ARGB values
 	 * @throws IOException
-	 *             if {@code wmctrl} or {@code xprop} cannot be run
+	 *             if {@code xwininfo} or {@code xprop} cannot be run
 	 * @throws InterruptedException
 	 *             if the wait is interrupted
 	 * @throws IllegalStateException
@@ -92,13 +98,14 @@ public final class XWindowIcons
 	 *            the window's title, exactly
 	 * @return the icons; empty if the window carries none
 	 * @throws IOException
-	 *             if {@code wmctrl} or {@code xprop} cannot be run
+	 *             if {@code xwininfo} or {@code xprop} cannot be run
 	 * @throws InterruptedException
 	 *             if the wait is interrupted
 	 */
 	public static List<XIcon> iconsOf(final String title) throws IOException, InterruptedException
 	{
-		String windowId = awaitWindowId(title, () -> run("wmctrl", "-l"), WINDOW_TIMEOUT_MILLIS);
+		String windowId = awaitWindowId(title, () -> run("xwininfo", "-root", "-tree"),
+			WINDOW_TIMEOUT_MILLIS);
 		return parse(run("xprop", "-id", windowId, "-notype", "32c", "_NET_WM_ICON"));
 	}
 
@@ -154,15 +161,15 @@ public final class XWindowIcons
 
 	/**
 	 * The id of the window with the given title, reading the listing again until the window is in
-	 * it or the time is up. A listing that fails is read again too: {@code wmctrl -l} ends with
-	 * "BadWindow (invalid Window parameter)" when a window it has listed goes away before it reads
-	 * the window's title, which happens while the application starts and closes its splash screen
-	 * (develop {@code ad2471d2}, run 45821007085)
+	 * it or the time is up. A listing that fails is read again too: a program that walks the
+	 * windows ends with "BadWindow (invalid Window parameter)" when a window goes away while it
+	 * reads it, which happens while the application starts (develop {@code ad2471d2}, run
+	 * 45821007085)
 	 *
 	 * @param title
 	 *            the window's title, exactly
 	 * @param listing
-	 *            reads the current {@code wmctrl -l} listing
+	 *            reads the current {@code xwininfo -root -tree} listing
 	 * @param timeoutMillis
 	 *            how long to keep reading
 	 * @return the window's id
@@ -197,27 +204,27 @@ public final class XWindowIcons
 			Thread.sleep(POLL_MILLIS);
 		}
 		String lastRead = lastFailure == null
-			? "wmctrl -l listed:\n" + windows
-			: "the last wmctrl -l failed: " + lastFailure.getMessage();
+			? "xwininfo -root -tree listed:\n" + windows
+			: "the last xwininfo -root -tree failed: " + lastFailure.getMessage();
 		throw new IllegalStateException("no window titled '" + title + "' on the X server after "
 			+ timeoutMillis + " ms; " + lastRead, lastFailure);
 	}
 
 	/**
-	 * The id of the window with the given title in a {@code wmctrl -l} listing, whose lines are
-	 * {@code <id> <desktop> <host> <title>}
+	 * The id of the window with the given title in an {@code xwininfo -root -tree} listing, whose
+	 * lines are {@code <id> "<title>": (...)}; a window without a title is listed as
+	 * {@code (has no name)} and never matches
 	 *
 	 * @param listing
-	 *            what wmctrl printed
+	 *            what xwininfo printed
 	 * @param title
 	 *            the window's title, exactly
-	 * @return the id, or empty if no line carries that title
+	 * @return the id of the first window with that title, or empty if none has it
 	 */
 	static Optional<String> windowIdIn(final String listing, final String title)
 	{
-		return listing.lines().map(line -> line.trim().split("\\s+", 4))
-			.filter(fields -> fields.length == 4 && fields[3].equals(title))
-			.map(fields -> fields[0]).findFirst();
+		return listing.lines().map(TREE_LINE::matcher).filter(Matcher::matches)
+			.filter(line -> line.group(2).equals(title)).map(line -> line.group(1)).findFirst();
 	}
 
 	private static String run(final String... command) throws IOException, InterruptedException
@@ -243,7 +250,7 @@ public final class XWindowIcons
 	}
 
 	/**
-	 * Reads the window listing of the X server, the way {@code wmctrl -l} prints it
+	 * Reads the window tree of the X server, the way {@code xwininfo -root -tree} prints it
 	 */
 	@FunctionalInterface
 	interface WindowListing
@@ -252,7 +259,8 @@ public final class XWindowIcons
 		/**
 		 * The current listing
 		 *
-		 * @return one line per window: {@code <id> <desktop> <host> <title>}
+		 * @return one line per window: {@code <id> "<title>": ("<instance>" "<class>") <geometry>},
+		 *         or {@code <id> (has no name): ...} for a window without a title
 		 * @throws IOException
 		 *             if the listing cannot be read
 		 * @throws InterruptedException
