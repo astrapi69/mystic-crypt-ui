@@ -19,10 +19,21 @@ import zlib
 APPLICATION_CLASS = "io/github/astrapi69/mystic/crypt/StartMysticCryptApplication.class"
 
 
+def open_zip(source, what):
+    """The zip archive, or the exit with the reason when what is given is not a readable one"""
+    try:
+        return zipfile.ZipFile(source)
+    except (zipfile.BadZipFile, OSError) as error:
+        sys.exit(f"{what} cannot be read as a zip archive: {error}")
+
+
 def archives(installer, pack):
     """Every zip archive among the zlib streams of the given pack, in the order the installer holds them"""
-    with zipfile.ZipFile(installer) as outer:
-        data = outer.read("resources/packs/" + pack)
+    with open_zip(installer, installer) as outer:
+        try:
+            data = outer.read("resources/packs/" + pack)
+        except KeyError:
+            sys.exit(f"{installer} holds no resources/packs/{pack}")
     position = 0
     while position < len(data):
         stream = zlib.decompressobj()
@@ -40,10 +51,13 @@ def archives(installer, pack):
 
 def application_jar(installer, target, version):
     for chunk in archives(installer, "pack-executables"):
-        with zipfile.ZipFile(io.BytesIO(chunk)) as candidate:
+        with open_zip(io.BytesIO(chunk), "a zip in pack-executables") as candidate:
             if APPLICATION_CLASS not in candidate.namelist():
                 continue
-            manifest = candidate.read("META-INF/MANIFEST.MF").decode("utf-8", "replace")
+            try:
+                manifest = candidate.read("META-INF/MANIFEST.MF").decode("utf-8", "replace")
+            except KeyError:
+                sys.exit("the application jar in the installer holds no META-INF/MANIFEST.MF")
         declared = [line.split(":", 1)[1].strip() for line in manifest.splitlines()
                     if line.startswith("Implementation-Version:")]
         if declared != [version]:
@@ -58,7 +72,7 @@ def application_jar(installer, target, version):
 def plugins(installer):
     found = []
     for chunk in archives(installer, "pack-plugins"):
-        with zipfile.ZipFile(io.BytesIO(chunk)) as candidate:
+        with open_zip(io.BytesIO(chunk), "a zip in pack-plugins") as candidate:
             if "plugin.properties" not in candidate.namelist():
                 continue
             properties = candidate.read("plugin.properties").decode("utf-8", "replace")

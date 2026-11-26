@@ -256,14 +256,15 @@ class TestArguments(InstallerCase):
 
 
 class TestAnInstallerThatIsNotWhatItShouldBe(InstallerCase):
-    """The docstring of the script promises the reason on standard error. Today each case below ends in a traceback
-    instead (exit 1, the exception on standard error): the tests pin that, and the fix turns them to one line without
-    a traceback."""
+    """The docstring of the script promises the reason on standard error: one line, no traceback."""
 
-    def assertEndsInTraceback(self, run, exception):
+    def assertRefusedWithOneLine(self, run, *named):
+        lines = run.stderr.strip().splitlines()
         self.assertEqual(1, run.returncode, run.stderr)
-        self.assertIn("Traceback", run.stderr)
-        self.assertIn(exception, run.stderr)
+        self.assertNotIn("Traceback", run.stderr)
+        self.assertEqual(1, len(lines), run.stderr)
+        for text in named:
+            self.assertIn(text, lines[0])
 
     def test_refused_whenTheInstallerIsNotAZip(self):
         installer = self.directory / "installer.jar"
@@ -272,22 +273,19 @@ class TestAnInstallerThatIsNotWhatItShouldBe(InstallerCase):
         for arguments in (["plugins", str(installer)],
                           ["application-jar", str(installer), str(self.directory / "app.jar"), "9.9"]):
             with self.subTest(arguments[0]):
-                # the fix turns this: one line naming installer.jar
-                self.assertEndsInTraceback(self.run_script(*arguments), "BadZipFile")
+                self.assertRefusedWithOneLine(self.run_script(*arguments), "installer.jar")
 
     def test_refused_whenTheInstallerDoesNotExist(self):
         missing = self.directory / "missing.jar"
 
-        # the fix turns this: one line naming missing.jar
-        self.assertEndsInTraceback(self.run_script("plugins", str(missing)), "FileNotFoundError")
+        self.assertRefusedWithOneLine(self.run_script("plugins", str(missing)), "missing.jar")
 
     def test_refused_whenThePackOfThePluginsIsMissing(self):
         installer = self.directory / "installer.jar"
         with zipfile.ZipFile(installer, "w") as archive:
             archive.writestr("resources/packs/pack-executables", b"")
 
-        # the fix turns this: one line naming pack-plugins
-        self.assertEndsInTraceback(self.run_script("plugins", str(installer)), "KeyError")
+        self.assertRefusedWithOneLine(self.run_script("plugins", str(installer)), "pack-plugins")
 
     def test_refused_whenThePackOfTheExecutablesIsMissing(self):
         installer = self.directory / "installer.jar"
@@ -296,23 +294,20 @@ class TestAnInstallerThatIsNotWhatItShouldBe(InstallerCase):
 
         run = self.run_script("application-jar", str(installer), str(self.directory / "app.jar"), "9.9")
 
-        # the fix turns this: one line naming pack-executables
-        self.assertEndsInTraceback(run, "KeyError")
+        self.assertRefusedWithOneLine(run, "pack-executables")
 
     def test_refused_whenTheApplicationJarHasNoManifest(self):
         jar = zip_of({APPLICATION_CLASS: "class"})
 
         run, target = self.application_jar_of(streams(jar))
 
-        # the fix turns this: one line naming MANIFEST.MF
-        self.assertEndsInTraceback(run, "KeyError")
+        self.assertRefusedWithOneLine(run, "MANIFEST.MF")
         self.assertFalse(target.exists())
 
     def test_refused_whenAStreamStartsLikeAZipButIsNone(self):
         run = self.plugins_of(streams(b"PK\x03\x04 this is no zip"))
 
-        # the fix turns this: one line naming pack-plugins
-        self.assertEndsInTraceback(run, "BadZipFile")
+        self.assertRefusedWithOneLine(run, "pack-plugins")
 
 
 if __name__ == "__main__":
