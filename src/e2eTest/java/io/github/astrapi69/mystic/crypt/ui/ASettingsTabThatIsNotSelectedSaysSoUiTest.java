@@ -28,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.awt.KeyboardFocusManager;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -109,6 +110,27 @@ class ASettingsTabThatIsNotSelectedSaysSoUiTest extends AbstractUiTest
 			"the failure names the dialog, the tab, the pointer and the active window: " + message);
 		assertTrue(message.contains("after waiting: dialog 'dlgSettings' at " + where(dialog)),
 			"the failure reads them again when the step gives up: " + message);
+	}
+
+	@Test
+	@DisplayName("before the click the step makes the settings dialog the active window (#962)")
+	void theSettingsDialogIsTheActiveWindowBeforeTheClick() throws Exception
+	{
+		SignInDialogSteps signIn = launchApplication();
+		signIn.requireOkDisabled().cancel();
+		awaitApplicationInitialized();
+		ApplicationSteps application = new ApplicationSteps(robot);
+		DialogFixture settings = application.openSettingsDialog();
+		UiTestSpeed.awaitSettled(settings.target());
+
+		boolean active = UiTestSpeed.activate(settings.target());
+
+		assertTrue(active, "activate says the dialog became the active window");
+		assertEquals("dlgSettings",
+			GuiActionRunner.execute(() -> KeyboardFocusManager.getCurrentKeyboardFocusManager()
+				.getActiveWindow().getName()),
+			"the settings dialog is the active window when the step clicks: the click lost in CI "
+				+ "reached it while no window of the application was active");
 	}
 
 	@Test

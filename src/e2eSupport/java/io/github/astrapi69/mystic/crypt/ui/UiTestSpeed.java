@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import java.awt.AWTException;
+import java.awt.KeyboardFocusManager;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.Window;
@@ -58,6 +59,8 @@ final class UiTestSpeed
 	private static final int STABLE_READ_INTERVAL_MILLIS = 50;
 
 	private static final long PLACED_TIMEOUT_MILLIS = 5000;
+
+	private static final long ACTIVATE_TIMEOUT_MILLIS = 2000;
 
 	private UiTestSpeed()
 	{
@@ -119,6 +122,40 @@ final class UiTestSpeed
 		}
 		throw new AssertionError("the windows did not settle within " + PLACED_TIMEOUT_MILLIS
 			+ " ms, last bounds " + Arrays.toString(last) + " (#962, #1130)");
+	}
+
+	/**
+	 * Brings a window that was just placed to the front, asks for the focus and waits until it is
+	 * the active window, at most {@value #ACTIVATE_TIMEOUT_MILLIS} ms. The one lost click on a
+	 * settings tab that was caught with its diagnostics (#962, #1149, on 2026-11-24) reached a
+	 * dialog that was placed and aimed at right while no window of the application was active.
+	 * Measured in GitHub Actions on 2026-11-26 (run 45786751496, 100 rounds each after a fresh
+	 * sign-in): without this step the settings dialog was the active window before the click in 92
+	 * rounds and the main window in 8; with it the dialog was active in 100 of 100. A window that
+	 * does not become active in time is not a failure here: the click goes ahead, and the step's
+	 * own diagnostics name the active window if it is lost.
+	 *
+	 * @param window
+	 *            the window about to be clicked, showing and placed
+	 * @return whether it is the active window
+	 */
+	static boolean activate(final Window window)
+	{
+		GuiActionRunner.execute(() -> {
+			window.toFront();
+			window.requestFocus();
+		});
+		long deadline = System.currentTimeMillis() + ACTIVATE_TIMEOUT_MILLIS;
+		while (System.currentTimeMillis() < deadline)
+		{
+			if (GuiActionRunner.execute(() -> KeyboardFocusManager.getCurrentKeyboardFocusManager()
+				.getActiveWindow() == window))
+			{
+				return true;
+			}
+			Pause.pause(STABLE_READ_INTERVAL_MILLIS);
+		}
+		return false;
 	}
 
 	/**
