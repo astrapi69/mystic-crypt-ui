@@ -69,7 +69,7 @@ that is already on screen.
 ## 5. On the command line
 
 This plugin contributes no commands of its own, and no plugin in this application does: everything
-on the command line comes from the mystic-crypt library, reachable through `--cli` (see
+on the command line comes from the mystic-crypt library, reachable through `mystic-crypt` (see
 [[The-Command-Line]]). For hashing that is the library's `hash` and `verify` commands, and they
 cover all four algorithms the window offers: `argon2id`, `pbkdf2`, `bcrypt` and `scrypt`.
 
@@ -77,7 +77,7 @@ Hash a password. Leave the password out of the command, and it asks for it witho
 you type:
 
 ```
-$ java -jar mystic-crypt-ui.jar --cli hash
+$ mystic-crypt hash
 password:
 $argon2id$v=19$m=65536,t=3,p=1$p6mYmXxuA0xndrp97niMEA$qsK7vV6sDSFtZNs7DHyn+1I0VE9dmBpmlCqaXBq21Ws
 ```
@@ -86,13 +86,13 @@ $argon2id$v=19$m=65536,t=3,p=1$p6mYmXxuA0xndrp97niMEA$qsK7vV6sDSFtZNs7DHyn+1I0VE
 `scrypt`):
 
 ```
-$ java -jar mystic-crypt-ui.jar --cli hash --algorithm pbkdf2
+$ mystic-crypt hash --algorithm pbkdf2
 password:
 $pbkdf2-sha256$i=600000$as4rKeL+G5fLthQfkHt9Hw$hK4je0cOc5F0ne0xRbNHJMnLtq6DDftK0RLzGN5dhCQ
-$ java -jar mystic-crypt-ui.jar --cli hash -a bcrypt
+$ mystic-crypt hash -a bcrypt
 password:
 $2y$10$DY49RN9EgbDAsBTDOcfH5etNVTgP7QS8OT/zganBsw0l2iyVWS99W
-$ java -jar mystic-crypt-ui.jar --cli hash -a scrypt
+$ mystic-crypt hash -a scrypt
 password:
 $scrypt$ln=15,r=8,p=1$nX97LcDhLO2zI+pO1PLOhw$EO6vJ5RGd0eS3XewIaXRTEeKG410tn2Zq4rVWIKdB8o
 ```
@@ -110,7 +110,7 @@ the answer is the one it found. Put the hash in single quotes, otherwise the she
 signs:
 
 ```
-$ java -jar mystic-crypt-ui.jar --cli verify --hash '$argon2id$v=19$m=65536,t=3,p=1$p6mYmXxuA0xndrp97niMEA$qsK7vV6sDSFtZNs7DHyn+1I0VE9dmBpmlCqaXBq21Ws'
+$ mystic-crypt verify --hash '$argon2id$v=19$m=65536,t=3,p=1$p6mYmXxuA0xndrp97niMEA$qsK7vV6sDSFtZNs7DHyn+1I0VE9dmBpmlCqaXBq21Ws'
 password:
 matches (ARGON2ID)
 $ echo $?
@@ -136,8 +136,8 @@ knows and exits with 2.
   The **Hash:** area is emptied at the same time, so no half-valid value stays on screen. Note
   that 72 is bytes, not characters: umlauts, accents and emoji count for more than one each.
   Argon2id, PBKDF2 and scrypt take a long passphrase in full, and every character of it counts.
-  The command line does not refuse: `--cli hash -a bcrypt` hashes a longer password without a word,
-  and `--cli verify` then accepts any password that shares its first 72 bytes. Use Argon2id or
+  The command line does not refuse: `mystic-crypt hash -a bcrypt` hashes a longer password without a word,
+  and `mystic-crypt verify` then accepts any password that shares its first 72 bytes. Use Argon2id or
   scrypt there for anything that long.
 - **The same password hashed twice gives two different hashes.** That is the point: every hash
   gets a fresh random salt, so two accounts with the same password do not look the same in your
@@ -165,10 +165,10 @@ knows and exits with 2.
   it as it stands. The Argon2id, PBKDF2 and bcrypt values are in their usual encoded forms and
   travel fine.
 - **The command line takes all four algorithms, but not the window's scrypt form.** An Argon2id,
-  PBKDF2 or bcrypt hash made in the window is checked by `--cli verify` as it stands. A scrypt
+  PBKDF2 or bcrypt hash made in the window is checked by `mystic-crypt verify` as it stands. A scrypt
   hash is not: the command line writes and reads the library's `$scrypt$ln=15,r=8,p=1$` form, at
   N=32768, while the window writes the `scrypt$16384$8$1$` form described above, at N=16384.
-  Handed the window's value, `--cli verify` answers `error: ... is not an encoded hash of a known
+  Handed the window's value, `mystic-crypt verify` answers `error: ... is not an encoded hash of a known
   algorithm: it starts with none of $argon2id$, $pbkdf2-sha256$, $scrypt$, $2a$, $2b$ or $2y$` and
   exits with 2. The other way round, the window does not recognise the command line's `$scrypt$`
   value as scrypt and answers `this does not look like a hash any of these algorithms made`.
@@ -183,7 +183,7 @@ knows and exits with 2.
 
 The hashing and the checking are done by the mystic-crypt library and BouncyCastle, nothing is
 implemented in the tool itself except the way an scrypt result is written down. With the library
-version this ships with (mystic-crypt 13.9) the parameters are: Argon2id with 3 passes over 64 MB
+version this ships with (mystic-crypt 13.11.1) the parameters are: Argon2id with 3 passes over 64 MB
 at parallelism 1, a 16 byte random salt and a 32 byte hash; PBKDF2 with HMAC-SHA256 over 600000
 iterations, a 16 byte salt and a 256 bit result; bcrypt at 2^10 rounds; scrypt at N=16384, r=8,
 p=1 with a 16 byte salt and a 32 byte hash. The command line uses the same values, except for

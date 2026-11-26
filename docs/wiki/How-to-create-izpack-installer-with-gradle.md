@@ -87,7 +87,7 @@ panels `HelloPanel`, `HTMLInfoPanel` (with `src/main/izpack/installation.html`),
 | Pack | Required | What it installs |
 |---|---|---|
 | `executables` | yes | The signed jar as `mystic-crypt-ui.jar`, `start.sh` and `start.bat`, `CHANGELOG.md`, `LICENSE`, `installation.html`, the icon, and a desktop entry in `~/.local/share/applications`. |
-| `commandline` | no, preselected | The `mystic-crypt` and `mystic-crypt.bat` launchers of the command line, see [[The-Command-Line]]. |
+| `commandline` | no, preselected | The `mystic-crypt` and `mystic-crypt.bat` starters of the command line, which run the `--cli` path with the plugins; on Linux and macOS the installer links `mystic-crypt` as `~/.local/bin/mystic-crypt`, see [[The-Command-Line]]. |
 | `plugins` | no, preselected | The zip of every internal plugin into `~/.config/mystic-crypt-ui/plugins`, and the licences of the libraries the Lethenon plugin bundles. |
 
 The plugin set of the `plugins` pack is the Makefile's `plugins:` list without the Menu Designer,

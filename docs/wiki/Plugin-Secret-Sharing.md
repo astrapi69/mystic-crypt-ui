@@ -89,11 +89,11 @@ given explicitly.
 
 Splitting and combining are commands of the mystic-crypt library, not of this plugin: `share`,
 with the subcommands `split` and `combine`. They are there whether or not the secret sharing
-plugin is installed. Reach them through the application jar with the `--cli` switch, from the
-directory the application was installed into (see [[The-Command-Line]]):
+plugin is installed. Reach them through the `mystic-crypt` command (see
+[[The-Command-Line]]):
 
 ```
-java -jar mystic-crypt-ui.jar --cli share
+mystic-crypt share
 ```
 
 Called without a subcommand it prints its usage:
@@ -110,9 +110,7 @@ Commands:
              shares do not reconstruct a secret, 2 = error.
 ```
 
-`--help` works on the command and on both subcommands. Because `share` comes from the library, the
-separate `mystic-crypt` launcher script reaches it as well, there without the `--cli` switch and
-without loading any plugin.
+`--help` works on the command and on both subcommands.
 
 **The shares of the command line and the shares of the window are not the same shares.** The
 window writes `MCSS1$...` lines, the library writes `mcs1:...` lines, and neither side reads the
@@ -154,7 +152,7 @@ Leave the secret out, and the command asks for it in the terminal without showin
 then prints one share per line:
 
 ```
-$ java -jar mystic-crypt-ui.jar --cli share split -t 3 -n 5
+$ mystic-crypt share split -t 3 -n 5
 secret:
 mcs1:45cae493ecc3f0f2:3:5:1:Z0GiMVnUOgJgDnWVN3cZNww:d0806efc
 mcs1:45cae493ecc3f0f2:3:5:2:vZgxd_DEAeUYvRkEnpvQoPY:0ce48cd3
@@ -173,7 +171,7 @@ Split a file rather than a typed secret with `--file`, and write the shares stra
 with `-o`:
 
 ```
-java -jar mystic-crypt-ui.jar --cli share split --file ~/keys/master.key -t 3 -n 5 -o ~/shares.txt
+mystic-crypt share split --file ~/keys/master.key -t 3 -n 5 -o ~/shares.txt
 ```
 
 ```
@@ -206,7 +204,7 @@ not reconstruct a secret, 2 = error.
 Give `--share` once per share, each one quoted so the shell hands it over untouched:
 
 ```
-java -jar mystic-crypt-ui.jar --cli share combine \
+mystic-crypt share combine \
   --share 'mcs1:45cae493ecc3f0f2:3:5:1:Z0GiMVnUOgJgDnWVN3cZNww:d0806efc' \
   --share 'mcs1:45cae493ecc3f0f2:3:5:3:u7ezI9FxVpcU1kzizI-78o4:66870e4d' \
   --share 'mcs1:45cae493ecc3f0f2:3:5:5:qSC4y1f4x-wjnX3NvfGNOcA:b94c15f8'
@@ -219,7 +217,7 @@ an example secret
 Or read them from a file, one share per line, and write the result to a file:
 
 ```
-java -jar mystic-crypt-ui.jar --cli share combine --file ~/shares.txt -o ~/master.key
+mystic-crypt share combine --file ~/shares.txt -o ~/master.key
 ```
 
 ```

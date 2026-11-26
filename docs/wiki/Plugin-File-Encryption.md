@@ -94,10 +94,9 @@ the list on the left. Change the value in the right-hand column and press **Appl
 
 The same job is done by two commands of the mystic-crypt library, `encrypt` and `decrypt`. They
 are not contributed by this plugin, they belong to the application itself, so they are there
-whether the plugin is installed or not. Start them through the application jar with `--cli` as
-the first argument (`java -jar mystic-crypt-ui.jar --cli ...`, from the installation
-directory), or through the `mystic-crypt` launcher the installer's *Command-line interface* pack
-puts next to it; see [[The-Command-Line]]. Both commands take the same options:
+whether the plugin is installed or not. Start them through the `mystic-crypt` command the
+installer's *Command-line interface* pack provides; see [[The-Command-Line]]. Both commands take
+the same options:
 
 ```
   -i, --in=<in>            The file to encrypt, or '-' for standard input.
@@ -124,11 +123,11 @@ without `-o` the result is printed instead of written. The line that reports wha
 goes to standard error.
 
 ```console
-$ java -jar mystic-crypt-ui.jar --cli encrypt -i notes.txt -o notes.txt.enc
+$ mystic-crypt encrypt -i notes.txt -o notes.txt.enc
 passphrase:
 encrypted 12 bytes to notes.txt.enc
 
-$ java -jar mystic-crypt-ui.jar --cli decrypt -i notes.txt.enc -o recovered.txt
+$ mystic-crypt decrypt -i notes.txt.enc -o recovered.txt
 passphrase:
 decrypted 12 bytes to recovered.txt
 ```
@@ -137,7 +136,7 @@ In a script, where there is no terminal to ask in, `--passphrase-stdin` reads th
 the first line of standard input, here from a file only you can read:
 
 ```console
-$ java -jar mystic-crypt-ui.jar --cli encrypt -i notes.txt -o notes.txt.enc --passphrase-stdin < passphrase.txt
+$ mystic-crypt encrypt -i notes.txt -o notes.txt.enc --passphrase-stdin < passphrase.txt
 encrypted 12 bytes to notes.txt.enc
 ```
 
@@ -145,11 +144,11 @@ Encrypting a text with `-t`; the result is one line of Base64 on standard output
 redirected into a file or piped onward, and `decrypt -t` takes it back:
 
 ```console
-$ java -jar mystic-crypt-ui.jar --cli encrypt -t "a short note"
+$ mystic-crypt encrypt -t "a short note"
 passphrase:
 TUNGSUxFVoJ/pOjfIk6qt3SGl4dDpAAJJ8C1EJ9n/Jopl4LLCh3XdHNI/FjzDSGqGfvfw759xuQoWRNfk6Ddv6CzjvoLT4X8/+8isk5uqLziC7m/NAdIp+SVeUqEQVxkgyY=
 
-$ java -jar mystic-crypt-ui.jar --cli decrypt -t "TUNGSUxFVoJ/pOjfIk6qt3SGl4dDpAAJJ8C1EJ9n/Jopl4LLCh3XdHNI/FjzDSGqGfvfw759xuQoWRNfk6Ddv6CzjvoLT4X8/+8isk5uqLziC7m/NAdIp+SVeUqEQVxkgyY="
+$ mystic-crypt decrypt -t "TUNGSUxFVoJ/pOjfIk6qt3SGl4dDpAAJJ8C1EJ9n/Jopl4LLCh3XdHNI/FjzDSGqGfvfw759xuQoWRNfk6Ddv6CzjvoLT4X8/+8isk5uqLziC7m/NAdIp+SVeUqEQVxkgyY="
 passphrase:
 a short note
 ```

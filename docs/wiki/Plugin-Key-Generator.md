@@ -89,19 +89,19 @@ applies: `RSA` for the algorithm, `KEYSIZE_2048` for the key size.
 ## On the command line
 
 This plugin contributes no commands of its own. The closest thing is the `keygen` command that
-comes from the mystic-crypt library and is available through the application's `--cli` switch.
+comes from the mystic-crypt library and is available through the `mystic-crypt` command.
 
 Written to files, nothing is printed and the exit code is 0:
 
 ```
-java -jar mystic-crypt-ui.jar --cli keygen --algorithm X25519 \
+mystic-crypt keygen --algorithm X25519 \
   --out-private private.pem --out-public public.pem
 ```
 
 Without `--out-private` and `--out-public` both keys go to standard output, the private key first:
 
 ```
-$ java -jar mystic-crypt-ui.jar --cli keygen -a RSA -s 2048
+$ mystic-crypt keygen -a RSA -s 2048
 -----BEGIN PRIVATE KEY-----
 ...
 -----END PRIVATE KEY-----

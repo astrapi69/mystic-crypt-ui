@@ -116,14 +116,13 @@ what it started with; the next **Key Status** window starts with the new values.
 ## On the command line
 
 The same reading is a command of the mystic-crypt library, `release-key status`. It is there whether
-or not the plugin is installed, and it needs no open database. Reach it through the application jar
-with the `--cli` switch, from the directory the application was installed into (see
-[[The-Command-Line]]):
+or not the plugin is installed, and it needs no open database. Reach it through the `mystic-crypt`
+command (see [[The-Command-Line]]):
 
 ```
-java -jar mystic-crypt-ui.jar --cli release-key status
-java -jar mystic-crypt-ui.jar --cli release-key status --home /media/offline/gnupg --key 0x89ABCDEF01234567
-java -jar mystic-crypt-ui.jar --cli release-key status --json
+mystic-crypt release-key status
+mystic-crypt release-key status --home /media/offline/gnupg --key 0x89ABCDEF01234567
+mystic-crypt release-key status --json
 ```
 
 `--home` is the GnuPG home (default `GNUPGHOME`, else `~/.gnupg`), `--key` the one certificate to

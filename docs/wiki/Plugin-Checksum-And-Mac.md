@@ -131,13 +131,14 @@ the application: everything on the command line comes from the mystic-crypt libr
 that covers this tool is `checksum`, and the installer places it next to the application as
 `mystic-crypt` (`mystic-crypt.bat` on Windows) if you selected the *Command-line interface* pack.
 It answers both of this page's questions: a plain digest by default, and with `--hmac` a keyed MAC.
-See [[The-Command-Line]] for the other ways to start it.
+See [[The-Command-Line]] for where it is installed, how to reach it from any directory and the
+way without an installation.
 
 ### Has the file changed at all: the plain digest
 
 ```bash
 printf 'abc' > /tmp/abc.txt
-./mystic-crypt checksum -a SHA-256 /tmp/abc.txt
+mystic-crypt checksum -a SHA-256 /tmp/abc.txt
 ```
 
 It prints one line, the value first so that it stays the first whitespace separated field the way
@@ -159,7 +160,7 @@ Add `--hmac`, and the same command answers the other question instead. Without a
 asks for the key in the terminal, without showing what you type:
 
 ```console
-$ ./mystic-crypt checksum --hmac /tmp/abc.txt
+$ mystic-crypt checksum --hmac /tmp/abc.txt
 MAC key:
 <64 hex digits>  HmacSHA256 keyed digest of /tmp/abc.txt
 ```
@@ -168,7 +169,7 @@ In a script, `--key-stdin` reads the key from the first line of standard input i
 example from a file only you can read:
 
 ```bash
-./mystic-crypt checksum --hmac --key-stdin /tmp/abc.txt < mac-key.txt
+mystic-crypt checksum --hmac --key-stdin /tmp/abc.txt < mac-key.txt
 ```
 
 With `--hmac`, `-a` names a MAC rather than a digest and defaults to `HmacSHA256`; `HmacSHA512`,
@@ -190,11 +191,11 @@ The key is used exactly as the window uses it, its characters as UTF-8, so the s
 same key produce the same code on both sides, and the plain digest of a file is the one the
 **Checksum** tab shows for it.
 
-Run `./mystic-crypt checksum --help` for the full usage.
+Run `mystic-crypt checksum --help` for the full usage.
 
 One limit still applies to both halves: the command takes a **file**, never a piece of typed text,
 so the **Text** input of either tab has no counterpart on the command line, and the command
-writes no checksum file. The desktop application started with `--cli` as its first argument runs
+writes no checksum file. The desktop application started through the `mystic-crypt` command runs
 the same commands. A plugin may still add a command of its own through the plugin command
 extension point, but none of the installed ones does.
 

@@ -2,8 +2,8 @@
 
 Much of what mystic-crypt-ui does with keys, hashes, checksums and signatures is also reachable
 from a terminal, without opening a window at all. The command line is the same application: one
-jar, one `--cli` switch, and the commands of the mystic-crypt library the desktop app is built on,
-mystic-crypt 13.9 in this release.
+`mystic-crypt` command, and behind it the commands of the mystic-crypt library the desktop app is
+built on, mystic-crypt 13.11.1 in this release.
 
 This page shows how to start it, how to hand it a password without exposing it, where the
 commands come from, which commands and options exist, and what three of them look like in
@@ -11,14 +11,47 @@ practice.
 
 ## 1. Starting it
 
-### The runnable jar with `--cli`
+### The `mystic-crypt` command
+
+The installer offers an optional pack, "Command-line interface (the 'mystic-crypt' console
+tool)". It installs a small starter next to the jar: `mystic-crypt` for Linux and macOS,
+`mystic-crypt.bat` for Windows. Every example in this wiki calls it:
+
+```
+mystic-crypt hash --algorithm argon2id
+mystic-crypt kem --algorithm hybrid
+```
+
+The starter runs exactly what `java -jar mystic-crypt-ui.jar --cli` runs (see below), so the
+commands the installed plugins contribute are there next to the library's. Arguments, standard
+input and the exit code of the command pass through unchanged. It finds the installation from its
+own path, so it works from any directory.
+
+**Linux and macOS.** After the installation the installer links the starter as
+`~/.local/bin/mystic-crypt`. Where `~/.local/bin` is not on your `PATH`, add it, for example with
+this line in `~/.profile` or `~/.bashrc`, and open a new terminal:
+
+```
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+**Windows.** The installer puts nothing on the `PATH`. Call `mystic-crypt.bat` in the
+installation folder, by its full path or from that folder:
+
+```
+mystic-crypt.bat kem --algorithm hybrid
+```
+
+On Windows, the examples of this wiki written as `mystic-crypt <command>` are therefore
+`mystic-crypt.bat <command>` there.
+
+### Without an installation: the runnable jar with `--cli`
 
 `make build` packages the runnable jar with all its dependencies into
 `build/libs/mystic-crypt-ui-<version>-all.jar` (the version comes from `projectVersion` in
 `gradle.properties`). After an installation, the same jar sits in the installation directory
-under the name `mystic-crypt-ui.jar`, which is the name the examples on this page use.
-
-Put `--cli` first, then the command and its options:
+under the name `mystic-crypt-ui.jar`, which is the name used here. Put `--cli` first, then the
+command and its options:
 
 ```
 java -jar mystic-crypt-ui.jar --cli checksum --algorithm SHA-256 notes.txt
@@ -37,36 +70,19 @@ plugins again.
 To see the whole list of commands that your installation actually offers:
 
 ```
-java -jar mystic-crypt-ui.jar --cli --help
+mystic-crypt --help
 ```
 
 Every command has its own help, and so does every subcommand; `help <command>` prints the same:
 
 ```
-java -jar mystic-crypt-ui.jar --cli encrypt --help
-java -jar mystic-crypt-ui.jar --cli share split --help
-java -jar mystic-crypt-ui.jar --cli help keyx
+mystic-crypt encrypt --help
+mystic-crypt share split --help
+mystic-crypt help keyx
 ```
 
 `-V` or `--version` works on every command and prints `mystic-crypt CLI 1.0`. That text is fixed in
 the library and does not change with its version.
-
-### The `mystic-crypt` launcher scripts
-
-The installer offers an optional pack, "Command-line interface (the 'mystic-crypt' console
-tool)". It installs two small launcher scripts next to the jar: `mystic-crypt` for Unix-like
-systems and `mystic-crypt.bat` for Windows. They pass everything through to the command line, so
-there is no `--cli` and no `java -jar` to type:
-
-```
-./mystic-crypt hash --algorithm argon2id
-mystic-crypt.bat kem --algorithm hybrid
-```
-
-The launcher scripts run the mystic-crypt library's entry point straight out of the jar. Since
-every command comes from the library, their `--help` lists the same commands as the jar's. What
-they leave out is the plugin system: no plugin is loaded, so a command contributed by a plugin you
-installed yourself is missing there, and for that one, go through the jar with `--cli`.
 
 ### Passwords, passphrases and other secrets
 
@@ -78,7 +94,7 @@ secret to split). Each takes it in one of two ways that keep it off the command 
 what you type: `password: `, `MAC key: `, `passphrase: `, `key store password: ` or `secret: `.
 
 ```
-$ java -jar mystic-crypt-ui.jar --cli hash
+$ mystic-crypt hash
 password:
 $argon2id$v=19$m=65536,t=3,p=1$p6mYmXxuA0xndrp97niMEA$qsK7vV6sDSFtZNs7DHyn+1I0VE9dmBpmlCqaXBq21Ws
 ```
@@ -99,7 +115,7 @@ which is built into the shell and therefore never shows up in the process list:
 
 ```
 read -rs -p 'key store password: ' STORE_PASSWORD; echo
-printf '%s\n' "$STORE_PASSWORD" | java -jar mystic-crypt-ui.jar --cli keystore list --file my.p12 --password-stdin > entries.txt
+printf '%s\n' "$STORE_PASSWORD" | mystic-crypt keystore list --file my.p12 --password-stdin > entries.txt
 ```
 
 A file only you can read works as well: `--password-stdin < store-password.txt`.
@@ -116,7 +132,7 @@ The result of a command goes to standard output and nothing else does, so redire
 usable file:
 
 ```
-java -jar mystic-crypt-ui.jar --cli checksum --algorithm SHA-256 notes.txt > notes.sha256
+mystic-crypt checksum --algorithm SHA-256 notes.txt > notes.sha256
 ```
 
 Everything else goes to standard error: the reports of a command that wrote a file
@@ -124,17 +140,29 @@ Everything else goes to standard error: the reports of a command that wrote a fi
 no file leaves standard error empty; the plugins and the plugin system say nothing on their own
 (#986). Warnings and errors still come, from a command and from a plugin alike.
 
-`-Dmystic.crypt.ui.cli.verbose=true` (before `-jar`) asks for more: every installed plugin logs a
-line when it is started and another when it is stopped, the plugin system writes its debug lines,
-and without a plugins directory the command line says where it looked. All of it goes to standard
-error, so redirected output stays the same.
+The system property `mystic.crypt.ui.cli.verbose=true` asks for more: every installed plugin logs
+a line when it is started and another when it is stopped, the plugin system writes its debug
+lines, and without a plugins directory the command line says where it looked. All of it goes to
+standard error, so redirected output stays the same. A system property is given to `java` before
+`-jar`, so this is one of the two places that need the long form of the previous section; the
+`mystic-crypt` starter passes no system properties:
+
+```
+java -Dmystic.crypt.ui.cli.verbose=true -jar mystic-crypt-ui.jar --cli checksum --algorithm SHA-256 notes.txt
+```
 
 ### Which plugins the command line loads
 
 By default it reads the same plugins directory the desktop app uses,
 `~/.config/mystic-crypt-ui/plugins` (see [Install a plugin](install-a-plugin)). Point it
-somewhere else with `-Dmystic.crypt.ui.plugins.dir=/path/to/plugins`, which is handy for trying
-out a freshly built plugin without installing it.
+somewhere else with the system property `mystic.crypt.ui.plugins.dir=/path/to/plugins`, which is
+handy for trying out a freshly built plugin without installing it. This is the second place that
+needs the long form, for the same reason as above (the `mystic-crypt` starter passes no system
+properties):
+
+```
+java -Dmystic.crypt.ui.plugins.dir=/path/to/plugins -jar mystic-crypt-ui.jar --cli --help
+```
 
 ## 2. Where the commands come from
 
@@ -149,7 +177,7 @@ first, never forked into the user interface.
 A plugin may still add a command of its own for what the library does not cover, through the
 `PluginCommandContribution` extension point: it contributes picocli commands, which are then added
 to the library's root command. **None of the plugins that ship with the application uses that
-extension point**; with all of them installed, `--cli --help` lists exactly the library's commands.
+extension point**; with all of them installed, `mystic-crypt --help` lists exactly the library's commands.
 Several plugins have a command line counterpart in the library instead: the file encryption tool in
 `encrypt` and `decrypt`, the secret sharing tool in `share`, the key exchange tool in `keyx`, the
 password hashing tool in `hash` and `verify`, the obfuscation tool in `obfuscate` and
@@ -170,7 +198,7 @@ command line down:
 
 ## 3. The available commands
 
-The list below is the library's root command in mystic-crypt 13.9. Run `--cli --help` to see what
+The list below is the library's root command in mystic-crypt 13.11.1. Run `mystic-crypt --help` to see what
 *your* installation offers, which is the authoritative list.
 
 | Command | What it does |
@@ -195,7 +223,7 @@ The list below is the library's root command in mystic-crypt 13.9. Run `--cli --
 | `release-key` | Show the state of an OpenPGP release key in a GnuPG home, read with Bouncy Castle: nothing is written to the home and gpg is never run. |
 | `help` | Display help information about the specified command. |
 
-`keystore`, `share`, `keyx` and `release-key` group their work into subcommands; `--cli keystore
+`keystore`, `share`, `keyx` and `release-key` group their work into subcommands; `mystic-crypt keystore
 --help` and its siblings list them.
 
 ### The options of each command
@@ -279,7 +307,7 @@ plugins contributes a command. The rules below are what to expect from a plugin 
 install yourself, whose command is only there while the plugin is installed **and** enabled:
 
 - A plugin that is not in the plugins directory contributes nothing. Its command is simply
-  absent from `--cli --help`, and using it ends in `Unmatched argument at index 0: 'mine'`,
+  absent from `mystic-crypt --help`, and using it ends in `Unmatched argument at index 0: 'mine'`,
   followed by the usage of the root command, with exit code 2.
 - A plugin that is disabled under **File > Settings...**, tab **Plugins**, is not started, so its
   commands are gone too. That state is kept in a `disabled.txt` in the plugins directory and
@@ -300,7 +328,7 @@ file encryption tool's window offers.
 command asks for it:
 
 ```
-$ java -jar mystic-crypt-ui.jar --cli encrypt --in notes.txt --out notes.txt.enc
+$ mystic-crypt encrypt --in notes.txt --out notes.txt.enc
 passphrase:
 encrypted 29 bytes to notes.txt.enc
 ```
@@ -308,7 +336,7 @@ encrypted 29 bytes to notes.txt.enc
 Decrypting takes the file back:
 
 ```
-$ java -jar mystic-crypt-ui.jar --cli decrypt --in notes.txt.enc --out notes-again.txt
+$ mystic-crypt decrypt --in notes.txt.enc --out notes-again.txt
 passphrase:
 decrypted 29 bytes to notes-again.txt
 ```
@@ -323,11 +351,11 @@ is free.
 **A text.** Use `--text` instead of `--in`, and the result is printed instead of written:
 
 ```
-$ java -jar mystic-crypt-ui.jar --cli encrypt --text "meet at six"
+$ mystic-crypt encrypt --text "meet at six"
 passphrase:
 TUNGSUxF5BefKqDjb6SVM8l2mdJ/7Q...
 
-$ java -jar mystic-crypt-ui.jar --cli decrypt --text "<the base64 text encrypt printed>"
+$ mystic-crypt decrypt --text "<the base64 text encrypt printed>"
 passphrase:
 meet at six
 ```
@@ -353,7 +381,7 @@ together again. The secret sharing tool's window does the same with shares of it
 Leave the secret out, and the command asks for it:
 
 ```
-$ java -jar mystic-crypt-ui.jar --cli share split --threshold 3 --shares 5 --out shares.txt
+$ mystic-crypt share split --threshold 3 --shares 5 --out shares.txt
 secret:
 wrote 5 shares to shares.txt; any 3 of them reconstruct the secret
 ```
@@ -377,13 +405,13 @@ separately: whoever collects the threshold number of them can rebuild the secret
 file with `--file`:
 
 ```
-$ java -jar mystic-crypt-ui.jar --cli share combine \
+$ mystic-crypt share combine \
     --share='mcs1:45cae493ecc3f0f2:3:5:1:Z0GiMVnUOgJgDnWVN3cZNww:d0806efc' \
     --share='mcs1:45cae493ecc3f0f2:3:5:3:u7ezI9FxVpcU1kzizI-78o4:66870e4d' \
     --share='mcs1:45cae493ecc3f0f2:3:5:5:qSC4y1f4x-wjnX3NvfGNOcA:b94c15f8'
 an example secret
 
-$ java -jar mystic-crypt-ui.jar --cli share combine --file shares.txt
+$ mystic-crypt share combine --file shares.txt
 an example secret
 ```
 
@@ -401,7 +429,7 @@ two machines.
 and stays there; `--public` writes the public half to a file, which can then be handed out:
 
 ```
-$ java -jar mystic-crypt-ui.jar --cli keyx new --key alice.key --public alice.pub
+$ mystic-crypt keyx new --key alice.key --public alice.pub
 algorithm: ML-KEM-768
 private key written to alice.key - this file is the secret half, hand out only the public one
 public key written to alice.pub
@@ -424,7 +452,7 @@ file; `--message` and `--encrypted` optionally add a message encrypted with the 
 just derived:
 
 ```
-$ java -jar mystic-crypt-ui.jar --cli keyx send --recipient alice.pub --message "meet at six" --out handshake.txt --encrypted message.enc
+$ mystic-crypt keyx send --recipient alice.pub --message "meet at six" --out handshake.txt --encrypted message.enc
 algorithm: ML-KEM-768
 handshake written to handshake.txt
 shared secret fingerprint: 99973411 - read it out to the other side to check that both match
@@ -443,7 +471,7 @@ the handshake into the secret, because that takes `alice.key`.
 that came back:
 
 ```
-$ java -jar mystic-crypt-ui.jar --cli keyx receive --key alice.key --handshake handshake.txt --encrypted message.enc
+$ mystic-crypt keyx receive --key alice.key --handshake handshake.txt --encrypted message.enc
 algorithm: ML-KEM-768
 shared secret fingerprint: 99973411 - it must match the one the other side read out
 message: meet at six

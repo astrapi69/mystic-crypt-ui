@@ -138,7 +138,7 @@ always 2048 bits for RSA with a certificate valid for 365 days.
 ## 5. On the command line
 
 This plugin contributes no commands of its own. Key stores are covered by the `keystore` command
-of the mystic-crypt library, which the application makes available through `--cli`, with the
+of the mystic-crypt library, which the application makes available through the `mystic-crypt` command, with the
 subcommands `list`, `create`, `add-keypair`, `import-cert`, `export-cert` and `delete`.
 
 Every subcommand takes the store with `-f`/`--file` and `-t`/`--type` (PKCS12, JKS or JCEKS,
@@ -151,11 +151,11 @@ error and goes away in mystic-crypt 14.0.
 Create a store and put a key pair into it:
 
 ```console
-$ java -jar mystic-crypt-ui.jar --cli keystore create -f demo.p12
+$ mystic-crypt keystore create -f demo.p12
 key store password:
 created demo.p12
 
-$ java -jar mystic-crypt-ui.jar --cli keystore add-keypair \
+$ mystic-crypt keystore add-keypair \
     -f demo.p12 -a server -d "CN=my-server, O=example"
 key store password:
 added 'server' (RSA)
@@ -165,7 +165,7 @@ List what it holds. One tab-separated line per alias (alias, kind, algorithm, su
 end, SHA-256 fingerprint), then the count:
 
 ```console
-$ java -jar mystic-crypt-ui.jar --cli keystore list -f demo.p12 --password-stdin < store-password.txt
+$ mystic-crypt keystore list -f demo.p12 --password-stdin < store-password.txt
 server	private key	SHA256withRSA	O=example,CN=my-server	Thu Nov 11 06:46:59 UTC 2027	ec8736d171d4e73d5ce77039c94750b0f85a5feb4c89fca65af728217e84ce57
 1 entries
 ```
@@ -173,15 +173,15 @@ server	private key	SHA256withRSA	O=example,CN=my-server	Thu Nov 11 06:46:59 UTC 
 Export a certificate, import it back under another alias, and remove it again:
 
 ```console
-$ java -jar mystic-crypt-ui.jar --cli keystore export-cert -f demo.p12 -a server -o server.pem
+$ mystic-crypt keystore export-cert -f demo.p12 -a server -o server.pem
 key store password:
 exported 'server' to server.pem
 
-$ java -jar mystic-crypt-ui.jar --cli keystore import-cert -f demo.p12 -a trusted -c server.pem
+$ mystic-crypt keystore import-cert -f demo.p12 -a trusted -c server.pem
 key store password:
 imported the certificate as 'trusted'
 
-$ java -jar mystic-crypt-ui.jar --cli keystore delete -f demo.p12 -a trusted
+$ mystic-crypt keystore delete -f demo.p12 -a trusted
 key store password:
 deleted 'trusted'
 ```
@@ -189,7 +189,7 @@ deleted 'trusted'
 A post-quantum key pair, with the algorithm written the way the command line spells it:
 
 ```console
-$ java -jar mystic-crypt-ui.jar --cli keystore add-keypair \
+$ mystic-crypt keystore add-keypair \
     -f demo.p12 -a pq -A ML-DSA-65 -d "CN=quantum safe"
 key store password:
 added 'pq' (ML_DSA_65)
@@ -215,7 +215,7 @@ field then decides. Re-select the row you mean, or clear the Alias field.
 
 **Delete alias does not work on a JCEKS store.** It fails with
 `not deleted: Invalid keystore format`, whatever the file really is; PKCS12 and JKS stores delete
-fine. For a JCEKS store use `--cli keystore delete`, which handles all three types.
+fine. For a JCEKS store use `mystic-crypt keystore delete`, which handles all three types.
 
 **A JKS store cannot hold a symmetric key.** **Add secret key** on one ends with
 `not added: Cannot store non-PrivateKeys`. PKCS12 and JCEKS accept it.

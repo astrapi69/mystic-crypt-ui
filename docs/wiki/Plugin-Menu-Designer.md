@@ -113,7 +113,7 @@ value, a typo included, counts as `true`.
 
 ## On the command line
 
-This tool has no command line side. It contributes no command to `--cli`, and none of the
+This tool has no command line side. It contributes no command to `mystic-crypt`, and none of the
 commands of the mystic-crypt library is about the user interface.
 
 What the command line is good for here is the layout file itself, which is plain xml in the

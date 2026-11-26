@@ -103,7 +103,7 @@ A plugin can contribute menu items and command line commands, and disabling it w
   from the plugins that are currently running. The old menu is removed first, so a disabled
   plugin's items disappear immediately, without a restart. When nothing is left to show, the
   "Plugins" menu itself is gone from the menu bar.
-- **Command line commands**: `--cli` loads and starts the plugins from the same plugins
+- **Command line commands**: `mystic-crypt` loads and starts the plugins from the same plugins
   directory that the Plugins tab manages. A disabled plugin is not started, so the commands it
   contributes are not part of the command line either. The commands that come from the
   mystic-crypt library are always there and are not affected by any plugin. See

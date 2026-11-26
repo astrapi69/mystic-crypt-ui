@@ -96,7 +96,7 @@ that ships in the mystic-crypt library and is therefore reachable through the
 application's command line switch:
 
 ```
-java -jar mystic-crypt-ui.jar --cli cert --subject "CN=example.com,O=Example,C=DE" --days 730 --out ~/certs/example.crt
+mystic-crypt cert --subject "CN=example.com,O=Example,C=DE" --days 730 --out ~/certs/example.crt
 ```
 
 It prints one line and exits with code 0:
@@ -120,7 +120,7 @@ extensions that a server certificate usually needs:
 The confirmation then names what was added:
 
 ```
-$ java -jar mystic-crypt-ui.jar --cli cert --subject "CN=example.com" \
+$ mystic-crypt cert --subject "CN=example.com" \
     --key-usage digitalSignature,keyEncipherment --san dns:example.com --out ~/certs/example.crt
 wrote self-signed certificate for 'CN=example.com' to /home/you/certs/example.crt with key usage (digitalSignature, keyEncipherment), subject alternative names (dns:example.com)
 ```
@@ -133,7 +133,7 @@ RSAPrivateKey instance`, exit code 2, and writes no file, so name the matching s
 algorithm yourself:
 
 ```
-java -jar mystic-crypt-ui.jar --cli cert --algorithm EC --signature-algorithm SHA256withECDSA --subject "CN=ec test" --out ~/certs/ec.crt
+mystic-crypt cert --algorithm EC --signature-algorithm SHA256withECDSA --subject "CN=ec test" --out ~/certs/ec.crt
 ```
 
 Like the window, the command writes the certificate only, never the private key, but unlike the

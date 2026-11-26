@@ -133,7 +133,7 @@ written to and is required, `-a, --algorithm` picks the algorithm and defaults t
 `ML-KEM-768`, `-p, --public` writes the public half to a file:
 
 ```
-java -jar mystic-crypt-ui.jar --cli keyx new -a ML-KEM-768 -k recipient.key -p recipient.pub
+mystic-crypt keyx new -a ML-KEM-768 -k recipient.key -p recipient.pub
 ```
 
 ```
@@ -157,7 +157,7 @@ which every process on the machine can see and the shell keeps in its history, s
 confidential text to the window, or send it through the file encryption instead:
 
 ```
-java -jar mystic-crypt-ui.jar --cli keyx send -r recipient.pub -m "meet at eight" -o handshake.txt -e message.txt
+mystic-crypt keyx send -r recipient.pub -m "meet at eight" -o handshake.txt -e message.txt
 ```
 
 ```
@@ -172,7 +172,7 @@ private key from the first step, `-s, --handshake` the handshake that came back,
 `-e, --encrypted` the encrypted message to read:
 
 ```
-java -jar mystic-crypt-ui.jar --cli keyx receive -k recipient.key -s handshake.txt -e message.txt
+mystic-crypt keyx receive -k recipient.key -s handshake.txt -e message.txt
 ```
 
 ```

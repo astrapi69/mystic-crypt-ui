@@ -67,14 +67,14 @@ This plugin has no settings. The wizard determines what a file holds from the fi
 ## On the command line
 
 No plugin in this application contributes a command of its own; every command on the
-command line comes from the mystic-crypt library and is reached through the application's
-`--cli` switch. The one that matches this plugin is `convert`, which does what the wizard does:
+command line comes from the mystic-crypt library and is reached through the
+`mystic-crypt` command. The one that matches this plugin is `convert`, which does what the wizard does:
 it works out what a file holds and converts it in either direction.
 
 Ask it what a file is, and let it convert nothing:
 
 ```
-$ java -jar mystic-crypt-ui.jar --cli convert --in ~/keys/key.pem --describe
+$ mystic-crypt convert --in ~/keys/key.pem --describe
 /home/you/keys/key.pem is a private key in PKCS#1, the traditional form, PEM encoded, algorithm 1.2.840.113549.1.1.1
 ```
 
@@ -86,7 +86,7 @@ To convert, name the target with `--to`, which takes `pem`, `der`, `pkcs1` or `p
 file to write with `-o`, `--out`:
 
 ```
-$ java -jar mystic-crypt-ui.jar --cli convert --in ~/keys/key.pem --to pkcs8 --out ~/keys/java-key.pem
+$ mystic-crypt convert --in ~/keys/key.pem --to pkcs8 --out ~/keys/java-key.pem
 /home/you/keys/key.pem is a private key in PKCS#1, the traditional form, PEM encoded, algorithm 1.2.840.113549.1.1.1
 wrote PEM, PKCS#8 to /home/you/keys/java-key.pem
 ```
@@ -100,7 +100,7 @@ are **to DER** and **to PEM**. Certificates and public keys go through it as wel
 DER:
 
 ```
-$ java -jar mystic-crypt-ui.jar --cli convert --in ~/certs/example.crt --to der --out ~/certs/example.der
+$ mystic-crypt convert --in ~/certs/example.crt --to der --out ~/certs/example.der
 /home/you/certs/example.crt is an X.509 certificate, PEM encoded, algorithm 1.2.840.113549.1.1.1
 wrote DER to /home/you/certs/example.der
 ```

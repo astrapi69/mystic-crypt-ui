@@ -124,12 +124,12 @@ way.
 ## On the command line
 
 This plugin contributes no commands of its own. The closest thing is the pair of
-commands the mystic-crypt library itself brings, reachable through the application's
-`--cli` switch (see [[The-Command-Line]]), and they cover both kinds of rule: the plain
+commands the mystic-crypt library itself brings, reachable through the
+`mystic-crypt` command (see [[The-Command-Line]]), and they cover both kinds of rule: the plain
 substitution and the operation at named positions.
 
 ```
-java -jar mystic-crypt-ui.jar --cli obfuscate \
+mystic-crypt obfuscate \
     --rule a=x --rule b=y --rule c=z --text "cabbage"
 ```
 
@@ -142,7 +142,7 @@ zxyyxge
 and the way back, with the same rules:
 
 ```
-java -jar mystic-crypt-ui.jar --cli disentangle \
+mystic-crypt disentangle \
     --rule a=x --rule b=y --rule c=z --text "zxyyxge"
 ```
 
@@ -158,7 +158,7 @@ from 0 and separated by commas, exactly as in the **Indexes** field of the tool 
 So
 
 ```
-java -jar mystic-crypt-ui.jar --cli obfuscate \
+mystic-crypt obfuscate \
     --rule a=x:UPPERCASE@1,4 --rule b=y --rule c=z --text "cabbage"
 ```
 
@@ -173,7 +173,7 @@ instead of being replaced by `x`. Handing the very same rules to `disentangle` g
 `cabbage` back:
 
 ```
-java -jar mystic-crypt-ui.jar --cli disentangle \
+mystic-crypt disentangle \
     --rule a=x:UPPERCASE@1,4 --rule b=y --rule c=z --text "zAyyAge"
 ```
 
@@ -266,9 +266,8 @@ map's inverse, the same way the command line's `disentangle` does for plain rule
 why a rule whose
 replacement is not itself an original character reverses correctly, and it is also why an
 unmapped occurrence of a replacement character is reversed along with the rest. The
-operated tool's way back goes through an older call of the library, which fails in
-mystic-crypt 13.9 when it tries to copy the rule table; the command line's `disentangle`
-uses the library's current one, which also checks positions. And an export is a real
+operated tool's way back calls the same library method as the command line's `disentangle`,
+which also checks positions. And an export is a real
 encryption step: the rules are written as XML and encrypted with the
 public key derived from the private key of the signed-in database, which is what ties the
 file to that one database. Everything else, the rule table and both texts, is held in the
