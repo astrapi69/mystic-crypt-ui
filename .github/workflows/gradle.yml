@@ -41,8 +41,8 @@ concurrency:
 jobs:
   # "build" is the check develop's branch protection requires. It compiles everything, the sources of the UI tests
   # included, runs the unit tests, Spotless and every plugin build, and no UI test: the three end-to-end suites run
-  # in e2e.yml, which no merge waits for (the maintainer's decision of 2026-11-23). The release gate still runs
-  # every suite (make release-gate).
+  # in e2e.yml, which no merge waits for (the maintainer's decision of 2026-11-23). The release gate runs
+  # every suite: this workflow and e2e.yml, each started by hand with force (release-workflow.md, step 5).
   build:
 
     # without the UI tests a run takes minutes; a job without timeout-minutes runs for six hours (the GitHub default)
@@ -185,7 +185,7 @@ jobs:
             ./gradlew assemble testClasses e2eTestClasses e2eLockClasses e2eKdbxClasses test spotlessCheck
           fi
       - name: Check that the unit test results are from the forced run (release gate only)
-        # the same check as the end of make release-gate (#630): every result file exists and is not older than the
+        # the check of #630: every result file exists and is not older than the
         # forced run, so a result restored from the build cache cannot pass for a run
         if: ${{ inputs.force && !inputs.dependency-updates }}
         run: scripts/check-forced-run-results.sh "$(cat "$RUNNER_TEMP/forced-run-started")" build/test-results/test
