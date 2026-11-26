@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <title>mystic-crypt-ui: the key monogram, rendered at 32, 48 and 256 px</title>
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2d3b55"/>
+      <stop offset="1" stop-color="#18202e"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="52" fill="url(#tile)"/>
+  <rect x="12" y="12" width="232" height="232" rx="48" fill="none" stroke="#6f86a8" stroke-width="8"/>
+  <path d="M54 196 V80 L108 146 L162 80 V196" fill="none" stroke="#35d0bd" stroke-width="30" stroke-linejoin="round" stroke-linecap="round"/>
+  <rect x="160" y="128" width="62" height="28" rx="8" fill="#35d0bd"/>
+  <rect x="160" y="172" width="44" height="28" rx="8" fill="#35d0bd"/>
+</svg>

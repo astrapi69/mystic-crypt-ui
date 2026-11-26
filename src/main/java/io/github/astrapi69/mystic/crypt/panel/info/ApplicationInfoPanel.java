@@ -36,6 +36,7 @@ import javax.swing.SwingConstants;
 import io.github.astrapi69.browser.BrowserControlExtensions;
 import io.github.astrapi69.icon.ImageIconFactory;
 import io.github.astrapi69.mystic.crypt.Messages;
+import io.github.astrapi69.mystic.crypt.ui.icon.ApplicationIcon;
 import net.miginfocom.swing.MigLayout;
 
 /**
@@ -102,7 +103,7 @@ public class ApplicationInfoPanel extends JPanel
 
 	private JLabel iconLabel()
 	{
-		ImageIcon icon = ImageIconFactory.newImageIcon("img/icon.png");
+		ImageIcon icon = ImageIconFactory.newImageIcon(ApplicationIcon.LARGEST);
 		JLabel label = new JLabel(icon);
 		label.setHorizontalAlignment(SwingConstants.CENTER);
 		return label;
