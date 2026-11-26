@@ -201,8 +201,9 @@ ML-DSA-65 and ML-DSA-87, with dashes or underscores), `-d`/`--dname` (default `C
 defaults of its own and ignores what is configured for the plugin. Like the window, it refuses an
 existing file for `create` (`'demo.p12' already exists; delete it first or choose another file.`)
 and an alias that is already taken for `add-keypair` and `import-cert`. `list` tells a symmetric
-key apart and calls it `secret key`. Errors arrive as a Java stack trace on standard error whose
-first line carries the message, and the exit code is then 1.
+key apart and calls it `secret key`. An error arrives as one `error:` line on standard error that
+carries the message, and the exit code is then 2 (until #1189 it was a Java stack trace and exit
+code 1).
 
 ## 6. Limits and pitfalls
 
