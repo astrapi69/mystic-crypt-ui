@@ -137,32 +137,56 @@ mystic-crypt checksum --algorithm SHA-256 notes.txt > notes.sha256
 
 Everything else goes to standard error: the reports of a command that wrote a file
 (`encrypted 29 bytes to notes.txt.enc`), warnings and errors. A command that succeeds and writes
-no file leaves standard error empty; the plugins and the plugin system say nothing on their own
+no file leaves standard error empty, except for the one line the Java launcher writes when
+`JDK_JAVA_OPTIONS` is set (see below); the plugins and the plugin system say nothing on their own
 (#986). Warnings and errors still come, from a command and from a plugin alike.
 
 The system property `mystic.crypt.ui.cli.verbose=true` asks for more: every installed plugin logs
 a line when it is started and another when it is stopped, the plugin system writes its debug
 lines, and without a plugins directory the command line says where it looked. All of it goes to
-standard error, so redirected output stays the same. A system property is given to `java` before
-`-jar`, so this is one of the two places that need the long form of the previous section; the
-`mystic-crypt` starter passes no system properties:
+standard error, so redirected output stays the same. A system property is given to the Java that
+the starter runs through the environment variable `JDK_JAVA_OPTIONS`, which the `java` launcher of
+the JDK reads (the starter itself passes no system properties and adds no variable of its own):
 
 ```
-java -Dmystic.crypt.ui.cli.verbose=true -jar mystic-crypt-ui.jar --cli checksum --algorithm SHA-256 notes.txt
+JDK_JAVA_OPTIONS='-Dmystic.crypt.ui.cli.verbose=true' mystic-crypt checksum --algorithm SHA-256 notes.txt
 ```
+
+On Windows, in cmd, the variable is set first and the starter called after it, and in PowerShell it
+is set through `$env:`:
+
+```
+set "JDK_JAVA_OPTIONS=-Dmystic.crypt.ui.cli.verbose=true"
+mystic-crypt.bat checksum --algorithm SHA-256 notes.txt
+```
+
+```
+$env:JDK_JAVA_OPTIONS = '-Dmystic.crypt.ui.cli.verbose=true'
+mystic-crypt.bat checksum --algorithm SHA-256 notes.txt
+```
+
+The value is a list of launcher options separated by white space; an argument that contains white
+space is enclosed in single or double quotes. When the variable is set, the Java launcher writes
+one line to standard error before anything else, as a reminder
+(`NOTE: Picked up JDK_JAVA_OPTIONS: -Dmystic.crypt.ui.cli.verbose=true`, measured with Temurin
+25.0.5); standard output stays the same. A variable that is exported for good (in a shell profile or
+the system settings) is read by every `java` of that environment, not only by `mystic-crypt`, so
+set it for the one call, as above, unless that is what you want.
 
 ### Which plugins the command line loads
 
 By default it reads the same plugins directory the desktop app uses,
 `~/.config/mystic-crypt-ui/plugins` (see [Install a plugin](install-a-plugin)). Point it
 somewhere else with the system property `mystic.crypt.ui.plugins.dir=/path/to/plugins`, which is
-handy for trying out a freshly built plugin without installing it. This is the second place that
-needs the long form, for the same reason as above (the `mystic-crypt` starter passes no system
-properties):
+handy for trying out a freshly built plugin without installing it. It is given the same way as the
+property above:
 
 ```
-java -Dmystic.crypt.ui.plugins.dir=/path/to/plugins -jar mystic-crypt-ui.jar --cli --help
+JDK_JAVA_OPTIONS='-Dmystic.crypt.ui.plugins.dir=/path/to/plugins' mystic-crypt --help
 ```
+
+Without an installation, the long form (see "Without an installation" above) takes the property directly:
+`java -Dmystic.crypt.ui.plugins.dir=/path/to/plugins -jar mystic-crypt-ui.jar --cli --help`.
 
 ## 2. Where the commands come from
 

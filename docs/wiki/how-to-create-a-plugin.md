@@ -347,8 +347,9 @@ removing both. To install one:
 removes unpacked directories left from an earlier install; `make run` starts the development
 build in a profile of its own (`~/mystic-crypt-ui-dev`) with the freshly built plugins, without
 touching the installed one. The command line (`mystic-crypt`) reads the same plugins directory, or the
-one the system property `mystic.crypt.ui.plugins.dir=/path/to/plugins` names, which needs the
-long form `java -Dmystic.crypt.ui.plugins.dir=... -jar mystic-crypt-ui.jar --cli ...` (see
+one the system property `mystic.crypt.ui.plugins.dir=/path/to/plugins` names, which is given
+through `JDK_JAVA_OPTIONS='-Dmystic.crypt.ui.plugins.dir=/path/to/plugins' mystic-crypt ...` (the
+Windows spelling and the line the Java launcher then writes to standard error are in
 [[The-Command-Line]]).
 
 # An internal plugin in this repository
