@@ -2,7 +2,7 @@
 # They used to run inside the required job "build" of gradle.yml and made every merge wait 40 minutes. Since the
 # maintainer's decision of 2026-11-23 no merge waits for them: they run on every pull request, after every merge and
 # every night, and a red run on develop is fixed before anything else, or the pull request that caused it is reverted.
-# The release gate (make release-gate) still runs every suite before a tag.
+# The release gate runs every suite before a tag: this workflow and gradle.yml, each started by hand with force.
 
 name: UI tests
 
@@ -85,7 +85,7 @@ jobs:
             ./gradlew --continue e2eTest e2eLockTest e2eKdbxTest
           fi
       - name: Check that the results are from the forced run
-        # the same check as the end of make release-gate (#630)
+        # every result file exists and is not older than the forced run, as in gradle.yml (#630)
         env:
           EVENT: ${{ github.event_name }}
           FORCE: ${{ inputs.force }}
