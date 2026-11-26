@@ -481,8 +481,9 @@ request, run the gate in GitHub Actions on the merged state
 installer on the gated commit with
 `make without-slot TARGET=izpack-installer PLUGIN_TESTS= PLUGIN_ZIP_TESTS= SCRIPT_TESTS=no` and
 check it with `make without-slot TARGET=verify-installer PREVIOUS=<last release>`, then
-`make tag-release`, push the tag, move `master` onto it and write the GitHub release with the
-installer and its checksums.
+`make tag-release`, push the tag, move `master` onto it and create the GitHub release as a draft
+with the installer and its checksums, published once every run of the tagged commit is green and
+the installer downloaded from the draft passed `verify-installer` again (release-workflow.md, step 8).
 
 ### Two things to know before you tag
 
