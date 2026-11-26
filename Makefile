@@ -406,7 +406,7 @@ dependency-analysis: publish-local ## [quality] the unused-dependency check, bui
 	reported=0; \
 	for report in build/reports/dependency-analysis/build-health-report.txt \
 		plugins/*-plugin/build/reports/dependency-analysis/build-health-report.txt; do \
-		if [ -s "$$report" ]; then echo "==> $$report"; cat "$$report"; reported=$$((reported + 1)); fi; \
+		if [ -s "$$report" ]; then echo "==> $$report"; cat "$$report"; echo; reported=$$((reported + 1)); fi; \
 	done; \
 	echo "==> dependency-analysis: the host and $$checked plugin builds checked; not applied yet:$${skipped:- none};" \
 		"$$reported build-health report(s) with advice, printed above"
