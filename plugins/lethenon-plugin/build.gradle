@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    alias(libs.plugins.dependency.analysis)
     // the tests run on a display of the build's own, not on the one the build was started from (#505),
     // and a test class that leaves no result fails the build (#699): astrapi69/own-display-gradle-plugin
     alias(libs.plugins.own.display)
@@ -22,6 +23,7 @@ java {
 // Maven Central, and from the local repository the host - or, with -PuseMavenLocal, a family library
 // candidate too (#475, #508)
 apply from: '../../gradle/plugin-repositories.gradle'
+apply from: '../../gradle/plugin-dependency-analysis.gradle'
 // the host's formatter, import order and license header, the same in every plugin build (#666)
 apply from: '../../gradle/plugin-formatting.gradle'
 repositories {
@@ -111,11 +113,9 @@ dependencies {
     // the contribution classes implement the host's extension points, so the host jar has to be on
     // the test classpath to load them - for the main sources they stay compileOnly
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
-    testImplementation libs.miglayout.swing
     testImplementation libs.pf4j
     testImplementation libs.resourcebundle.core
     testImplementation libs.swing.table.components
-    testImplementation libs.menu.action
     testImplementation libs.file.worker
     testRuntimeOnly libs.junit.platform.launcher
 }
@@ -186,7 +186,7 @@ sourceSets {
 }
 
 dependencies {
-    zipTestImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
+    zipTestRuntimeOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     zipTestImplementation libs.pf4j
     zipTestImplementation libs.junit.jupiter
     zipTestRuntimeOnly libs.junit.platform.launcher
