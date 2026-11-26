@@ -58,6 +58,12 @@ jobs:
       - name: Checkout sources
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup Java
+        # Not the build .sdkmanrc names. setup-java v6.3.0 reads 25.0.5.0+8-tem as the range 25.0.5 and drops the
+        # build (src/util.ts, lines 412 to 414), then takes the newest 25.0.5 it finds, in the runner's tool cache
+        # or at Adoptium, whose respin 25.0.5.1+2 sorts above 25.0.5+8 (src/distributions/temurin/installer.ts,
+        # lines 89 to 106). Run 45665840004 (2026-11-25) got Temurin 25.0.5.1+2 on every Temurin row. That is enough
+        # here: this workflow measures whether the plugin starts on a platform, and the release is built and gated
+        # on Linux x64, where gradle.yml and e2e.yml took 25.0.5+8 from the tool cache of ubuntu-26.04
         uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
           java-version: ${{ matrix.java-version }}
