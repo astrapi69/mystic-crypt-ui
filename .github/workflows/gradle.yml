@@ -52,6 +52,14 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Give every step a temporary directory on the runner's work disk
+        # TMPDIR for every step and, through gradle/test-jvms.gradle, java.io.tmpdir for every test JVM: a
+        # release gate run writes its temporary files on a disk with room (RL-124). The df line says how much
+        # room, so a disk that fills up shows in the log of the run it broke
+        run: |
+          mkdir -p "$RUNNER_TEMP/tmp"
+          echo "TMPDIR=$RUNNER_TEMP/tmp" >> "$GITHUB_ENV"
+          df -h "$RUNNER_TEMP" /tmp
       - name: Setup Java
         uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
         with:
