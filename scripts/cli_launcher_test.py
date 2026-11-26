@@ -40,6 +40,17 @@ NOTIFIER_STUB = """#!/bin/bash
 echo "{name} $*" >> "$STUB_LOG"
 """
 
+# the readlink of a system without -f (macOS before 12.3 and BSD): -f is refused as there, every other
+# call goes to the real one
+READLINK_WITHOUT_F = """#!/bin/bash
+if [ "$1" = "-f" ]; then
+  echo "readlink: illegal option -- f" >&2
+  echo "usage: readlink [-n] [file ...]" >&2
+  exit 1
+fi
+exec {real} "$@"
+"""
+
 # the programs a starter and the stubs call besides java, linked one by one so that the PATH of a
 # case holds no real java: a runner's /usr/bin may have one
 TOOLS = ("dirname", "readlink", "cat")
@@ -62,7 +73,9 @@ def lay_out_installation(directory):
 
 class CliLauncherTest(unittest.TestCase):
     def setUp(self):
-        self.work = Path(tempfile.mkdtemp(prefix="cli-launcher-"))
+        # resolved: on macOS the temporary directory is below /var, which is a link to /private/var, and the
+        # starter reports the directory it resolved
+        self.work = Path(tempfile.mkdtemp(prefix="cli-launcher-")).resolve()
         self.addCleanup(shutil.rmtree, self.work, ignore_errors=True)
         self.install = self.work / "install dir"
         self.bin = self.work / "bin"
@@ -90,6 +103,12 @@ class CliLauncherTest(unittest.TestCase):
     def notifiers(self):
         for name in ("zenity", "notify-send"):
             write_executable(self.bin / name, NOTIFIER_STUB.format(name=name))
+
+    def readlink_without_f(self):
+        link = self.tools / "readlink"
+        real = link.resolve()
+        link.unlink()
+        write_executable(link, READLINK_WITHOUT_F.format(real=real))
 
     def link(self):
         """A symlink to the starter in a directory of its own, the way ~/.local/bin holds one"""
@@ -166,6 +185,27 @@ class CliLauncherTest(unittest.TestCase):
         link_directory = self.link()
         completed = self.run_starter("--help", command="mystic-crypt",
                                      path=f"{link_directory}:{self.bin}:{self.tools}")
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        self.assertEqual([self.expected_run("installer", "--help")], self.runs())
+
+    def test_through_a_symlink_without_readlink_f_the_installation_is_found(self):
+        self.installer_java("25.0.5")
+        self.readlink_without_f()
+        link_directory = self.link()
+        completed = self.run_starter("--help", command="mystic-crypt",
+                                     path=f"{link_directory}:{self.bin}:{self.tools}")
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        self.assertEqual([self.expected_run("installer", "--help")], self.runs())
+
+    def test_a_chain_of_relative_links_without_readlink_f_is_followed_to_the_starter(self):
+        self.installer_java("25.0.5")
+        self.readlink_without_f()
+        (self.work / "first").mkdir()
+        (self.work / "first" / "mystic-crypt").symlink_to("../second/mystic-crypt")
+        (self.work / "second").mkdir()
+        (self.work / "second" / "mystic-crypt").symlink_to("../install dir/mystic-crypt")
+        completed = self.run_starter("--help", command="mystic-crypt",
+                                     path=f"{self.work / 'first'}:{self.bin}:{self.tools}")
         self.assertEqual(0, completed.returncode, completed.stderr)
         self.assertEqual([self.expected_run("installer", "--help")], self.runs())
 
