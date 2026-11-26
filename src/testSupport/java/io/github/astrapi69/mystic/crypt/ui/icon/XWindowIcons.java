@@ -98,7 +98,7 @@ public final class XWindowIcons
 	 */
 	public static List<XIcon> iconsOf(final String title) throws IOException, InterruptedException
 	{
-		String windowId = awaitWindowId(title);
+		String windowId = awaitWindowId(title, () -> run("wmctrl", "-l"), WINDOW_TIMEOUT_MILLIS);
 		return parse(run("xprop", "-id", windowId, "-notype", "32c", "_NET_WM_ICON"));
 	}
 
@@ -152,22 +152,55 @@ public final class XWindowIcons
 			: icons.stream().map(icon -> icon.width() + "x" + icon.height()).toList().toString();
 	}
 
-	private static String awaitWindowId(final String title) throws IOException, InterruptedException
+	/**
+	 * The id of the window with the given title, reading the listing again until the window is in
+	 * it or the time is up. A listing that fails is read again too: {@code wmctrl -l} ends with
+	 * "BadWindow (invalid Window parameter)" when a window it has listed goes away before it reads
+	 * the window's title, which happens while the application starts and closes its splash screen
+	 * (develop {@code ad2471d2}, run 45821007085)
+	 *
+	 * @param title
+	 *            the window's title, exactly
+	 * @param listing
+	 *            reads the current {@code wmctrl -l} listing
+	 * @param timeoutMillis
+	 *            how long to keep reading
+	 * @return the window's id
+	 * @throws InterruptedException
+	 *             if the wait is interrupted
+	 * @throws IllegalStateException
+	 *             if the time is up; the message names the last listing, or the last failure, which
+	 *             is also the cause
+	 */
+	static String awaitWindowId(final String title, final WindowListing listing,
+		final long timeoutMillis) throws InterruptedException
 	{
-		long deadline = System.currentTimeMillis() + WINDOW_TIMEOUT_MILLIS;
+		long deadline = System.currentTimeMillis() + timeoutMillis;
 		String windows = "";
+		IOException lastFailure = null;
 		while (System.currentTimeMillis() < deadline)
 		{
-			windows = run("wmctrl", "-l");
-			Optional<String> windowId = windowIdIn(windows, title);
-			if (windowId.isPresent())
+			try
 			{
-				return windowId.get();
+				windows = listing.read();
+				lastFailure = null;
+				Optional<String> windowId = windowIdIn(windows, title);
+				if (windowId.isPresent())
+				{
+					return windowId.get();
+				}
+			}
+			catch (IOException failure)
+			{
+				lastFailure = failure;
 			}
 			Thread.sleep(POLL_MILLIS);
 		}
+		String lastRead = lastFailure == null
+			? "wmctrl -l listed:\n" + windows
+			: "the last wmctrl -l failed: " + lastFailure.getMessage();
 		throw new IllegalStateException("no window titled '" + title + "' on the X server after "
-			+ WINDOW_TIMEOUT_MILLIS + " ms; wmctrl -l listed:\n" + windows);
+			+ timeoutMillis + " ms; " + lastRead, lastFailure);
 	}
 
 	/**
@@ -207,6 +240,25 @@ public final class XWindowIcons
 				+ process.exitValue() + ": " + output);
 		}
 		return output;
+	}
+
+	/**
+	 * Reads the window listing of the X server, the way {@code wmctrl -l} prints it
+	 */
+	@FunctionalInterface
+	interface WindowListing
+	{
+
+		/**
+		 * The current listing
+		 *
+		 * @return one line per window: {@code <id> <desktop> <host> <title>}
+		 * @throws IOException
+		 *             if the listing cannot be read
+		 * @throws InterruptedException
+		 *             if the reading is interrupted
+		 */
+		String read() throws IOException, InterruptedException;
 	}
 
 	/**
