@@ -120,7 +120,7 @@ class RuntimeDependenciesTest
 	 * Empty since crypt-data 13.3: jaxb-api 2.4.0-b180830.0359, a numbered build of a 2.4.0 that
 	 * was never released, left with crypt-data#133 (#841). The set is matched exactly, so a new
 	 * pre-release fails the test and an entry cannot outlive its cause. The test class path is not
-	 * checked: it carries test-only pre-releases that never ship, such as meanbean 3.0.0-M9
+	 * checked: a test-only pre-release there never ships
 	 */
 	private static final List<String> KNOWN_PRE_RELEASES = List.of();
 
