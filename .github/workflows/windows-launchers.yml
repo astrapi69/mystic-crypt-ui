@@ -1,0 +1,36 @@
+# Runs the tests of the Windows starters (start.bat, mystic-crypt.bat and the Java search find-java.bat) on a Windows
+# runner, which is the only place a batch file can run (#1195). It is not a required check: it runs when the starters,
+# their test or this workflow change, and by hand: gh workflow run windows-launchers.yml --ref <branch>
+name: Windows launchers
+
+on:
+  push:
+    branches: [ develop ]
+    paths:
+      - 'src/main/resources/doc/**'
+      - 'scripts/windows_launcher_test.py'
+      - '.github/workflows/windows-launchers.yml'
+  pull_request:
+    branches: [ develop ]
+    paths:
+      - 'src/main/resources/doc/**'
+      - 'scripts/windows_launcher_test.py'
+      - '.github/workflows/windows-launchers.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  launchers:
+    timeout-minutes: 15
+    runs-on: windows-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Run the Windows launcher tests
+        run: python scripts/windows_launcher_test.py -v
