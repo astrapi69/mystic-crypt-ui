@@ -5,10 +5,11 @@
 // The last one is also how the plugin reports an unused dependency that brings a service file (measured with
 // jackson-databind on 2026-11-18), so such a dependency is not caught here.
 
-// Report only, until the last group of removals is merged (the maintainer's decision of 2026-11-18): no pull request
-// may turn red through this check while the findings of 2026-11-18 are still being removed or decided. The pull
-// request that empties the exclusion lists below and in gradle/plugin-dependency-analysis.gradle sets both to "fail"
-def unusedDependencySeverity = "warn"
+// Fails the build on an unused dependency or annotation processor. The maintainer's decision of 2026-11-18 kept this at
+// "warn" until the last group of removals was merged: groups A to G and the last plugin entries are (#1041, #1044,
+// #1054, #1105, #1179, #1180, #1181, #1197, #1200), and what stays unused is excluded with its reason in
+// gradle/dependency-analysis.gradle and gradle/plugin-dependency-analysis.gradle.
+def unusedDependencySeverity = "fail"
 
 dependencyAnalysis {
     structure {
