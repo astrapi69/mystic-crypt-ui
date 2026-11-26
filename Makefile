@@ -304,6 +304,7 @@ ifeq ($(SCRIPT_TESTS),yes)
 	python3 scripts/pr_state_guard_test.py
 	python3 scripts/double_build_test.py
 	python3 scripts/start_launcher_test.py
+	python3 scripts/cli_launcher_test.py
 	python3 scripts/gradle_slot_guard_test.py
 	python3 scripts/installer_pack_test.py
 endif
