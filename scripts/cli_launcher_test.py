@@ -116,44 +116,70 @@ class CliLauncherTest(unittest.TestCase):
     def dialogs(self):
         return [call for call in self.calls() if call.startswith(("zenity", "notify-send"))]
 
-    def test_an_older_java_first_on_the_path_is_run_without_a_check(self):
+    def flags(self):
+        """The JVM flags of find-java.sh as the stub records them, one bracket per argument"""
+        return " ".join(f"[{argument}]" for argument in f"{ADD_OPENS} {UNSAFE_FLAG}".split())
+
+    def expected_run(self, java, *arguments):
+        return (f"run {java} {self.flags()} [-cp] [{self.install}/mystic-crypt-ui.jar] [{CLI_CLASS}] "
+                + " ".join(f"[{argument}]" for argument in arguments))
+
+    def test_an_older_java_first_on_the_path_says_why_on_standard_error_and_fails(self):
         self.path_java("21.0.5")
         self.notifiers()
         completed = self.run_starter("--help")
-        self.assertEqual(0, completed.returncode, completed.stderr)
-        self.assertEqual(1, len(self.runs()), self.calls())
-        self.assertTrue(self.runs()[0].startswith("run path "), self.calls())
-        self.assertEqual([], self.dialogs())
+        self.assertNotEqual(0, completed.returncode)
+        self.assertIn("Java 25", completed.stderr)
+        self.assertIn(f"{self.bin}/java: Java 21", completed.stderr)
+        self.assertEqual([], self.runs())
 
-    def test_without_any_java_the_shell_reports_a_missing_command(self):
+    def test_without_any_java_it_says_why_on_standard_error_and_fails(self):
+        (self.install / "installer-java-home").unlink()
         self.notifiers()
         completed = self.run_starter("--help")
-        self.assertEqual(127, completed.returncode, completed.stderr)
-        self.assertIn("java", completed.stderr)
-        self.assertNotIn("Java 25", completed.stderr)
+        self.assertNotEqual(0, completed.returncode)
+        self.assertIn("Java 25", completed.stderr)
+        self.assertIn("no java found", completed.stderr)
+
+    def test_a_failure_on_the_command_line_opens_no_dialog(self):
+        self.path_java("21.0.5")
+        self.notifiers()
+        self.run_starter("--help")
         self.assertEqual([], self.dialogs())
 
-    def test_the_installers_java_is_not_looked_at(self):
+    def test_the_installers_java_wins_over_the_path(self):
         self.installer_java("25.0.5")
         self.path_java("25.0.1")
         self.run_starter("--help")
-        self.assertTrue(self.runs()[0].startswith("run path "), self.calls())
+        self.assertEqual([self.expected_run("installer", "--help")], self.runs())
 
-    def test_through_a_symlink_from_another_directory_the_jar_is_looked_for_beside_the_link(self):
+    def test_the_path_java_is_used_when_the_installers_is_too_old(self):
+        self.installer_java("21.0.5")
+        self.path_java("26")
+        self.run_starter("--help")
+        self.assertEqual([self.expected_run("path", "--help")], self.runs())
+
+    def test_through_a_symlink_from_another_directory_the_installation_is_found(self):
+        self.installer_java("25.0.5")
         self.path_java("25.0.1")
         link_directory = self.link()
-        self.run_starter("--help", command="mystic-crypt",
-                         path=f"{link_directory}:{self.bin}:{self.tools}")
-        self.assertEqual(
-            [f"run path [-cp] [{link_directory}/mystic-crypt-ui.jar] [{CLI_CLASS}] [--help]"],
-            self.runs())
+        completed = self.run_starter("--help", command="mystic-crypt",
+                                     path=f"{link_directory}:{self.bin}:{self.tools}")
+        self.assertEqual(0, completed.returncode, completed.stderr)
+        self.assertEqual([self.expected_run("installer", "--help")], self.runs())
 
-    def test_no_jvm_flags_reach_java(self):
+    def test_the_jvm_flags_reach_java_before_the_jar(self):
         self.path_java("25.0.1")
         self.run_starter("--help")
-        self.assertEqual(
-            [f"run path [-cp] [{self.install}/mystic-crypt-ui.jar] [{CLI_CLASS}] [--help]"],
-            self.runs())
+        self.assertEqual([self.expected_run("path", "--help")], self.runs())
+
+    def test_without_its_search_file_the_starter_names_it_and_fails(self):
+        (self.install / "find-java.sh").unlink()
+        self.path_java("25.0.1")
+        completed = self.run_starter("--help")
+        self.assertNotEqual(0, completed.returncode)
+        self.assertIn("find-java.sh is missing", completed.stderr)
+        self.assertEqual([], self.runs())
 
     def test_arguments_with_spaces_reach_the_command_unchanged(self):
         self.path_java("25.0.1")
@@ -175,12 +201,37 @@ class CliLauncherTest(unittest.TestCase):
 
 
 class CliLauncherFilesTest(unittest.TestCase):
-    def test_the_windows_starter_runs_java_without_the_flags_of_start_bat(self):
+    def test_the_windows_starter_carries_the_flags_of_start_bat_before_the_jar(self):
         command = [line for line in MYSTIC_CRYPT_BAT.read_text().splitlines()
                    if line.lstrip().startswith("java ")]
         self.assertEqual(1, len(command), command)
-        self.assertNotIn(ADD_OPENS, command[0])
-        self.assertNotIn(UNSAFE_FLAG, command[0])
+        self.assertIn(ADD_OPENS, command[0])
+        self.assertIn(UNSAFE_FLAG, command[0])
+        self.assertLess(command[0].index(ADD_OPENS), command[0].index("-cp"))
+        self.assertLess(command[0].index(UNSAFE_FLAG), command[0].index("-cp"))
+
+    def test_the_windows_starter_ends_with_the_exit_code_of_the_command(self):
+        lines = [line.strip() for line in MYSTIC_CRYPT_BAT.read_text().splitlines() if line.strip()]
+        self.assertEqual("EXIT /B %ERRORLEVEL%", lines[-1])
+
+    def test_the_java_search_is_written_once_and_both_starters_source_it(self):
+        for name in ("start.sh", "mystic-crypt"):
+            with self.subTest(starter=name):
+                text = (DOC / name).read_text()
+                self.assertIn('. "$DIR/find-java.sh"', text)
+                self.assertNotIn("MINIMUM_JAVA=", text)
+                self.assertNotIn("java_major()", text)
+                self.assertNotIn("--add-opens", text)
+        search = (DOC / "find-java.sh").read_text()
+        self.assertIn("MINIMUM_JAVA=25", search)
+        self.assertIn(ADD_OPENS, search)
+
+    def test_the_required_pack_installs_the_search_beside_the_starters(self):
+        root = ElementTree.parse(INSTALL_XML).getroot()
+        pack = next(pack for pack in root.iter("pack") if pack.get("name") == "executables")
+        self.assertEqual("yes", pack.get("required"))
+        sources = [(element.get("src"), element.get("targetdir")) for element in pack.iter("file")]
+        self.assertIn(("resources/main/doc/find-java.sh", "${INSTALL_PATH}"), sources)
 
 
 if __name__ == "__main__":

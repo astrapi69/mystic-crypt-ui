@@ -369,13 +369,18 @@ izpack libs.izpack.ant
    may be older than 25. `start.sh` takes the Java the installer ran on, which the parsable
    one-line file `installer-java-home` holds (IzPack's `JAVA_HOME` is the installing JVM's
    `java.home`), then the PATH's, needs 25 or newer, and otherwise names what it tried on
-   standard error, in `zenity` or `notify-send` when present, and exits 1 (#1009). The JVM
-   flags are written in `start.sh` and, once more because a batch file cannot read them,
-   in `start.bat`; `python3 scripts/start_launcher_test.py` runs `start.sh` against stub
-   `java` executables.
+   standard error, in `zenity` or `notify-send` when present, and exits 1 (#1009). That
+   search and the JVM flags are written once, in `find-java.sh`, which this pack installs
+   and which `start.sh` and `mystic-crypt` source; once more, because a batch file cannot
+   read them, the flags are in `start.bat` and `mystic-crypt.bat`.
+   `python3 scripts/start_launcher_test.py` runs `start.sh` against stub `java` executables.
 2. `commandline` (optional, preselected): the `mystic-crypt` and `mystic-crypt.bat`
    launcher scripts, which run the CLI entry point out of the same application jar.
-   Depends on `executables`.
+   `mystic-crypt` resolves its own path, so a symlink to it works from any directory, and
+   takes its Java from `find-java.sh` like `start.sh`; when none fits it says so on standard
+   error only, without a dialog, and exits 1. Arguments, standard input and the command's
+   exit code pass through. `python3 scripts/cli_launcher_test.py` runs it against stub `java`
+   executables. Depends on `executables`.
 3. `plugins` (optional, preselected): every internal plugin zip, installed into
    `${USER_HOME}/.config/mystic-crypt-ui/plugins`, which is where the application's plugin
    manager looks. Without this pack the "Plugins" menu stays empty until the user installs

@@ -23,6 +23,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DOC = ROOT / "src" / "main" / "resources" / "doc"
 START_SH = DOC / "start.sh"
+FIND_JAVA = DOC / "find-java.sh"
 START_BAT = DOC / "start.bat"
 DESKTOP_ENTRY = DOC / "mystic-crypt-ui.desktop"
 INSTALLER_JAVA_HOME = DOC / "installer-java-home"
@@ -78,6 +79,8 @@ class StartLauncherTest(unittest.TestCase):
         self.install.mkdir()
         shutil.copy(START_SH, self.install / "start.sh")
         (self.install / "start.sh").chmod(0o755)
+        # the search start.sh sources, shared with the command-line starter mystic-crypt
+        shutil.copy(FIND_JAVA, self.install / "find-java.sh")
 
     def stub_java(self, directory, name, version, exit_code=0):
         write_executable(directory / "java", JAVA_STUB.format(

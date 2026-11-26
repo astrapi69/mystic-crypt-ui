@@ -89,6 +89,9 @@
 						stage="never" keep="true" />
 			<executable targetfile="${INSTALL_PATH}/start.sh" stage="never" keep="true" />
 			<file src="resources/main/doc/start.sh" targetdir="${INSTALL_PATH}" />
+			<!-- the Java search and the JVM flags, sourced by start.sh and by the command-line
+				starter mystic-crypt; in this required pack because both need it -->
+			<file src="resources/main/doc/find-java.sh" targetdir="${INSTALL_PATH}" />
 			<!--
 				The desktop entry runs start.sh, which looks for a Java 25 or newer: first the one this
 				installer ran on, then the one on the PATH (#1009). IzPack 5.2.7 sets the variable
