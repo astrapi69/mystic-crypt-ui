@@ -62,6 +62,24 @@ def written_target(element):
     return f"{element.get('targetdir')}/{element.get('src').rsplit('/', 1)[-1]}"
 
 
+def resource_source(installer_source):
+    """The file in src/main/resources an install.xml source under resources/main is built from: the
+    IzPack compiler runs in build/, where the resources are processed to resources/main."""
+    prefix = "resources/main/"
+    if not installer_source.startswith(prefix):
+        raise AssertionError(f"{installer_source} is not under {prefix}")
+    return ROOT / "src" / "main" / "resources" / installer_source[len(prefix):]
+
+
+def png_size_and_colour_type(path):
+    """Width, height and colour type from a PNG's IHDR chunk; colour type 6 is RGB with alpha."""
+    header = path.read_bytes()[:26]
+    if header[:8] != b"\x89PNG\r\n\x1a\n" or header[12:16] != b"IHDR":
+        raise AssertionError(f"{path} is not a PNG")
+    return (int.from_bytes(header[16:20], "big"), int.from_bytes(header[20:24], "big"),
+            header[25])
+
+
 def effective_override(element):
     """The override IzPack applies to an element: its attribute, and without one "update", which is
     what CompilerConfig.getOverrideValue in izpack-compiler 5.2.7 returns for a missing attribute."""
@@ -220,6 +238,29 @@ class InstallerDescriptorTest(unittest.TestCase):
             with self.subTest(target=target):
                 self.assertIn(target, writers)
                 self.assertEqual("true", effective_override(writers[target]))
+
+
+    def test_the_desktop_entry_shows_the_application_icon_the_installer_writes(self):
+        """The Icon line names a file install.xml writes, from the 256 px application icon: square,
+        with an alpha channel (#815). A desktop entry whose icon is missing shows a blank one."""
+        icon = next(line.split("=", 1)[1] for line in DESKTOP_ENTRY.read_text().splitlines()
+                    if line.startswith("Icon="))
+        root = ElementTree.parse(INSTALL_XML).getroot()
+        writers = {written_target(element): element for element in root.iter()
+                   if element.tag in ("file", "singlefile")}
+        self.assertIn(icon, writers)
+        source = resource_source(writers[icon].get("src"))
+        self.assertEqual("img/app-icon/mystic-crypt-ui-256.png",
+                         source.relative_to(ROOT / "src" / "main" / "resources").as_posix())
+        self.assertEqual((256, 256, 6), png_size_and_colour_type(source))
+
+    def test_the_language_selection_shows_the_application_icon(self):
+        """The image of the installer's language selection is the 256 px application icon (#815)."""
+        root = ElementTree.parse(INSTALL_XML).getroot()
+        images = [resource.get("src") for resource in root.iter("res")
+                  if resource.get("id") == "installer.langsel.img"]
+        self.assertEqual(["resources/main/img/app-icon/mystic-crypt-ui-256.png"], images)
+        self.assertEqual((256, 256, 6), png_size_and_colour_type(resource_source(images[0])))
 
 
 if __name__ == "__main__":

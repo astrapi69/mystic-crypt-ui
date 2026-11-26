@@ -45,7 +45,7 @@
 	<resources>
 		<res src="../src/main/izpack/installation.html" id="HTMLInfoPanel.info" />
 		<res src="../LICENSE" id="LicencePanel.licence" />
-		<res src="resources/main/img/icon.png" id="installer.langsel.img" />
+		<res src="resources/main/img/app-icon/mystic-crypt-ui-256.png" id="installer.langsel.img" />
 	</resources>
 
 	<panels>		
@@ -105,7 +105,7 @@
 			<file src="resources/main/doc/installer-java-home" targetdir="${INSTALL_PATH}" override="true" />
 			<parsable targetfile="${INSTALL_PATH}/installer-java-home" type="plain" encoding="UTF-8" />
 			<file src="resources/main/doc/start.bat" targetdir="${INSTALL_PATH}" />
-			<file src="resources/main/img/icon.png" targetdir="${INSTALL_PATH}/img" />
+			<file src="resources/main/img/app-icon/mystic-crypt-ui-256.png" targetdir="${INSTALL_PATH}/img" />
 		</pack>
 		<!--
 			The command-line interface ships as launcher scripts that run the application jar's command

@@ -80,6 +80,7 @@ import io.github.astrapi69.mystic.crypt.plugin.vault.PluginVaultConnections;
 import io.github.astrapi69.mystic.crypt.settings.FlatLafTheme;
 import io.github.astrapi69.mystic.crypt.settings.GeneralSettingsPanel;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
+import io.github.astrapi69.mystic.crypt.ui.icon.ApplicationIcon;
 import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
 import io.github.astrapi69.mystic.crypt.vault.VaultCloseSupport;
 import io.github.astrapi69.swing.base.ApplicationPanelFrame;
@@ -275,15 +276,24 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		}
 	}
 
+	/**
+	 * The image the splash screen shows: the application icon at its largest size (#815)
+	 *
+	 * @return the class path resource of the 256 px icon
+	 */
 	protected String getIconPath()
 	{
-		return Messages.getString("global.icon.app.path", "img/icon.png");
+		return ApplicationIcon.LARGEST;
 	}
 
 	@Override
 	protected void onBeforeInitialize()
 	{
 		StartupSignal.startBegun();
+		// before the sign-in dialog, the first window, opens: it and every other dialog this frame
+		// owns show the frame's icon, and the frame had none yet at that time (#815)
+		ApplicationIcon.install();
+		setIconImages(ApplicationIcon.images());
 		if (instance == null)
 		{
 			instance = this;
@@ -360,10 +370,27 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		return new DesktopMenu(applicationFrame);
 	}
 
+	/**
+	 * The image the base class loads and sets as this window's only icon;
+	 * {@link #onInitializeComponents()} puts every size back right after
+	 *
+	 * @return the class path resource of the 256 px icon
+	 */
 	@Override
 	protected String newIconPath()
 	{
-		return Messages.getString("global.icon.app.path");
+		return ApplicationIcon.LARGEST;
+	}
+
+	/**
+	 * Sets the application icon in every size again after the base class set the one image of
+	 * {@link #newIconPath()}, so the system picks the size it needs instead of scaling one (#815)
+	 */
+	@Override
+	protected void onInitializeComponents()
+	{
+		super.onInitializeComponents();
+		setIconImages(ApplicationIcon.images());
 	}
 
 	@Override

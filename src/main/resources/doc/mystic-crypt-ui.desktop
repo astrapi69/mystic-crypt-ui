@@ -4,6 +4,6 @@ Name=Mystic Crypt UI
 GenericName=Crypto-Tool
 Comment=application that provides public and private key creation and other cool crypto-tools
 Exec="${INSTALL_PATH}/start.sh"
-Icon=${INSTALL_PATH}/img/icon.png
+Icon=${INSTALL_PATH}/img/mystic-crypt-ui-256.png
 Terminal=false
 Categories=Utility;Security;
