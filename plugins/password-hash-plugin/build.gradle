@@ -51,8 +51,6 @@ dependencies {
     // runtime, so they stay compileOnly here like everything else
     compileOnly libs.swing.model.components
     compileOnly libs.model.data
-    compileOnly libs.lombok
-    annotationProcessor libs.lombok
 
     // the shared tool window layout comes from the host, which brings MigLayout with it
     compileOnly libs.miglayout.swing

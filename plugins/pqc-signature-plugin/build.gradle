@@ -48,8 +48,6 @@ dependencies {
     // falls back to a literal default rather than throwing when a key is missing, the same way the
     // host's own Messages class already behaves (.claude/rules/i18n.md)
     compileOnly libs.resourcebundle.core
-    // the pem parser that knows every shape a key file comes in lives in bcpkix
-    compileOnly libs.bcpkix.jdk18on
     compileOnly libs.bcprov.jdk18on
     // the panel keeps its state in a model and binds the model backed components to it
     compileOnly libs.swing.model.components

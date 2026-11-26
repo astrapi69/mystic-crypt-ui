@@ -51,14 +51,6 @@ def pendingUnusedDependencies = [
     "secret-sharing-plugin": ["com.miglayout:miglayout-swing", "org.pf4j:pf4j", "io.github.astrapi69:resourcebundle-core"],
 ]
 
-// Lombok's processor in the three plugin builds whose sources carry no Lombok annotation, reported on 2026-11-18
-// like the lists above
-def pendingUnusedProcessors = [
-    "certificate-plugin"  : ["org.projectlombok:lombok"],
-    "conversion-plugin"   : ["org.projectlombok:lombok"],
-    "password-hash-plugin": ["org.projectlombok:lombok"],
-]
-
 // Report only, as in the host (gradle/dependency-analysis.gradle, the maintainer's decision of 2026-11-18): it becomes
 // "fail" in both files with the pull request that empties the lists above
 def unusedDependencySeverity = "warn"
@@ -87,7 +79,7 @@ dependencyAnalysis {
                 // pf4j's processor is used: it writes META-INF/extensions.idx, from which the host finds every
                 // extension of the plugin. The plugin reports it as unused because nothing in the sources calls it;
                 // the console plugin compiled without it wrote no extensions.idx at all (measured 2026-11-18)
-                exclude("org.pf4j:pf4j", *(pendingUnusedProcessors[rootProject.name] ?: []))
+                exclude("org.pf4j:pf4j")
             }
         }
     }

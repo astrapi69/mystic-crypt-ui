@@ -47,14 +47,10 @@ dependencies {
     compileOnly libs.crypt.data
     compileOnly libs.model.data
     compileOnly libs.swing.base.components
-    // the JMTextArea the in-app certificate editor binds to its model
-    compileOnly libs.swing.model.components
     compileOnly libs.swing.wizard
     compileOnly libs.state.pattern
     // AbstractWizardPanel (swing-wizard) implements the observer EventListener/EventObject
     compileOnly libs.observer
-    compileOnly libs.lombok
-    annotationProcessor libs.lombok
 
     compileOnly libs.pf4j
     // required so the @Extension annotation processor runs and writes META-INF/extensions.idx

@@ -46,8 +46,6 @@ dependencies {
     // the panel holds its state in a model object and binds the JM* components to it
     compileOnly libs.swing.model.components
     compileOnly libs.model.data
-    // the passphrase construction lives in the host and uses Bouncy Castle underneath
-    compileOnly libs.bcprov.jdk18on
     // the shared tool window layout comes from the host, which brings MigLayout with it
     compileOnly libs.miglayout.swing
     compileOnly libs.resourcebundle.core
