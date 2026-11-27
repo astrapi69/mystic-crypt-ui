@@ -37,8 +37,9 @@ import io.github.astrapi69.mystic.crypt.Messages;
  * refuses it with a Jackson exception about an unrecognized field, which says nothing a person can
  * act on. The message says what the file is, and the way out that was measured to work - saved as
  * KDBX 4 in KeePassXC, the file is imported with its attachments
- * ({@code AKdbx31FileSavedAsKdbx4InKeePassXcIsImportedUiTest}). Every other refusal keeps the
- * library's reason, as before.
+ * ({@code AKdbx31FileSavedAsKdbx4InKeePassXcIsImportedUiTest}). Every other refusal gets the
+ * bundle's words for a refused import, from whichever step of the import it comes: the text of the
+ * exception is never shown (#1005).
  */
 public final class KeePassImportRefusal
 {
@@ -65,7 +66,7 @@ public final class KeePassImportRefusal
 	 * @param credentials
 	 *            the credentials it was to be opened with, or null when they could not be made
 	 * @param refusal
-	 *            what the import failed with
+	 *            what the import failed with; its text is not shown
 	 * @return the message for the person
 	 */
 	public static String messageFor(final File file, final KdbxCredentials credentials,
@@ -82,6 +83,7 @@ public final class KeePassImportRefusal
 					+ "confirm with OK, save the database, and import it again.");
 		}
 		return Messages.getString("keepass.import.failed.message",
-			"Could not import the KeePass file:") + " " + refusal.getMessage();
+			"Could not import the KeePass file. The password or the key file may be wrong, or the "
+				+ "file may be unreadable, damaged or in a format this version cannot read.");
 	}
 }

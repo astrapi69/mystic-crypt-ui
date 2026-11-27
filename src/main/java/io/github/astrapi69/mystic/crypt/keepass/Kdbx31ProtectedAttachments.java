@@ -62,14 +62,17 @@ public final class Kdbx31ProtectedAttachments
 	}
 
 	/**
-	 * Whether the given file is KDBX 3.1 and holds an attachment marked protected
+	 * Whether the given file is KDBX 3.1 and holds an attachment marked protected. When the library
+	 * or the reader fails while it reads the file, with an IOException, an XMLStreamException or a
+	 * RuntimeException of any type, the answer is false: the file is not known to be the case
 	 *
 	 * @param file
 	 *            the KeePass file
 	 * @param credentials
 	 *            the credentials it was to be opened with
 	 * @return true when it is; false when it is not, or when it cannot be read with these
-	 *         credentials - a file that cannot be read is not known to be the case
+	 *         credentials - a file that cannot be read is not known to be the case, and is recorded
+	 *         at FINE by its path and the type of the failure
 	 */
 	public static boolean in(final File file, final KdbxCredentials credentials)
 	{
@@ -77,10 +80,10 @@ public final class Kdbx31ProtectedAttachments
 		{
 			return isKdbx31(file) && hasAProtectedAttachment(file, credentials);
 		}
-		catch (IOException | IllegalStateException | XMLStreamException unreadable)
+		catch (IOException | XMLStreamException | RuntimeException unreadable)
 		{
-			log.log(Level.FINE, "not known to hold protected KDBX 3.1 attachments: " + file,
-				unreadable);
+			log.log(Level.FINE, "not known to hold protected KDBX 3.1 attachments: {0} ({1})",
+				new Object[] { file, unreadable.getClass().getName() });
 			return false;
 		}
 	}
