@@ -33,13 +33,14 @@ import java.io.IOException;
 
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
  * Negative end-to-end use case "import a KeePass database with the wrong password": the import must
- * fail with an error dialog, must not add any imported group to the tree and must not mark the
- * model dirty
+ * fail with an error dialog that says so in the bundle's words, must not add any imported group to
+ * the tree and must not mark the model dirty
  */
 class KeePassImportWrongPasswordUiTest extends AbstractUiTest
 {
@@ -57,9 +58,11 @@ class KeePassImportWrongPasswordUiTest extends AbstractUiTest
 		ApplicationSteps application = signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 
 		int before = application.treeNodeCount();
-		application.importKeePassDatabaseExpectingFailure(keePassFile,
-			"definitely-the-wrong-password");
+		String refusal = application.importKeePassDatabaseReadingTheRefusal(keePassFile,
+			TestPasswords.throwaway());
 
+		assertEquals(Messages.getString("keepass.import.failed.message", ""), refusal,
+			"the dialog says it in the bundle's words, and nothing else");
 		assertEquals(before, application.treeNodeCount(),
 			"a failed import must not add any imported group to the tree");
 		assertFalse(MysticCryptApplicationFrame.getInstance().getModelObject().isDirty(),

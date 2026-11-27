@@ -33,18 +33,21 @@ its title, user name, password, URL, notes, custom properties (and which of them
 attachments, icon, its creation, modification, access and expiry times, and its earlier versions.
 [[The-Entry-Tree]] shows where they appear.
 
-A failed import shows **Import failed** with "Could not import the KeePass file:" and the reason,
-and adds nothing to your database.
+A failed import shows **Import failed** with "Could not import the KeePass file. The password or
+the key file may be wrong, or the file may be unreadable, damaged or in a format this version
+cannot read." and adds nothing to your database.
 
-### If the import fails with "Header HMAC does not match"
+### If the import says it could not import the file
 
-This means the password and/or key file you entered don't match what the `.kdbx` file was
-actually encrypted with - the file itself is fine. Double-check:
+The message does not say which of these it is. Check first what you entered:
 
 - The password is typed correctly (case-sensitive).
 - You're selecting the *correct* key file for this specific database - key files aren't
   interchangeable between databases.
 - If the KeePass database only uses a password, the key file checkbox is unchecked.
+
+If all of that is right, open the file in KeePass or KeePassXC: a file that does not open there
+either is damaged, and one that does may be in a format this version cannot read.
 
 ### If the file is a KDBX 3.1 file with protected attachments
 

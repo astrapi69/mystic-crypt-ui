@@ -40,6 +40,7 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.action.ExportKeePassDatabaseAction;
 import io.github.astrapi69.mystic.crypt.keepass.EntryExportChoice;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassCredentials;
+import io.github.astrapi69.mystic.crypt.keepass.KeePassExportRefusal;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverter;
 import io.github.astrapi69.mystic.crypt.keepass.MemoizedKeePassModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
@@ -179,9 +180,7 @@ public final class ExportSelectedEntriesToKeePass
 		catch (Exception exception)
 		{
 			JOptionPane.showMessageDialog(OwnedDialogs.ownerOf(caller),
-				Messages.getString("keepass.export.selected.failed",
-					"Could not export the KeePass file: ") + exception.getMessage(),
-				title(), JOptionPane.ERROR_MESSAGE);
+				KeePassExportRefusal.messageFor(exception), title(), JOptionPane.ERROR_MESSAGE);
 		}
 	}
 

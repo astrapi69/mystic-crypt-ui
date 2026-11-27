@@ -184,16 +184,6 @@ final class ApplicationSteps
 	}
 
 	/**
-	 * Drives the KeePass import dialog exactly like {@link #importKeePassDatabase} but with a wrong
-	 * password, and closes the resulting "Import failed" error dialog - the negative use case
-	 */
-	ApplicationSteps importKeePassDatabaseExpectingFailure(File keePassFile, String wrongPassword)
-	{
-		importKeePassDatabaseReadingTheRefusal(keePassFile, wrongPassword);
-		return this;
-	}
-
-	/**
 	 * Imports a KeePass file through the File menu, expects the "Import failed" dialog, and returns
 	 * what it said before closing it - so that a test can tell one reason for a refusal from
 	 * another, a wrong password from a file the library cannot read (#568)
@@ -326,6 +316,72 @@ final class ApplicationSteps
 		clickDialogButton(exportDialog, "OK");
 		dismissMessageDialog("Export successful", KEY_DERIVATION_TIMEOUT_SECONDS);
 		return this;
+	}
+
+	/**
+	 * Exports through the File menu as {@link #exportKeePassDatabase} does, to a file the export
+	 * cannot write, and returns what the refusal said before closing it
+	 *
+	 * @param destinationFile
+	 *            the KeePass file to write, which cannot be written
+	 * @param password
+	 *            the password of the file
+	 * @param refusalTitle
+	 *            the title of the refusal's dialog
+	 * @return the message of the refusal, as the user reads it
+	 */
+	String exportKeePassDatabaseReadingTheRefusal(File destinationFile, String password,
+		String refusalTitle)
+	{
+		clickMenuItem(MenuId.EXPORT_KEEPASS.propertiesKey());
+
+		DialogFixture exportDialog = findDialogWithTitle("Export to KeePass");
+		browseAndPickFile(exportDialog, "btnFile", destinationFile);
+		GuiActionRunner
+			.execute(() -> exportDialog.textBox("txtPassword").target().setText(password));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(exportDialog, "OK");
+
+		return readAndDismissMessageDialog(refusalTitle);
+	}
+
+	/**
+	 * Exports the selected entries as {@link #exportSelectedEntriesToKeePass} does, to a file the
+	 * export cannot write, and returns what the refusal said before closing it
+	 *
+	 * @param frame
+	 *            the main frame
+	 * @param destinationFile
+	 *            the KeePass file to write, which cannot be written
+	 * @param password
+	 *            the password of the file
+	 * @param refusalTitle
+	 *            the title of the refusal's dialog
+	 * @return the message of the refusal, as the user reads it
+	 */
+	String exportSelectedEntriesToKeePassReadingTheRefusal(
+		org.assertj.swing.fixture.FrameFixture frame, File destinationFile, String password,
+		String refusalTitle)
+	{
+		chooseFromSelectedEntryPopup(frame, "Export selected to KeePass...");
+		DialogFixture exportDialog = findDialogWithTitle("Export selected to KeePass");
+		browseAndPickFile(exportDialog, "btnFile", destinationFile);
+		GuiActionRunner
+			.execute(() -> exportDialog.textBox("txtPassword").target().setText(password));
+		robot.waitForIdle();
+		UiTestSpeed.step();
+		clickDialogButton(exportDialog, "OK");
+		Pause.pause(new Condition("the export dialog is closed")
+		{
+			@Override
+			public boolean test()
+			{
+				return !exportDialog.target().isShowing();
+			}
+		}, 10000);
+
+		return readAndDismissMessageDialog(refusalTitle);
 	}
 
 	/** Opens the KeePass export dialog via the File menu and cancels it - nothing is exported */
