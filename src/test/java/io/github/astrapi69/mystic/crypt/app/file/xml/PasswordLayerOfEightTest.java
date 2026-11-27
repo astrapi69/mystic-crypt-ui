@@ -66,7 +66,9 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
  * of the content decides for about half of all databases, the check passes for about one password
  * in 256, and this version's format then gives back text that is no xml. Whether it passes is
  * decided by the password and the content alone, so such a database behaves the same way at every
- * sign-in.
+ * sign-in: the reader used to stop at that text and call the database's own password wrong every
+ * time. It now also reads the layer the way 8 wrote it, and opens the database when that reads
+ * (#1209).
  * <p>
  * The test writes one at runtime: content whose layer has that length, and passwords drawn until
  * one gives a layer that this version's format decrypts to text that cannot begin an xml document.
@@ -109,8 +111,8 @@ class PasswordLayerOfEightTest
 	}
 
 	@Test
-	@DisplayName("a database 8 wrote with a password and a key file, whose password layer this version's format decrypts to text that is no xml, is refused with its own password")
-	void aVaultOfEight_whosePasswordLayerThisVersionDecryptsToNoXml_isRefusedWithItsOwnPassword()
+	@DisplayName("a database 8 wrote with a password and a key file opens with its password, also when this version's format decrypts its password layer to text that is no xml")
+	void aVaultOfEight_whosePasswordLayerThisVersionDecryptsToNoXml_opensWithItsPassword()
 		throws Exception
 	{
 		KeyPair key = KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA, 2048);
@@ -127,13 +129,10 @@ class PasswordLayerOfEightTest
 				drawn.password()),
 			"8's format reads the password layer with the database's own password");
 
-		RuntimeException refusal = assertThrows(RuntimeException.class,
-			() -> ApplicationXmlFileReader.read(signingIn(database, keyFile, drawn.password())));
+		ApplicationModelBean opened = ApplicationXmlFileReader
+			.read(signingIn(database, keyFile, drawn.password()));
 
-		assertEquals(
-			asTheDialogReadsIt("Authentication with Password or key file",
-				"The master password or the key file is wrong."),
-			refusal.getMessage(), "the sign-in calls the database's own password wrong");
+		assertEquals(SampleVaults.entryLines(content.vault()), SampleVaults.entryLines(opened));
 	}
 
 	@Test

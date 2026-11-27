@@ -33,6 +33,7 @@ import java.security.GeneralSecurityException;
 import java.security.PrivateKey;
 import java.security.Security;
 import java.util.Base64;
+import java.util.Optional;
 import java.util.logging.Level;
 
 import javax.crypto.AEADBadTagException;
@@ -430,7 +431,11 @@ public class ApplicationXmlFileReader
 
 		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
 		String encryptedXml = decryptedWithKeyFile(privateKey, encryptedBytes);
-		String xml = decryptedWithPassword(encryptedXml, password);
+		// one unwipeable copy of the master password, and one of the xml: this path decrypts
+		// through PasswordStringDecryptor, which takes a String and is a library class that is not
+		// changed from this repository (#294, architecture.md)
+		String passwordText = String.valueOf(password);
+		String xml = decryptedWithPassword(encryptedXml, passwordText);
 		try
 		{
 			applicationModelBean = throughTheCodec(xml);
@@ -438,7 +443,12 @@ public class ApplicationXmlFileReader
 		catch (VaultContentUnreadableException unreadable)
 		{
 			// the password layer authenticates in neither of its formats (#1188)
-			throw notDecryptedWhenNoXml(unreadable);
+			if (!unreadable.isNoXml())
+			{
+				throw unreadable;
+			}
+			applicationModelBean = readTheWayEightWroteIt(encryptedXml, passwordText)
+				.orElseThrow(() -> new VaultNotDecryptedException(unreadable));
 		}
 		// the key is not in the file and must not be (#350): it comes from the key file whoever
 		// signed in just picked, and the model needs it for the next save and for the plugins that
@@ -474,19 +484,15 @@ public class ApplicationXmlFileReader
 	 *
 	 * @param encryptedXml
 	 *            the password layer, in Base64
-	 * @param password
+	 * @param passwordText
 	 *            the master password
 	 * @return the xml
 	 * @throws Exception
 	 *             when the password does not decrypt it in either format
 	 */
-	private static String decryptedWithPassword(final String encryptedXml, final char[] password)
-		throws Exception
+	private static String decryptedWithPassword(final String encryptedXml,
+		final String passwordText) throws Exception
 	{
-		// one unwipeable copy of the master password, and one of the xml: this path decrypts
-		// through PasswordStringDecryptor, which takes a String and is a library class that is not
-		// changed from this repository (#294, architecture.md)
-		String passwordText = String.valueOf(password);
 		try
 		{
 			return new PasswordStringDecryptor(passwordText).decrypt(encryptedXml);
@@ -503,6 +509,39 @@ public class ApplicationXmlFileReader
 				notTheCurrentFormat.addSuppressed(notTheFormatOfEight);
 				throw notTheCurrentFormat;
 			}
+		}
+	}
+
+	/**
+	 * The model behind the password layer read the way 8 wrote it, for a layer whose decryption
+	 * gave back no xml. This version's format is tried first, and a layer of 8 whose length after
+	 * the salt is a whole number of that format's cipher blocks passes its padding check for about
+	 * one password in 256: the text it then gives back is noise, at every sign-in, and the layer is
+	 * one that only 8's format reads. Only a layer that reads in 8's format changes the outcome;
+	 * when it does not, the failure the decryption already gave stands as it is, and a wrong
+	 * password is still a wrong password (#1188)
+	 *
+	 * @param encryptedXml
+	 *            the password layer, in Base64
+	 * @param passwordText
+	 *            the master password
+	 * @return the model, or empty when the layer does not read in 8's format
+	 * @throws Exception
+	 *             when the layer cannot be decrypted for another reason than the password
+	 */
+	private static Optional<ApplicationModelBean> readTheWayEightWroteIt(final String encryptedXml,
+		final String passwordText) throws Exception
+	{
+		try
+		{
+			return Optional.of(throughTheCodec(PasswordVaultFormat
+				.decryptLegacy(Base64.getDecoder().decode(encryptedXml), passwordText)));
+		}
+		catch (GeneralSecurityException | VaultContentUnreadableException
+			| VaultHoldsAForeignTypeException notTheFormatOfEightEither)
+		{
+			// the outcome is the one the first decryption gave, which the caller reports
+			return Optional.empty();
 		}
 	}
 
