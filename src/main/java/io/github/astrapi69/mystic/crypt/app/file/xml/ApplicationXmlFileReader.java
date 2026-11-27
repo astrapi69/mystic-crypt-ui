@@ -424,22 +424,11 @@ public class ApplicationXmlFileReader
 	public static ApplicationModelBean getApplicationModelBean(File applicationFile,
 		char[] password, File keyFile) throws Exception
 	{
-		ApplicationModelBean applicationModelBean;
-		PrivateKey privateKey;
-		privateKey = KeyFileOnDisk.readKey(keyFile, true);
-
+		PrivateKey privateKey = KeyFileOnDisk.readKey(keyFile, true);
 		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
 		String encryptedXml = decryptedWithKeyFile(privateKey, encryptedBytes);
-		String xml = decryptedWithPassword(encryptedXml, password);
-		try
-		{
-			applicationModelBean = throughTheCodec(xml);
-		}
-		catch (VaultContentUnreadableException unreadable)
-		{
-			// the password layer authenticates in neither of its formats (#1188)
-			throw notDecryptedWhenNoXml(unreadable);
-		}
+		ApplicationModelBean applicationModelBean = readThroughThePasswordLayer(encryptedXml,
+			password);
 		// the key is not in the file and must not be (#350): it comes from the key file whoever
 		// signed in just picked, and the model needs it for the next save and for the plugins that
 		// read it. The key-only path below does the same thing for the same reason
@@ -467,42 +456,94 @@ public class ApplicationXmlFileReader
 	}
 
 	/**
-	 * The password layer of a database with a password and a key file, in the format this version
-	 * writes or in the one 8 wrote: {@code PBEWithMD5AndDES} with the fixed salt (mystic-crypt 9),
-	 * which the next save replaces (#650). Neither layer authenticates, so when both fail the
-	 * failure stays the current format's, and the password is called not valid as before
+	 * The model behind the password layer of a database with a password and a key file, in the
+	 * format this version writes or in the one 8 wrote: {@code PBEWithMD5AndDES} with the fixed
+	 * salt (mystic-crypt 9), which the next save replaces (#650). Neither format checks more than
+	 * the padding at the end of its decryption, so the layer is read in this version's format
+	 * first, and the way 8 wrote it when that format refuses the password or gives back no xml at
+	 * all. A layer of 8 whose length after the salt is a whole number of this version's cipher
+	 * blocks passes this version's padding check for about one password in 256, and what it gives
+	 * back then is noise, at every sign-in. A password that reads the layer in neither format is a
+	 * wrong password, as before (#1188)
 	 *
 	 * @param encryptedXml
 	 *            the password layer, in Base64
 	 * @param password
 	 *            the master password
-	 * @return the xml
+	 * @return the model
 	 * @throws Exception
-	 *             when the password does not decrypt it in either format
+	 *             when the password reads the layer in neither format, or the content cannot be
+	 *             read
 	 */
-	private static String decryptedWithPassword(final String encryptedXml, final char[] password)
-		throws Exception
+	private static ApplicationModelBean readThroughThePasswordLayer(final String encryptedXml,
+		final char[] password) throws Exception
 	{
 		// one unwipeable copy of the master password, and one of the xml: this path decrypts
 		// through PasswordStringDecryptor, which takes a String and is a library class that is not
 		// changed from this repository (#294, architecture.md)
 		String passwordText = String.valueOf(password);
+		String xml;
 		try
 		{
-			return new PasswordStringDecryptor(passwordText).decrypt(encryptedXml);
+			xml = new PasswordStringDecryptor(passwordText).decrypt(encryptedXml);
 		}
 		catch (GeneralSecurityException notTheCurrentFormat)
 		{
-			try
+			return readTheWayEightWroteIt(encryptedXml, passwordText, notTheCurrentFormat);
+		}
+		try
+		{
+			return throughTheCodec(xml);
+		}
+		catch (VaultContentUnreadableException unreadable)
+		{
+			if (!unreadable.isNoXml())
 			{
-				return PasswordVaultFormat.decryptLegacy(Base64.getDecoder().decode(encryptedXml),
-					passwordText);
+				throw unreadable;
 			}
-			catch (GeneralSecurityException notTheFormatOfEight)
-			{
-				notTheCurrentFormat.addSuppressed(notTheFormatOfEight);
-				throw notTheCurrentFormat;
-			}
+			return readTheWayEightWroteIt(encryptedXml, passwordText,
+				new VaultNotDecryptedException(unreadable));
+		}
+	}
+
+	/**
+	 * The model behind a password layer read the way 8 wrote it
+	 *
+	 * @param encryptedXml
+	 *            the password layer, in Base64
+	 * @param passwordText
+	 *            the master password
+	 * @param notTheCurrentFormat
+	 *            how this version's format failed, which is what is thrown when 8's format refuses
+	 *            the password as well
+	 * @return the model
+	 * @throws Exception
+	 *             when 8's format refuses the password too, or gives back content that cannot be
+	 *             read
+	 */
+	private static ApplicationModelBean readTheWayEightWroteIt(final String encryptedXml,
+		final String passwordText, final GeneralSecurityException notTheCurrentFormat)
+		throws Exception
+	{
+		String xml;
+		try
+		{
+			xml = PasswordVaultFormat.decryptLegacy(Base64.getDecoder().decode(encryptedXml),
+				passwordText);
+		}
+		catch (GeneralSecurityException notTheFormatOfEight)
+		{
+			notTheCurrentFormat.addSuppressed(notTheFormatOfEight);
+			throw notTheCurrentFormat;
+		}
+		try
+		{
+			return throughTheCodec(xml);
+		}
+		catch (VaultContentUnreadableException unreadable)
+		{
+			// the password layer authenticates in neither of its formats (#1188)
+			throw notDecryptedWhenNoXml(unreadable);
 		}
 	}
 
