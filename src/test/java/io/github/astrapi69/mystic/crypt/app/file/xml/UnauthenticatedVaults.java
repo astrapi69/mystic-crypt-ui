@@ -39,6 +39,7 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 
 import io.github.astrapi69.crypt.api.algorithm.AesAlgorithm;
+import io.github.astrapi69.crypt.api.algorithm.Algorithm;
 import io.github.astrapi69.crypt.api.algorithm.SunJCEAlgorithm;
 import io.github.astrapi69.crypt.api.algorithm.compound.CompoundAlgorithm;
 import io.github.astrapi69.crypt.data.factory.CipherFactory;
@@ -166,12 +167,62 @@ final class UnauthenticatedVaults
 	static File writtenWithBoth(final File database, final String xml, final String password,
 		final PublicKey publicKey) throws Exception
 	{
-		String passwordLayer = new PasswordStringEncryptor(password).encrypt(xml);
+		return withTheKeyFileLayer(database, new PasswordStringEncryptor(password).encrypt(xml),
+			publicKey, MysticSymmetricAlgorithm.AES_GCM_NO_PADDING);
+	}
+
+	/**
+	 * The password layer the way 8 wrote it around the given xml: {@code PBEWithMD5AndDES} with the
+	 * salt and the iteration count every installation shared, in Base64 (mystic-crypt 9, #650). The
+	 * cipher takes its initialization vector from the password and that salt, so the same xml and
+	 * password give the same layer every time
+	 *
+	 * @param xml
+	 *            the content
+	 * @param password
+	 *            the master password
+	 * @return the password layer in Base64
+	 * @throws Exception
+	 *             if it cannot be written
+	 */
+	static String passwordLayerAsEightWroteIt(final String xml, final String password)
+		throws Exception
+	{
+		Cipher cipher = CipherFactory.newPBECipher(password.toCharArray(), Cipher.ENCRYPT_MODE,
+			SunJCEAlgorithm.PBEWithMD5AndDES.getAlgorithm(), CompoundAlgorithm.SALT,
+			CompoundAlgorithm.ITERATIONCOUNT);
+		return Base64.getEncoder()
+			.encodeToString(cipher.doFinal(xml.getBytes(StandardCharsets.UTF_8)));
+	}
+
+	/**
+	 * Writes a database with a password and a key file the way 8 wrote it: the given password layer
+	 * behind a key the key file wraps, with the content encrypted in plain AES (mystic-crypt 9,
+	 * #650)
+	 *
+	 * @param database
+	 *            the file to write
+	 * @param passwordLayer
+	 *            the password layer, from {@link #passwordLayerAsEightWroteIt(String, String)}
+	 * @param publicKey
+	 *            the public half of the key in the key file
+	 * @return the database
+	 * @throws Exception
+	 *             if it cannot be written
+	 */
+	static File writtenAsEightDidWithBoth(final File database, final String passwordLayer,
+		final PublicKey publicKey) throws Exception
+	{
+		return withTheKeyFileLayer(database, passwordLayer, publicKey, AesAlgorithm.AES);
+	}
+
+	private static File withTheKeyFileLayer(final File database, final String passwordLayer,
+		final PublicKey publicKey, final Algorithm contentAlgorithm) throws Exception
+	{
 		SecretKey symmetricKey = SecretKeyFactoryExtensions
 			.newSecretKey(AesAlgorithm.AES.getAlgorithm(), 128);
 		CryptModel<Cipher, SecretKey, String> symmetricKeyModel = CryptModel
-			.<Cipher, SecretKey, String> builder().key(symmetricKey)
-			.algorithm(MysticSymmetricAlgorithm.AES_GCM_NO_PADDING)
+			.<Cipher, SecretKey, String> builder().key(symmetricKey).algorithm(contentAlgorithm)
 			.operationMode(Cipher.ENCRYPT_MODE).build();
 		CryptModel<Cipher, PublicKey, byte[]> encryptionModel = CryptModel
 			.<Cipher, PublicKey, byte[]> builder().key(publicKey).build();
@@ -196,10 +247,34 @@ final class UnauthenticatedVaults
 	 */
 	static String passwordLayerOf(final File database, final PrivateKey privateKey) throws Exception
 	{
+		return passwordLayerOf(database, privateKey, MysticSymmetricAlgorithm.AES_GCM_NO_PADDING);
+	}
+
+	/**
+	 * The password layer of a database 8 wrote with a password and a key file, as the reader has it
+	 * once the key file opened the layer around it, which 8 encrypted in plain AES (#650)
+	 *
+	 * @param database
+	 *            the database
+	 * @param privateKey
+	 *            the key in its key file
+	 * @return the password layer
+	 * @throws Exception
+	 *             if the key does not open it
+	 */
+	static String passwordLayerOfAVaultOfEight(final File database, final PrivateKey privateKey)
+		throws Exception
+	{
+		return passwordLayerOf(database, privateKey, AesAlgorithm.AES);
+	}
+
+	private static String passwordLayerOf(final File database, final PrivateKey privateKey,
+		final Algorithm contentAlgorithm) throws Exception
+	{
 		CryptModel<Cipher, PrivateKey, byte[]> decryptModel = CryptModel
 			.<Cipher, PrivateKey, byte[]> builder().key(privateKey).build();
 		PrivateKeyGenericDecryptor<String> decryptor = new PrivateKeyGenericDecryptor<>(
-			new PrivateKeyDecryptor(decryptModel, MysticSymmetricAlgorithm.AES_GCM_NO_PADDING));
+			new PrivateKeyDecryptor(decryptModel, contentAlgorithm));
 		return decryptor.decrypt(Files.readAllBytes(database.toPath()));
 	}
 
