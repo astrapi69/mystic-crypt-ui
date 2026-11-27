@@ -24,7 +24,6 @@
  */
 package io.github.astrapi69.mystic.crypt.app.file.xml;
 
-import com.thoughtworks.xstream.XStreamException;
 import com.thoughtworks.xstream.io.StreamException;
 import com.thoughtworks.xstream.mapper.CannotResolveClassException;
 
@@ -39,31 +38,49 @@ import com.thoughtworks.xstream.mapper.CannotResolveClassException;
  * The reason never quotes the content: the only text taken from the failure is a type name, which
  * is no secret. Anything else is named by the kind of failure alone, because a parser's message can
  * carry a piece of the decrypted document.
+ * <p>
+ * A type name is taken in the form {@link #isAClassNameOfThisFamily(String)} accepts; a type of any
+ * other form is named as a type this version does not know. The cause is the reader's failure as a
+ * {@link ReaderFailureTrace}.
  */
 public class VaultContentUnreadableException extends IllegalArgumentException
 {
 
 	private static final long serialVersionUID = 1L;
 
+	/**
+	 * The longest type name the reason names: 200 characters. The longest type a vault of this
+	 * version holds, {@code MysticCryptEntryModelBean} with its package, has 71
+	 */
+	static final int LONGEST_NAMED_TYPE = 200;
+
+	/** The package every class of this family lies in */
+	private static final String FAMILY = "io.github.astrapi69.";
+
 	/** What could not be read, without any of the content */
 	private final String reason;
+
+	/** Whether the parser refused the document itself, read off the reader's own failure */
+	private final boolean noXml;
 
 	/**
 	 * The failure of reading a decrypted vault
 	 *
 	 * @param cause
-	 *            what the reader threw
+	 *            what the reader threw: an exception of XStream, or any other the reading ended
+	 *            with before or after XStream converted anything
 	 */
-	public VaultContentUnreadableException(final XStreamException cause)
+	public VaultContentUnreadableException(final RuntimeException cause)
 	{
 		this(reasonOf(cause), cause);
 	}
 
-	private VaultContentUnreadableException(final String reason, final XStreamException cause)
+	private VaultContentUnreadableException(final String reason, final RuntimeException cause)
 	{
 		super("The database was decrypted, but its content could not be read: " + reason + ".",
-			cause);
+			ReaderFailureTrace.of(cause));
 		this.reason = reason;
+		this.noXml = refusedByTheParser(cause);
 	}
 
 	/**
@@ -86,7 +103,44 @@ public class VaultContentUnreadableException extends IllegalArgumentException
 	 */
 	public boolean isNoXml()
 	{
-		for (Throwable cause = getCause(); cause != null; cause = cause.getCause())
+		return noXml;
+	}
+
+	/**
+	 * Whether the given name, as the content gives it, is a binary class name of this family:
+	 * {@code io.github.astrapi69.} followed by segments of Java identifier characters separated by
+	 * dots, at most {@value #LONGEST_NAMED_TYPE} characters long
+	 *
+	 * @param name
+	 *            the name
+	 * @return true if the reason may name it
+	 */
+	static boolean isAClassNameOfThisFamily(final String name)
+	{
+		if (name == null || LONGEST_NAMED_TYPE < name.length() || !name.startsWith(FAMILY))
+		{
+			return false;
+		}
+		for (String segment : name.substring(FAMILY.length()).split("\\.", -1))
+		{
+			if (!isAJavaIdentifier(segment))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private static boolean isAJavaIdentifier(final String segment)
+	{
+		return !segment.isEmpty() && Character.isJavaIdentifierStart(segment.charAt(0))
+			&& segment.chars().allMatch(character -> Character.isJavaIdentifierPart(character)
+				&& !Character.isIdentifierIgnorable(character));
+	}
+
+	private static boolean refusedByTheParser(final Throwable failure)
+	{
+		for (Throwable cause = failure; cause != null; cause = cause.getCause())
 		{
 			if (cause instanceof StreamException)
 			{
@@ -102,8 +156,10 @@ public class VaultContentUnreadableException extends IllegalArgumentException
 		{
 			if (cause instanceof CannotResolveClassException unknown)
 			{
-				return "it names the type " + unknown.getMessage()
-					+ ", which this version does not know";
+				return isAClassNameOfThisFamily(unknown.getMessage())
+					? "it names the type " + unknown.getMessage()
+						+ ", which this version does not know"
+					: "it names a type this version does not know";
 			}
 		}
 		Throwable innermost = failure;

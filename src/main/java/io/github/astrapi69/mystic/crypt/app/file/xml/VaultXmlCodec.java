@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.XStreamException;
 import com.thoughtworks.xstream.security.ForbiddenClassException;
 import com.thoughtworks.xstream.security.NoTypePermission;
 
@@ -194,8 +193,10 @@ public final class VaultXmlCodec
 	 * @throws VaultHoldsAForeignTypeException
 	 *             when the xml names a type no vault holds; that type is not built
 	 * @throws VaultContentUnreadableException
-	 *             when the xml cannot be read for another reason, a type this version does not know
-	 *             among them (#624)
+	 *             when the xml cannot be read for any other reason: a type this version does not
+	 *             know (#624), and every other failure of the reader, XStream's own or not, such as
+	 *             a root name it cannot decode before it converts anything, or a root of another
+	 *             type than the vault
 	 */
 	public static ApplicationModelBean toModel(final char[] xml)
 	{
@@ -210,11 +211,7 @@ public final class VaultXmlCodec
 			{
 				throw new VaultHoldsAForeignTypeException(refused.getMessage(), refused);
 			}
-			if (failure instanceof XStreamException unreadable)
-			{
-				throw new VaultContentUnreadableException(unreadable);
-			}
-			throw failure;
+			throw new VaultContentUnreadableException(failure);
 		}
 	}
 
