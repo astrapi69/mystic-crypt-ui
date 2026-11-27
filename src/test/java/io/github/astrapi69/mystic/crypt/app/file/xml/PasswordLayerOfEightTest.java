@@ -114,13 +114,13 @@ class PasswordLayerOfEightTest
 	void aVaultOfEight_whosePasswordLayerThisVersionDecryptsToNoXml_opensWithItsPassword()
 		throws Exception
 	{
-		Content content = aVaultWhoseLayerOfEightFillsWholeBlocks();
-		Drawn drawn = aPasswordWhoseLayerOfEightThisVersionDecryptsToNoXml(content.xml());
 		KeyPair key = KeyPairFactory.newKeyPair(KeyPairGeneratorAlgorithm.RSA, 2048);
 		File keyFile = new File(directory, "key.pem");
 		PrivateKeyWriter.writeInPemFormat(key.getPrivate(), keyFile);
-		File database = UnauthenticatedVaults.writtenAsEightDidWithBoth(
-			new File(directory, "written-as-eight-did.mcrdb"), drawn.passwordLayer(),
+		File database = new File(directory, "written-as-eight-did.mcrdb");
+		Content content = aVaultWhoseLayerOfEightFillsWholeBlocks(database, keyFile);
+		Drawn drawn = aPasswordWhoseLayerOfEightThisVersionDecryptsToNoXml(content.xml());
+		UnauthenticatedVaults.writtenAsEightDidWithBoth(database, drawn.passwordLayer(),
 			key.getPublic());
 		assertEquals(content.xml(),
 			PasswordVaultFormat.decryptLegacy(Base64.getDecoder().decode(
@@ -177,21 +177,28 @@ class PasswordLayerOfEightTest
 	}
 
 	/**
-	 * The sample vault, with the notes of its first entry lengthened until the password layer 8
-	 * writes around its xml is, after the salt, a whole number of this version's cipher blocks. The
-	 * length of that layer follows from the length of the content alone, whatever the password, and
-	 * this version's format refuses a layer of any other length before it decrypts anything
+	 * The sample vault with the sign-in settings every save writes into it, and the notes of its
+	 * first entry lengthened until the password layer 8 writes around its xml is, after the salt, a
+	 * whole number of this version's cipher blocks. The length of that layer follows from the
+	 * length of the content alone, whatever the password, and this version's format refuses a layer
+	 * of any other length before it decrypts anything
 	 *
+	 * @param database
+	 *            the file the vault is written to
+	 * @param keyFile
+	 *            the key file
 	 * @return the vault and its xml
 	 * @throws Exception
 	 *             if a layer cannot be written
 	 */
-	private static Content aVaultWhoseLayerOfEightFillsWholeBlocks() throws Exception
+	private static Content aVaultWhoseLayerOfEightFillsWholeBlocks(final File database,
+		final File keyFile) throws Exception
 	{
 		for (int added = 0; added < BLOCK_SIZE_OF_THE_PASSWORD_LAYER; added++)
 		{
 			char[] notes = ("Grüße, with umlauts" + ".".repeat(added)).toCharArray();
 			ApplicationModelBean vault = SampleVaults.aVaultWith(entry -> entry.setNotes(notes));
+			vault.setMasterPwFileModelBean(signInSettings(database, keyFile));
 			String xml = new String(VaultXmlCodec.toXml(vault));
 			if (fillsWholeBlocks(
 				UnauthenticatedVaults.passwordLayerAsEightWroteIt(xml, TestPasswords.throwaway())))
@@ -243,13 +250,21 @@ class PasswordLayerOfEightTest
 			+ " gave a password layer of 8 that this version's format decrypts");
 	}
 
-	private static MasterPwFileModelBean signingIn(final File database, final File keyFile,
-		final String password)
+	/** The sign-in settings of a database with a password and a key file, without the password */
+	private static MasterPwFileModelBean signInSettings(final File database, final File keyFile)
 	{
 		return MasterPwFileModelBean.builder().applicationFileInfo(FileInfo.toFileInfo(database))
 			.selectedApplicationFilePath(database.getAbsolutePath())
-			.keyFileInfo(FileInfo.toFileInfo(keyFile)).masterPw(password.toCharArray())
-			.withMasterPw(true).withKeyFile(true).minPasswordLength(6).build();
+			.keyFileInfo(FileInfo.toFileInfo(keyFile)).withMasterPw(true).withKeyFile(true)
+			.minPasswordLength(6).build();
+	}
+
+	private static MasterPwFileModelBean signingIn(final File database, final File keyFile,
+		final String password)
+	{
+		MasterPwFileModelBean credentials = signInSettings(database, keyFile);
+		credentials.setMasterPw(password.toCharArray());
+		return credentials;
 	}
 
 	private static String asTheDialogReadsIt(final String title, final String text)
