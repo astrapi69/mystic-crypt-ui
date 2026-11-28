@@ -63,6 +63,9 @@ public class LethenonWalletPanelModel
 
 	private String balanceExact = "";
 
+	/** What waits for a block, empty while nothing waits (#921) */
+	private String waiting = "";
+
 	private String refusal = "";
 
 	private String notice = "";
@@ -186,6 +189,16 @@ public class LethenonWalletPanelModel
 	public void setBalanceExact(String balanceExact)
 	{
 		this.balanceExact = balanceExact == null ? "" : balanceExact;
+	}
+
+	public String getWaiting()
+	{
+		return waiting;
+	}
+
+	public void setWaiting(String waiting)
+	{
+		this.waiting = waiting == null ? "" : waiting;
 	}
 
 	public String getBackupNotice()

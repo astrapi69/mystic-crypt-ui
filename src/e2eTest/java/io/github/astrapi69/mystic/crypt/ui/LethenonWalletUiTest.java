@@ -245,6 +245,10 @@ class LethenonWalletUiTest extends AbstractUiTest
 				20000);
 			assertEquals("exactly 3.00000000 LETH, without unchecked incoming payments",
 				textOf(tool, "txtBalanceExact"));
+			assertFalse(
+				GuiActionRunner.execute(() -> tool.textBox("txtWaiting").target().isShowing()),
+				"the waiting sweep comes from the one-time address, not from an account of the "
+					+ "wallet, so nothing of the wallet's own waits for a block (#921)");
 		}
 	}
 

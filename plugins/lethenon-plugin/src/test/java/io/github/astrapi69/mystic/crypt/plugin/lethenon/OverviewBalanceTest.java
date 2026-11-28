@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
 import java.security.KeyPair;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -45,8 +46,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import io.github.astrapi69.lethenon.Amount;
+import io.github.astrapi69.lethenon.BlockBody;
+import io.github.astrapi69.lethenon.Bytes;
+import io.github.astrapi69.lethenon.ChainFile;
+import io.github.astrapi69.lethenon.Destination;
 import io.github.astrapi69.lethenon.SignatureSuite;
+import io.github.astrapi69.lethenon.SignedTransaction;
 import io.github.astrapi69.lethenon.TransactionSigner;
+import io.github.astrapi69.lethenon.Transfers;
 import io.github.astrapi69.lethenon.Wallet;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.VaultEntryProperties;
@@ -227,6 +234,85 @@ class OverviewBalanceTest
 		assertEquals("", textOf(panel, "lblBalance"));
 		assertFalse(Windows.shows(panel, "lblBalance"), "an empty balance shows");
 		assertEquals("No chain yet", textOf(panel, "lblNoChainTitle"));
+	}
+
+	/**
+	 * Writes the chain and, next to it, one transfer of 1.5 LETH and a fee of 0.1 from the wallet's
+	 * Ed25519 account, waiting for the next block
+	 */
+	private Path aChainWithAWaitingTransfer() throws Exception
+	{
+		List<BlockBody> chain = LethenonFixtures.aChainPayingTheWallet(payer, wallet);
+		Path written = LethenonFixtures.written(directory.resolve("chain.lethenon"), chain);
+		Bytes recipient = TransactionSigner
+			.asBytes(TransactionSigner.newKeyPair(SignatureSuite.ED25519).getPublic());
+		new ChainFile(written).writePending(List.of(Transfers.prepare(wallet,
+			SignatureSuite.ED25519, chain, List.of(), Destination.direct(recipient),
+			Amount.parseLeth("1.5"), Amount.parseLeth("0.1"), "waiting")));
+		return written;
+	}
+
+	@Test
+	@DisplayName("a transfer of the wallet that waits for a block is counted with its fee, and what stays spendable after it (#921)")
+	void aWaitingTransfer_isCountedWithItsFee() throws Exception
+	{
+		restored();
+		Path chain = aChainWithAWaitingTransfer();
+
+		AccountsBalance balance = OverviewBalance.of(chain, vault.wallets().get(0));
+
+		assertEquals(Amount.ofLeth(3L), balance.total(), "the chain still holds the 3 LETH");
+		assertEquals(new WaitingTransfers(1, Amount.parseLeth("1.6")), balance.waiting());
+		assertEquals(Amount.parseLeth("1.4"), balance.afterWaiting());
+	}
+
+	@Test
+	@DisplayName("without waiting transfers nothing waits and everything is spendable (#921)")
+	void withoutWaitingTransfers_nothingWaits() throws Exception
+	{
+		restored();
+		Path chain = aChainPayingTheWallet();
+
+		AccountsBalance balance = OverviewBalance.of(chain, vault.wallets().get(0));
+
+		assertEquals(WaitingTransfers.NONE, balance.waiting());
+		assertEquals(balance.total(), balance.afterWaiting());
+	}
+
+	@Test
+	@DisplayName("a waiting transfer of another account is not the wallet's (#921)")
+	void aWaitingTransferOfAnotherAccount_isNotCounted() throws Exception
+	{
+		Path chain = aChainWithAWaitingTransfer();
+		List<SignedTransaction> waiting = new ChainFile(chain).readPending();
+		Bytes other = Wallet.create().spendKey(SignatureSuite.ED25519);
+
+		assertEquals(WaitingTransfers.NONE, WaitingTransfers.outgoing(waiting, List.of(other)));
+		assertEquals(1, WaitingTransfers
+			.outgoing(waiting, List.of(other, wallet.spendKey(SignatureSuite.ED25519))).count());
+	}
+
+	@Test
+	@DisplayName("the overview says what waits for a block and what is spendable after it, and says nothing while nothing waits (#921)")
+	void theOverview_saysWhatWaits() throws Exception
+	{
+		restored();
+		Path chain = aChainWithAWaitingTransfer();
+		PluginSettings.save(configuration.toFile(), LethenonSettingsContribution.PLUGIN_ID,
+			new LethenonSettingsContribution().getDefaults(),
+			Map.of(LethenonSettingsContribution.KEY_CHAIN_FILE, chain.toString()));
+
+		LethenonWalletPanel panel = new LethenonWalletPanel(vault, Locale.ENGLISH);
+
+		assertEquals("1 transfer of yours waits for a block: 1.60000000 LETH, fees included. After "
+			+ "it, 1.40000000 LETH is spendable.", textOf(panel, "txtWaiting"));
+		assertTrue(Windows.shows(panel, "txtWaiting"));
+
+		new ChainFile(chain).writePending(List.of());
+		LethenonWalletPanel reopened = new LethenonWalletPanel(vault, Locale.ENGLISH);
+
+		assertEquals("", textOf(reopened, "txtWaiting"));
+		assertFalse(Windows.shows(reopened, "txtWaiting"), "nothing waits, nothing is said");
 	}
 
 	@Test
