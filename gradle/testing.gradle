@@ -231,9 +231,14 @@ tasks.named('e2eTest') {
         .withPathSensitivity(PathSensitivity.NONE)
     inputs.file(allDependenciesJar).withPropertyName('allDependenciesJar')
         .withPathSensitivity(PathSensitivity.NONE)
+    // the javadoc jar too: its language must not follow the building machine's (#920)
+    def documentationJar = tasks.named('javadocJar').flatMap { it.archiveFile }
+    inputs.file(documentationJar).withPropertyName('documentationJar')
+        .withPathSensitivity(PathSensitivity.NONE)
     jvmArgumentProviders.add({
         ["-Dmystic.crypt.ui.built.jar=${applicationJar.get().asFile}".toString(),
-         "-Dmystic.crypt.ui.built.all.jar=${allDependenciesJar.get().asFile}".toString()]
+         "-Dmystic.crypt.ui.built.all.jar=${allDependenciesJar.get().asFile}".toString(),
+         "-Dmystic.crypt.ui.built.javadoc.jar=${documentationJar.get().asFile}".toString()]
     } as CommandLineArgumentProvider)
 }
 

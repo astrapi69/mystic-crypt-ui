@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 import org.junit.jupiter.api.DisplayName;
@@ -105,6 +107,24 @@ class BuiltArchivesNameNoBuildMachineTest
 			String jdkSpec = main.getValue("Build-Jdk-Spec");
 			assertTrue(jdkSpec != null && jdkSpec.matches("\\d+"), archive + ": Build-Jdk-Spec is '"
 				+ jdkSpec + "', not a feature release such as 25 (#920)");
+		}
+	}
+
+	@Test
+	@DisplayName("the javadoc jar is written in English whatever language the building machine has")
+	void theJavadocJar_isEnglish_whateverTheBuildingMachinesLanguage() throws IOException
+	{
+		Path jar = builtJar("mystic.crypt.ui.built.javadoc.jar");
+
+		try (ZipFile archive = new ZipFile(jar.toFile()))
+		{
+			ZipEntry index = archive.getEntry("index.html");
+			assertTrue(index != null, jar + " has no index.html");
+			String page = new String(archive.getInputStream(index).readAllBytes(),
+				StandardCharsets.UTF_8);
+			assertTrue(page.contains("<html lang=\"en\">"),
+				jar + " is not written in English, so two builds of the same commit on machines "
+					+ "of different languages differ (#920, RL-116)");
 		}
 	}
 
