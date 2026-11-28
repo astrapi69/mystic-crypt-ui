@@ -192,7 +192,9 @@ public class MysticCryptEntryModelBean
 	 * shared with this entry - its own attachments list, properties list and protected property
 	 * names. The history is left out because a duplicate is a new entry, not a later version of
 	 * this one, and it is null rather than empty so the vault writes no element for it (#402). The
-	 * identifier is copied; the caller decides whether the copy keeps it
+	 * identifier is copied; the caller decides whether the copy keeps it. A copy the user makes is
+	 * a new entry and takes one of its own: "Duplicate entry" and "Duplicate node" copy through
+	 * {@code EntryIdentitySupport.duplicateAsNewEntry} (#856)
 	 *
 	 * @return the copy
 	 */

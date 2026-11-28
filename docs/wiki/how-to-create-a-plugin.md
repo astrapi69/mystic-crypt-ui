@@ -192,9 +192,11 @@ The internal plugins' icons are drawn in the style of the application icon: the 
 with its light edge, the same teal (`#35d0bd`), a 16 unit grid with the picture on columns and
 rows 3 to 12. Their SVG sources, and how the PNG files are made from them, are in
 [`design/plugin-icons/`](https://github.com/astrapi69/mystic-crypt-ui/tree/develop/design/plugin-icons).
-A new internal plugin gets its icon the same way; the end-to-end test
-`EveryPluginShowsAnIconOfItsOwnUiTest` installs every plugin under `plugins/` and fails for a menu
-item without an icon, without the 32 px variant, or with a picture another plugin already shows.
+A new internal plugin gets its icon the same way. Two tests notice one that does not:
+`EveryPluginCarriesItsIconTest` checks in the everyday build that every plugin under `plugins/` has
+both images, its SVG source and the two `getResource` calls; the end-to-end test
+`EveryPluginShowsAnIconOfItsOwnUiTest` installs every plugin's zip and fails for a menu item without
+an icon, without the 32 px variant, or with a picture another plugin already shows.
 
 # The plugin's own text
 

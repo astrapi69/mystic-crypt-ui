@@ -1,0 +1,37 @@
+# Writes the vaults of 7.2, 7.3, 8 and 8.1.1 that src/testSupport/resources/compat/vaults holds for #864, with each
+# published release's own application jar, and uploads them with their sha256 as the artifact old-release-vaults:
+# fixtures are written in GitHub Actions, not on a developer's machine (AG-021). It is no check and runs only by hand:
+#   gh workflow run write-vaults-of-old-releases.yml --ref <branch>
+# What is checked in is the artifact's files; README.md beside the vaults records the run, the sums and the commands.
+name: Write the vaults of old releases
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  write:
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Setup Java
+        uses: actions/setup-java@d1374f8ac74474200d16ef8ecee22c7ae7a51880 # v6.3.0
+        with:
+          java-version-file: '.sdkmanrc'
+          distribution: 'temurin'
+      - name: Write the vaults, each opened again by the release that wrote it
+        # the java -version line is the one README.md names for the run
+        run: |
+          "$JAVA_HOME/bin/java" -version
+          scripts/fixtures/write-vaults-of-every-variant.sh "$RUNNER_TEMP/old-release-vaults"
+      - name: Upload the vaults with their sha256
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: old-release-vaults
+          path: ${{ runner.temp }}/old-release-vaults
+          if-no-files-found: error
+          retention-days: 14

@@ -95,7 +95,7 @@ help: ## [help] lists every target with what it does
 
 # point git at the repository's own hooks, so the pre-commit formatting check runs before a commit exists.
 # A hook is per working copy: run this once in every fresh clone and every new worktree (#373)
-install-hooks: ## [quality] point git at .githooks, so the pre-commit Spotless check and the pre-push pull request check run; once per clone and worktree
+install-hooks: ## [quality] point git at .githooks, so the pre-commit Spotless check and the pre-push checks for private references and the pull request run; once per clone and worktree
 	git config core.hooksPath .githooks
 	@printf 'hooks installed: core.hooksPath -> %s\n' "$$(git config core.hooksPath)"
 
@@ -302,6 +302,7 @@ ifeq ($(SCRIPT_TESTS),yes)
 	python3 scripts/merge_pr_test.py
 	python3 scripts/assemble_changelog_test.py
 	python3 scripts/pr_state_guard_test.py
+	python3 scripts/private_references_test.py
 	python3 scripts/double_build_test.py
 	python3 scripts/start_launcher_test.py
 	python3 scripts/cli_launcher_test.py

@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/mystic-crypt-ui.main.iml" filepath="$PROJECT_DIR$/.idea/modules/mystic-crypt-ui.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/mystic-crypt-ui.test.iml" filepath="$PROJECT_DIR$/.idea/modules/mystic-crypt-ui.test.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/mystic-crypt-ui.testSupport.iml" filepath="$PROJECT_DIR$/.idea/modules/mystic-crypt-ui.testSupport.iml" />
     </modules>
   </component>
 </project>

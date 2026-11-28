@@ -1,0 +1,12 @@
+# 8.0: no container of a major below 9 exists
+# verdict: refuse UNKNOWN_MAJOR
+# header, 18 bytes
+4d 43 56 4c 54 31 00 08 00 00 00 00 00 00 00 00
+00 43
+# json, 67 bytes
+7b 22 76 61 75 6c 74 49 64 22 3a 22 39 62 30 66
+34 63 31 65 2d 36 61 35 31 2d 34 66 37 65 2d 38
+64 32 61 2d 33 63 35 65 37 66 39 61 31 62 32 64
+22 2c 22 61 74 74 61 63 68 6d 65 6e 74 73 22 3a
+5b 5d 7d
+# blob area, 0 bytes

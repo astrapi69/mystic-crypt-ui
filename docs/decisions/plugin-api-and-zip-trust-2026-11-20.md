@@ -766,7 +766,7 @@ could sit, measured:
 - Not in the MCRDB2 header: the plaintext is 26 bytes (marker, salt, iteration count), all of it associated data, and
   `docs/vault-format.md` says a further header field needs a new marker (`PasswordVaultFormat.java:41-80`,
   `docs/vault-format.md:45-59`, `:202-203`). A plaintext list would also be readable before the sign-in.
-- Not in the two key-file variants: they have no marker and no header and are not versioned (`docs/vault-format.md:278-321`), so
+- Not in the two key-file variants: they have no marker and no header and are not versioned (`docs/vault-format.md:278-349`), so
   for a vault of that kind anything new goes into the XML content or nowhere.
 - (a) As a marked entry with a host-owned marker, through the mechanism of `plugin-vault-access-2026-10-31.md` (a custom property
   in the namespace of its owner). No format change, readable by every build from 8.5. It is visible and editable as an ordinary
@@ -789,7 +789,7 @@ could sit, measured:
   record's minor rule (`:87-88`) and an edit to #865's model list, or a change to the record's rule that the host never interprets
   `extensions` (`:75-76`), which the maintainer decides separately. A host key among the plugins' namespaces would also need a rule
   that keeps plugins from writing it (an inference; nothing of 9.0 is built). Taken into 9.0, either adds no break of its own,
-  because 9.0 is a break already. Issues #862, #864, #865 and #866 are all open, and none names plugins or a vault-level setting;
+  because 9.0 is a break already. Issues #862, #864, #865 and #866 were all open on 2026-11-20, and none names plugins or a vault-level setting;
   the model list of #865 ("one optional `extensions` object per entity") has no field for it, so taking it in is an edit to the
   scope of #865, the maintainer's decision.
   Cost: nothing exists before 9.0, and released 7.x and 8.x cannot read a 9.0 vault, so the list protects nothing until 9.0 ships.

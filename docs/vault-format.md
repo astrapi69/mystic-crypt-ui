@@ -37,6 +37,9 @@ Note that the file does not record which variant produced it. The routing comes 
 dialog's model, not from the bytes. A key-file database therefore does not carry the MCRDB2 marker,
 and reading it through the password-only path will not yield the XML.
 
+This is the format of 8.x. From 9.0 the XML inside the envelope gives way to a versioned container, whose
+bytes are laid out in [the 9.0 container](vault-container-9.0.md); nothing of it is built yet (#865).
+
 ## MCRDB2: the byte layout
 
 `PasswordVaultFormat.encrypt` hands the UTF-8 bytes of the XML to
@@ -236,34 +239,34 @@ than an error, which is why the legacy test
 (`theOldFormatCannotEvenTellAWrongPasswordApart`) can only assert that the content does not come
 back, not that decryption throws.
 
-`decryptLegacy` pins those parameters by hand:
+`PasswordVaultFormat.decryptLegacy(byte[], String)` (`PasswordVaultFormat.java:273-293` on develop) pins
+those parameters by hand:
 
 ```java
-// salt and iteration count MUST be pinned exactly as they were when the file was written:
-// without them the decryptor draws its own random salt, which can never match
 CryptModel<Cipher, String, String> legacyModel = CryptModel
     .<Cipher, String, String> builder().key(password)
     .algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).salt(CompoundAlgorithm.SALT)
     .iterationCount(CompoundAlgorithm.ITERATIONCOUNT).build();
-File decrypted = new PBEFileDecryptor(legacyModel).decrypt(applicationFile);
-try
-{
-    return ReadFileExtensions.fromFile(decrypted);
-}
-finally
-{
-    DeleteFileExtensions.delete(decrypted);
-}
+new PBEFileDecryptor(legacyModel);
+byte[] decryptedBytes = legacyModel.getCipher().doFinal(encryptedBytes);
+return new String(decryptedBytes, StandardCharsets.UTF_8);
 ```
 
 Pinning is not optional: the library's PBE helpers now generate a fresh random salt per call, so
 without the explicit `salt` and `iterationCount` the decryptor would never reproduce the key the old
 file was written with.
 
-`PBEFileDecryptor` only works on files, so this path briefly writes the decrypted XML next to the
-encrypted one, as `<basename>.decrypted` in the same directory (`legacy.mcrdb` becomes
-`legacy.decrypted`). The `finally` block removes it. This is the one place where a decrypted
-database touches the disk, and it is walked at most once per database, because the next save writes
+**The decrypted database stays in memory.** `PBEFileDecryptor` is file-in, file-out by design, but
+this path never calls its `decrypt(File)`: constructing it (line 290) is what matters, because its
+constructor derives the key from the model and sets an initialized `DECRYPT_MODE` cipher back onto
+`legacyModel`. The method then decrypts the bytes it was given with that cipher (line 291) and
+returns them as UTF-8 text (line 292). The file entry points, `decryptLegacy(File, String)` (line
+254) and `decryptLegacy(File, char[])` (line 236), only read the file's bytes with `Files.readAllBytes`
+and hand them on. No decrypted copy is written next to the encrypted file. Until 9eb0632b (#353) it
+was: the method called `decrypt(File)`, which wrote `<basename>.decrypted` beside `legacy.mcrdb`
+and deleted it again afterwards, and deleting is not wiping. The blocks of such a file stay on the
+medium until something else reuses them, which is why a password database must never touch the disk
+unencrypted. A legacy database is read at most once per database, because the next save writes
 MCRDB2.
 
 **The migration path is "open it and save it".** There is no migration command and no conversion
@@ -277,7 +280,8 @@ the new file somewhere other than where the old one was read from.
 
 ## What the key file variants do differently
 
-Neither key file variant uses `PasswordVaultFormat`, `PassphraseEnvelope`, PBKDF2 or a marker. They use
+Neither key file variant writes with `PasswordVaultFormat`, `PassphraseEnvelope`, PBKDF2 or a marker
+(reading what 8 wrote borrows `PasswordVaultFormat.decryptLegacy`, below). They use
 the mystic-crypt library's public-key encryptors, and the shape on disk is a Java-serialized
 `AesRsaCryptModel` produced by `SerializationUtils.serialize`, holding two fields:
 
@@ -299,6 +303,33 @@ Differences that matter when working on these paths:
   opposite order. The transformation is `CompoundAlgorithm.PBE_WITH_SHA1_AND_128BIT_AES_CBC_BC`,
   whose algorithm string is `PBEWITHSHA1AND128BITAES-CBC-BC`. It exists only in the Bouncy Castle
   provider, which is why the format tests register that provider before touching anything.
+- **What 8 wrote is read as well, one layer after the other.** 8 wrapped the key the same way, but
+  wrote the layers under it in older formats, and nothing in the file says which format a layer is
+  in: each layer is read in the current format first, and in 8's format when that fails. The next
+  save writes every layer in the current format, so a database leaves 8's formats by being used
+  (#650). In `ApplicationXmlFileReader`:
+  - The content behind the key, in both variants (`decryptedWithKeyFile`): AES-GCM first. A key
+    file that does not open the key fails there, and is a wrong key file. A failed GCM tag
+    (`AEADBadTagException`) means that the key was right and the content is older: it is
+    decrypted with plain AES (`AesAlgorithm.AES`), as 8 wrote it, and content that reads in neither
+    format is refused as a format this version does not read, not as a wrong key file.
+  - The password layer of a database with a password and a key file (`decryptedWithPassword`):
+    `PasswordStringDecryptor` first. When it throws a `GeneralSecurityException`, the layer is
+    decrypted the way 8 wrote it, with `PBEWithMD5AndDES`, the fixed salt `CompoundAlgorithm.SALT`
+    and `CompoundAlgorithm.ITERATIONCOUNT` iterations: `PasswordVaultFormat.decryptLegacy`, the
+    parameters of the legacy format above.
+  - Neither format of the password layer authenticates: both end their decryption with a padding
+    check and nothing else. A layer 8 wrote whose length after the salt is a whole number of the
+    current format's cipher blocks passes that format's check for about one password in 256, at
+    every sign-in, and the text it then gives back is no XML at all. So when the text the password
+    layer gave back is no XML, the layer is decrypted in 8's format as well, and the database is
+    read from that (`readTheWayEightWroteIt`, #1209). Well-formed XML that cannot be read is not
+    tried again.
+  - A password that reads the layer in neither format is a wrong password (#1188). When both
+    decryptions throw, the failure of the current format stands; when the current format gave back
+    no XML and 8's format reads no database either, the layer counts as not decrypted
+    (`VaultNotDecryptedException`). The sign-in refuses both as a failed decryption, never as a
+    decrypted database whose content cannot be read.
 - **Key file reading differs between the two variants.** The key-file-only read path checks
   `PemObjectReader.isPemObject(keyFile)` and reads PEM or DER accordingly; the password-plus-key-file
   path calls `PrivateKeyReader.readPemPrivateKey` unconditionally.

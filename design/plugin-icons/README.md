@@ -31,6 +31,13 @@ square and with an alpha channel. The contribution sets them on every menu item 
 `BaseMultiResolutionImage`, so a scaled screen draws the 32 px image
 (`docs/wiki/how-to-create-a-plugin.md`, "The plugin's icon").
 
+Two tests keep it that way for every directory under `plugins/`:
+- `EveryPluginCarriesItsIconTest`, in the everyday build: both images, square and with a
+  transparent corner; this SVG; and the contribution reading both images next to itself.
+- `EveryPluginShowsAnIconOfItsOwnUiTest`, end to end: every clickable item of every plugin submenu
+  carries the 16 px icon with its 32 px variant, read from the built zip, and no two plugins show
+  the same picture.
+
 ## How the images are made
 
 With Chromium through Playwright, at a device scale factor of 1 and a transparent background, from
@@ -58,3 +65,11 @@ const fs = require('fs');
 ```
 
 `png/<plugin>-16.png` becomes the plugin's `icon-16.png`, `png/<plugin>-32.png` its `icon-32.png`.
+
+## Two motifs rejected while drawing
+
+- A disc cut into three shares, for secret-sharing: at 16 px it read as the radiation trefoil.
+- A struck-through eye, for obfuscation: at 16 px the stroke and the eye merged into noise.
+
+Draft C's crystal from the application icon's drafts is used nowhere, because it is too close to
+Obsidian's logo (#815).

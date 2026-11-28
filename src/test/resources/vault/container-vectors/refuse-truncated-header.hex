@@ -1,0 +1,4 @@
+# 10 of the 18 header bytes
+# verdict: refuse TRUNCATED_HEADER
+# header, 10 bytes
+4d 43 56 4c 54 31 00 09 00 00

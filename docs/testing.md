@@ -175,6 +175,11 @@ ends, the harness stops both. Each test task prints which display it ran on, and
 output lands in `build/own-display/harness.log`. The plugin `io.github.astrapi69.test-results-complete`
 beside it fails a test task in which a test class left no result (#699).
 
+The family's other repositories whose tests open windows apply the same plugin, so their UI tests
+never run on the desktop's display either (#599): swing-base-components, swing-model-components,
+menu-action, roboter, swing-table-components and swing-tree-component, each with the runner
+packages of the plugin's README in its CI workflow.
+
 The harness measures that display rather than assuming it (#597). It takes it only when `ss` names
 its own Xvfb as the listener on the display's socket - on a Wayland desktop XWayland serves `:1` as
 well as `:0` - and a harness under another one checks the display it inherits against that

@@ -28,6 +28,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.linguafranca.pwdb.Entry;
@@ -76,7 +77,8 @@ public final class KeePassTreeConverter
 
 	/**
 	 * Recursively converts the given KeePass group (and its subgroups/entries) into a new
-	 * {@link BaseTreeNode}, attached as a child of the given parent node
+	 * {@link BaseTreeNode}, attached as a child of the given parent node once every group under it
+	 * converted: a conversion that fails leaves the parent as it was (#1208)
 	 *
 	 * @param group
 	 *            the KeePass group to convert
@@ -91,20 +93,76 @@ public final class KeePassTreeConverter
 		final BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parent,
 		final Supplier<Long> nextId)
 	{
-		boolean leaf = group.getGroups().isEmpty();
-		String name = group.getName();
+		return toTreeNode(group, parent, nextId, KeePassEntryConverter::toEntryModelBean);
+	}
 
+	/**
+	 * Recursively converts the given KeePass group (and its subgroups/entries) into a new
+	 * {@link BaseTreeNode}, each entry through the given conversion. The import passes
+	 * {@link KeePassEntryConverter#toEntryModelBean}; a test passes one that refuses an entry,
+	 * since no file is known that makes the real one fail.
+	 * <p>
+	 * The new node is built without a parent and attached to the given one only once every group
+	 * under it converted, the way a group's entries are all converted before its node is built. The
+	 * import converts onto the live root of the vault tree, so a conversion that fails half way
+	 * leaves that root as it was instead of with the groups converted so far, which the next edit
+	 * of the tree would save (#1208)
+	 *
+	 * @param group
+	 *            the KeePass group to convert
+	 * @param parent
+	 *            the tree node the new node becomes a child of
+	 * @param nextId
+	 *            supplies the next id for each newly created tree node
+	 * @param entryConverter
+	 *            converts each entry of every group
+	 * @return the newly created tree node for the given group
+	 */
+	public static BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> toTreeNode(
+		final KdbxGroup group,
+		final BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parent,
+		final Supplier<Long> nextId,
+		final Function<KdbxEntry, MysticCryptEntryModelBean> entryConverter)
+	{
+		boolean leaf = group.getGroups().isEmpty();
+		GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement = toTreeElement(group, leaf,
+			entryConverter);
+
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode = BaseTreeNode
+			.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder().id(nextId.get())
+			.value(treeElement).displayValue(group.getName()).leaf(leaf).build();
+
+		for (Group subGroup : group.getGroups())
+		{
+			toTreeNode((KdbxGroup)subGroup, treeNode, nextId, entryConverter);
+		}
+
+		if (parent != null)
+		{
+			parent.addChild(treeNode);
+		}
+		return treeNode;
+	}
+
+	/**
+	 * Converts the given group's entries and metadata into the element of its tree node; the
+	 * entries come first, so a group whose entry is refused gets no node and uses no id
+	 */
+	private static GenericTreeElement<List<MysticCryptEntryModelBean>> toTreeElement(
+		final KdbxGroup group, final boolean leaf,
+		final Function<KdbxEntry, MysticCryptEntryModelBean> entryConverter)
+	{
 		List<MysticCryptEntryModelBean> entries = new ArrayList<>();
 		// KeePassJava2 3.0.0 dropped the generics on Database, Group and Entry, so a group's
 		// children come back as the interface type and the cast is what names the implementation
 		// this application reads (#467)
 		for (Entry entry : group.getEntries())
 		{
-			entries.add(KeePassEntryConverter.toEntryModelBean((KdbxEntry)entry));
+			entries.add(entryConverter.apply((KdbxEntry)entry));
 		}
 
 		GenericTreeElement<List<MysticCryptEntryModelBean>> treeElement = GenericTreeElement
-			.<List<MysticCryptEntryModelBean>> builder().name(name).leaf(leaf).build();
+			.<List<MysticCryptEntryModelBean>> builder().name(group.getName()).leaf(leaf).build();
 		treeElement.setDefaultContent(entries);
 		treeElement.getProperties().put(KEEPASS_UUID_PROPERTY, group.getUuid());
 		if (group.getIcon() != null)
@@ -123,22 +181,7 @@ public final class KeePassTreeConverter
 		}
 		treeElement.getProperties().put(KEEPASS_RECYCLE_BIN_PROPERTY, group.isRecycleBin());
 		keepTheTimes(group, treeElement);
-
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode = BaseTreeNode
-			.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder().id(nextId.get())
-			.value(treeElement).parent(parent).displayValue(name).leaf(leaf).build();
-
-		if (parent != null)
-		{
-			parent.addChild(treeNode);
-		}
-
-		for (Group subGroup : group.getGroups())
-		{
-			toTreeNode((KdbxGroup)subGroup, treeNode, nextId);
-		}
-
-		return treeNode;
+		return treeElement;
 	}
 
 	/**

@@ -139,3 +139,60 @@ vault sha256: keepass-import `2e1b684bc186405e0eb335f5768699bb45444a3dd2c86421ca
 `37cd3ff37e37ea2981aa98fff85aa1d802ec435af5d841cfbace59137a36bf04`. Each opens in 8.14 itself
 (`OpenWithAnOldRelease.java`: `OPENED groups=4` and `OPENED groups=2`), and the values the test expects are the ones
 8.14 read from them.
+
+# Every protection of 7.2, 7.3, 8 and 8.1.1
+
+The eight vaults below were written for #864, by the application jars of the published releases, each through the save
+path of its protection (`saveToFileWithPassword`, `saveToFileWithPrivateKey`, `saveToFileWithPasswordAndPrivateKey`).
+With the four of #624 and #650 above, every one of the 12 combinations of release (7.2, 7.3, 8, 8.1.1) and protection
+(password, key file, password and key file) has a vault here, the proof gate of the 9.0 format
+(`docs/decisions/vault-content-format-9.0-2026-11-10.md`, section 7); `VaultsOfEveryVariantOpenTest` opens these eight.
+Each holds the two groups and entries of the 7.x vaults above.
+
+The key is `src/test/resources/pem/private.pem`, the RSA test key the vaults of 8 with a key file have; the password of
+those with a password is `TestPasswords.VAULTS_OF_EVERY_VARIANT_FIXTURE`. Nothing in them guards anything.
+
+## How they were written
+
+In GitHub Actions, not on a machine (AG-021): run
+[46120196142](https://github.com/astrapi69/mystic-crypt-ui/actions/runs/46120196142) of
+`.github/workflows/write-vaults-of-old-releases.yml`, on `861538a7ee472d1c49e7c4b7beecf46514257e78`, on 2026-11-28 with
+Temurin 25.0.5.1+2 (the run's `java -version`), started with
+
+```
+gh workflow run write-vaults-of-old-releases.yml --ref test/compat-fixtures-of-every-release
+```
+
+It runs `scripts/fixtures/write-vaults-of-every-variant.sh <empty directory>`, which downloads each installer anew,
+requires its sha256 and that of the application jar taken out of it to be the ones recorded above for 7.2, 7.3, 8 and
+8.1.1 (the run's log shows all eight), writes the vaults with `WriteWithAnOldRelease.java` and nothing but the release's
+jar on the class path, and uploads them with their sha256 as the artifact `old-release-vaults`. The files here are that
+artifact's, unchanged (`gh run download 46120196142 -n old-release-vaults`, then `sha256sum -c SHA256SUMS`). The run
+writes new files each time: the salt and the entry ids are new.
+
+| vault | written by | protection | sha256 |
+|---|---|---|---|
+| `vault-7.2-key-file.mcrdb` | 7.2 | key file | `358c31bfe73758a0cfdb919b7378dbc4ebf162a2e24fa32fb6926168b81025cc` |
+| `vault-7.2-password-and-key-file.mcrdb` | 7.2 | password and key file | `e983ff5ee45f6b5550193c50825305ae04c11705d6683d3f5fbc634b40e8e0d9` |
+| `vault-7.3-key-file.mcrdb` | 7.3 | key file | `a9f10c35321eac340c80146865f09ef9858d3a88c7cff26464c74ed7d6435b6e` |
+| `vault-7.3-password-and-key-file.mcrdb` | 7.3 | password and key file | `67bcf33fc27506f15a95b631d2e8c82fc46e3e9e0da617f44cbe2e3009e5e9f3` |
+| `vault-8.mcrdb` | 8 | password | `bd07d209cc58ae6bd18e581680ca6d32f0cce0aa344758718cdede6452ebe803` |
+| `vault-8.1.1.mcrdb` | 8.1.1 | password | `9f8c9afcca2f6859f295820d158c4f1d78f6e64cf0d9def1aaa7ddd575902252` |
+| `vault-8.1.1-key-file.mcrdb` | 8.1.1 | key file | `ba5ccbc76af29257823fdb17bee4ae6276b2f747902a25953296392ff2bfe07f` |
+| `vault-8.1.1-password-and-key-file.mcrdb` | 8.1.1 | password and key file | `a5eca3bed188d26fd5eb29708c750e7ddb364ac0ba4c27bb2a2927023a882f71` |
+
+## That each opens in the release that wrote it, but one
+
+The same run opens a copy of each vault with the release that wrote it (`OpenWithAnOldRelease.java`) and requires the
+entries it reads to be the ones the release wrote: seven print `OPENED groups=2` and the two entries.
+
+8 does not open the vault it wrote with a password alone (and, inferred from the path below, no vault with a password
+alone): it prints
+`REFUSED NoSuchMethodError: 'java.lang.String io.github.astrapi69.file.read.ReadFileExtensions.readFromFile(java.io.File)'`,
+and the script requires exactly that line. 8's password path reads the decrypted file through xstream-extensions'
+`XmlFileToObjectExtensions.toObject`, which calls `ReadFileExtensions.readFromFile(File)`, and the `ReadFileExtensions`
+packed into 8's application jar has `fromFile` and no `readFromFile` (`javap` on that jar, 2026-11-28). The decryption
+writes the vault's xml into a file beside it, `vault-8.decrypted`, which 8 deletes after reading and which stays when
+the read fails; that is why the script opens a copy in a directory of its own. Measured on the jar run in GitHub
+Actions; that the installed 8 behaves the same is an inference from the installer packing this jar. This build reads
+that vault, `VaultsOfEveryVariantOpenTest`.

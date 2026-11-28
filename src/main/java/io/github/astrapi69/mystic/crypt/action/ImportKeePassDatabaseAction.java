@@ -30,6 +30,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import javax.swing.AbstractAction;
 import javax.swing.JOptionPane;
@@ -38,6 +39,8 @@ import javax.swing.tree.DefaultTreeModel;
 
 import org.linguafranca.pwdb.format.KdbxCredentials;
 import org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxEntry;
+import org.linguafranca.pwdb.kdbx.jackson.KdbxGroup;
 
 import io.github.astrapi69.component.model.enumeration.visibility.RenderMode;
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
@@ -50,6 +53,7 @@ import io.github.astrapi69.mystic.crypt.ApplicationPanel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassCredentials;
+import io.github.astrapi69.mystic.crypt.keepass.KeePassEntryConverter;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassImportRefusal;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverter;
 import io.github.astrapi69.mystic.crypt.keepass.MemoizedKeePassModelBean;
@@ -86,8 +90,8 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 		ApplicationPanel applicationPanel = instance.getApplicationPanel();
 		if (applicationPanel == null)
 		{
-			JOptionPane.showMessageDialog(instance, "Please sign in first.", "Import failed",
-				JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(instance, KeePassImportRefusal.notSignedIn(),
+				KeePassImportRefusal.title(), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		MemoizedKeePassModelBean memoized = MemoizedKeePassModelBean
@@ -103,8 +107,8 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 		File file = panel.getSelectedFile();
 		if (file == null)
 		{
-			JOptionPane.showMessageDialog(instance, "No KeePass file selected.", "Import failed",
-				JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(instance, KeePassImportRefusal.noFileSelected(),
+				KeePassImportRefusal.title(), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		// remember the chosen paths regardless of whether the import below succeeds, so a wrong
@@ -140,7 +144,6 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 	private void importDatabase(MysticCryptApplicationFrame instance,
 		ApplicationPanel applicationPanel, KdbxDatabase database)
 	{
-		ApplicationModelBean applicationModelBean = instance.getModelObject();
 		SecretKeyTreeWithContentPanel treePanel = applicationPanel
 			.getSecretKeyTreeWithContentPanel();
 		// the live tree node currently displayed by the already-open tree panel - mutating this
@@ -148,33 +151,58 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 		// makes the import show up without needing to reopen the database view
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root = treePanel
 			.getModelObject();
-		LongIdGenerator idGenerator = instance.getIdGenerator();
-
-		// the KeePass root goes in under its own name. It used to be renamed "Imported from" and
-		// the
-		// file's name, and the export then hung it under a new root of its own: every round trip
-		// added a level and lost the name (#377)
-		KeePassTreeConverter.toTreeNode(database.getRootGroup(), root, () -> {
-			Long nextId = idGenerator.getNextId();
-			applicationModelBean.setLastId(nextId);
-			return nextId;
-		});
+		importUnder(root, database.getRootGroup(), instance.getModelObject(),
+			instance.getIdGenerator(), KeePassEntryConverter::toEntryModelBean);
 
 		DefaultMutableTreeNode newRootNode = BaseTreeNodeFactory.newDefaultMutableTreeNode(root);
 		// an imported tree is built by the same factory, so it needs the same correction
 		SecretKeyTreeWithContentPanel.letTheModelDecideWhatIsALeaf(newRootNode);
 		treePanel.getTree().setModel(new DefaultTreeModel(newRootNode, true));
 
-		Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> updatedTreeAsMap = BaseTreeNodeTransformer
-			.toKeyMap(root);
-		applicationModelBean.setRootTreeAsMap(updatedTreeAsMap);
-		applicationModelBean.setDirty(true);
 		// same event the tree panel fires on its own edits: without it the Save menu item and
 		// toolbar button stay disabled and the imported data cannot be saved
 		ApplicationEventBus.getSaveState().fireEvent(new EventObject<>(RenderMode.EDITABLE));
 
 		JOptionPane.showMessageDialog(instance, "KeePass database imported successfully.",
 			"Import successful", JOptionPane.INFORMATION_MESSAGE);
+	}
+
+	/**
+	 * The model side of the import: converts the given KeePass root group, with every group and
+	 * entry under it, into a node under the given vault root, records the changed tree in the model
+	 * and marks the vault changed. No Swing type takes part, so a test drives it with an entry
+	 * conversion of its own (#1208)
+	 *
+	 * @param root
+	 *            the live root of the vault tree, the one the tree panel holds
+	 * @param keePassRoot
+	 *            the root group of the KeePass database
+	 * @param applicationModelBean
+	 *            the model of the open vault
+	 * @param idGenerator
+	 *            gives every new node its id
+	 * @param entryConverter
+	 *            converts each entry of every group
+	 */
+	static void importUnder(
+		final BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root,
+		final KdbxGroup keePassRoot, final ApplicationModelBean applicationModelBean,
+		final LongIdGenerator idGenerator,
+		final Function<KdbxEntry, MysticCryptEntryModelBean> entryConverter)
+	{
+		// the KeePass root goes in under its own name. It used to be renamed "Imported from" and
+		// the file's name, and the export then hung it under a new root of its own: every round
+		// trip added a level and lost the name (#377)
+		KeePassTreeConverter.toTreeNode(keePassRoot, root, () -> {
+			Long nextId = idGenerator.getNextId();
+			applicationModelBean.setLastId(nextId);
+			return nextId;
+		}, entryConverter);
+
+		Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> updatedTreeAsMap = BaseTreeNodeTransformer
+			.toKeyMap(root);
+		applicationModelBean.setRootTreeAsMap(updatedTreeAsMap);
+		applicationModelBean.setDirty(true);
 	}
 
 }

@@ -7,7 +7,12 @@
         <processorPath useClasspath="false">
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.48/6858f13541bab505384f07053c5a7b539bbfd3e3/lombok-1.18.48.jar" />
         </processorPath>
+        <module name="mystic-crypt-ui.e2eKdbx" />
+        <module name="mystic-crypt-ui.e2eTest" />
+        <module name="mystic-crypt-ui.testSupport" />
+        <module name="mystic-crypt-ui.e2eSupport" />
         <module name="mystic-crypt-ui.main" />
+        <module name="mystic-crypt-ui.e2eLock" />
         <module name="mystic-crypt-ui.test" />
       </profile>
     </annotationProcessing>

@@ -45,7 +45,7 @@ sources were read, and what that limits, is at the end ([Method and limits](#met
 | checksum | checksums of files and text | `plugins/checksum-plugin` |
 | console | an output console | `plugins/console-plugin` |
 | conversion | convert keys and certificates between PEM, DER, PKCS#1 and PKCS#8 | `plugins/conversion-plugin` |
-| file-crypt | encrypt and decrypt files and text with a passphrase, in the `MCFILE1` format on the same envelope as the vault | `docs/vault-format.md:323-333` |
+| file-crypt | encrypt and decrypt files and text with a passphrase, in the `MCFILE1` format on the same envelope as the vault | `docs/vault-format.md:351-361` |
 | kem-demo | ML-KEM-512/768/1024 and a hybrid X25519 + ML-KEM encapsulation between two parties | `NativeKemExchange`, `KemRoundTripTest` |
 | keygen | generate key pairs | `plugins/keygen-plugin`, `KeygenEveryAlgorithmUiTest` |
 | keystore | inspect and manage Java key stores | `plugins/keystore-plugin` |
@@ -249,7 +249,7 @@ Each point was checked on `7dd653a5`; the check is named.
   GHSA-xp4c-rpcx-hw5c, GHSA-qxx5-r8qx-vj98, GHSA-9m97-3xjj-4gwm, and with 8.15
   GHSA-7qfp-94gw-vp62, GHSA-px49-m539-22h8, GHSA-f4g8-6wjr-5hch).
 - **The key-file variants are the weaker format.** They write a Java-serialized envelope without a
-  marker, a version or a recorded cost (`docs/vault-format.md:278-321`, #849 open). With a key file
+  marker, a version or a recorded cost (`docs/vault-format.md:278-349`, #849 open). With a key file
   alone the content key is 128-bit AES, wrapped with RSA-OAEP (SHA-1, MGF1). With a password and a
   key file the password layer is `PBEWITHSHA1AND128BITAES-CBC-BC` at 65,536 iterations, not the
   600,000-iteration PBKDF2 of `MCRDB2`.
