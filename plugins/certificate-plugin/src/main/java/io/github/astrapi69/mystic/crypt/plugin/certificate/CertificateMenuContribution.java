@@ -47,6 +47,7 @@ import io.github.astrapi69.crypt.data.key.writer.CertificateWriter;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
+import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 import io.github.astrapi69.mystic.crypt.wizard.CertificateInfoModelToX509;
 import io.github.astrapi69.mystic.crypt.wizard.CertificateWizardContentPanel;
 import io.github.astrapi69.mystic.crypt.wizard.CertificateWizardPanel;
@@ -73,7 +74,7 @@ public class CertificateMenuContribution implements PluginMenuContribution
 	{
 		JMenuItem createCertificate = new JMenuItem("Create Certificate...");
 		createCertificate.addActionListener(event -> openWizard());
-		return List.of(createCertificate);
+		return PluginIcon.onEvery(List.of(createCertificate), getClass(), "certificate-plugin");
 	}
 
 	@Override

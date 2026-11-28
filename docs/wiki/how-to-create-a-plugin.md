@@ -119,6 +119,7 @@ import org.pf4j.Extension;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
+import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.util.JInternalFrameExtensions;
@@ -132,7 +133,7 @@ public class ChecksumMenuContribution implements PluginMenuContribution
 		JMenuItem checksumAndMac = new JMenuItem("Checksum and MAC");
 		checksumAndMac.addActionListener(
 			event -> openInternalFrame("Checksum and MAC", new ChecksumAndMacPanel()));
-		return List.of(checksumAndMac);
+		return PluginIcon.onEvery(List.of(checksumAndMac), getClass(), "checksum-plugin");
 	}
 
 	@Override
@@ -206,6 +207,30 @@ checksum plugin does for its tooltips and dialog texts:
 `ChecksumMessages.getString("checksum.tooltip.compare.button", "compares the generated checksum with the owner's checksum")`.
 `ResourceBundleExtensions` comes from `io.github.astrapi69:resourcebundle-core`, which the
 application provides at runtime: declare it `compileOnly` and `testImplementation`.
+
+# The plugin's icon
+
+Every plugin shows an icon of its own on its menu items, in the style of the application icon: the
+dark tile with its light edge and a teal glyph drawn on the 16 px grid. The plugin carries it as two
+images in its own jar, named after its directory under `plugins/`:
+
+- `src/main/resources/icon/<plugin>-16.png`, the image the menu shows;
+- `src/main/resources/icon/<plugin>-32.png`, the same drawing at twice the size, which a scaled
+  screen draws instead.
+
+`getMenuItems()` hands its items to `PluginIcon` from the application, under the plugin's directory
+name and with one of its own classes, whose class loader finds the images in the plugin's jar:
+
+```java
+return PluginIcon.onEvery(List.of(verifyChecksum, checksumAndMac), getClass(), "checksum-plugin");
+```
+
+`PluginIcon` puts both images into one `java.awt.image.BaseMultiResolutionImage` and sets it on
+every item, the items of a submenu among them. A missing or unreadable image leaves the items
+without an icon and is logged, so the plugin still reaches the menu. For an internal plugin
+`EveryPluginCarriesItsIconTest` turns red instead: it requires both images and the call under the
+plugin's own name. The sources of the internal plugins' icons, and how the images are rendered from
+them, are in [`design/plugin-icons/`](https://github.com/astrapi69/mystic-crypt-ui/tree/develop/design/plugin-icons).
 
 # The build
 

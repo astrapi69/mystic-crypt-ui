@@ -49,6 +49,7 @@ import io.github.astrapi69.mystic.crypt.plugin.keystore.wizard.CreateKeyStoreWiz
 import io.github.astrapi69.mystic.crypt.plugin.keystore.wizard.CreateKeyStoreWizardModel;
 import io.github.astrapi69.mystic.crypt.plugin.keystore.wizard.CreateKeyStoreWizardPanel;
 import io.github.astrapi69.mystic.crypt.plugin.keystore.wizard.CreateKeyStoreWizardState;
+import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.util.JInternalFrameExtensions;
@@ -72,7 +73,8 @@ public class KeyStoreMenuContribution implements PluginMenuContribution
 			.addActionListener(event -> openInternalFrame("Manage Key Store", new KeyStorePanel()));
 		JMenuItem createKeyStore = new JMenuItem("Create Key Store...");
 		createKeyStore.addActionListener(event -> openCreateWizard());
-		return List.of(manageKeyStore, createKeyStore);
+		return PluginIcon.onEvery(List.of(manageKeyStore, createKeyStore), getClass(),
+			"keystore-plugin");
 	}
 
 	@Override

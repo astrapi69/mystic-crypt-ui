@@ -34,6 +34,7 @@ import org.pf4j.Extension;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
+import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.util.JInternalFrameExtensions;
@@ -55,7 +56,7 @@ public class KemDemoMenuContribution implements PluginMenuContribution
 		JMenuItem kemDemo = new JMenuItem("Key Encapsulation Demo");
 		kemDemo.addActionListener(
 			event -> openInternalFrame("Key Encapsulation Demo", new KemDemoPanel()));
-		return List.of(keyExchange, kemDemo);
+		return PluginIcon.onEvery(List.of(keyExchange, kemDemo), getClass(), "kem-demo-plugin");
 	}
 
 	@Override

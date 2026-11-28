@@ -36,6 +36,7 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.character.OperationRulePanel;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.simple.RulePanel;
+import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.util.JInternalFrameExtensions;
@@ -68,7 +69,8 @@ public class ObfuscationMenuContribution implements PluginMenuContribution
 		operatedObfuscation.addActionListener(
 			event -> openInternalFrame("Operated Obfuscation", new OperationRulePanel()));
 
-		return List.of(simpleObfuscation, operatedObfuscation);
+		return PluginIcon.onEvery(List.of(simpleObfuscation, operatedObfuscation), getClass(),
+			"obfuscation-plugin");
 	}
 
 	@Override

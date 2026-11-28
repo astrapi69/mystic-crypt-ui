@@ -37,6 +37,7 @@ import org.pf4j.Extension;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
+import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.util.JInternalFrameExtensions;
@@ -69,7 +70,8 @@ public class LethenonMenuContribution implements PluginMenuContribution
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
-		return List.of(item(WALLET_KEY, "Wallet", LethenonWalletPanel::new, false),
+		return PluginIcon.onEvery(List.of(
+			item(WALLET_KEY, "Wallet", LethenonWalletPanel::new, false),
 			item("lethenon.menu.item.verify", "Verify a Chain", LethenonChainPanel::new, true),
 			item("lethenon.menu.item.show.chain", "Show a Chain", LethenonChainViewPanel::new,
 				true),
@@ -81,7 +83,8 @@ public class LethenonMenuContribution implements PluginMenuContribution
 				true),
 			item("lethenon.menu.item.sync", "Synchronise with a Node", LethenonSyncPanel::new,
 				true),
-			item("lethenon.menu.item.node", "Run a Node", LethenonNodePanel::new, true), more());
+			item("lethenon.menu.item.node", "Run a Node", LethenonNodePanel::new, true), more()),
+			getClass(), "lethenon-plugin");
 	}
 
 	/**

@@ -33,6 +33,7 @@ import org.pf4j.Extension;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
+import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.util.JInternalFrameExtensions;
@@ -69,7 +70,8 @@ public class ChecksumMenuContribution implements PluginMenuContribution
 		JMenuItem checksumAndMac = new JMenuItem("Checksum and MAC");
 		checksumAndMac.addActionListener(
 			event -> openInternalFrame("Checksum and MAC", new ChecksumAndMacPanel()));
-		return List.of(verifyChecksum, checksumAndMac);
+		return PluginIcon.onEvery(List.of(verifyChecksum, checksumAndMac), getClass(),
+			"checksum-plugin");
 	}
 
 	private void openInternalFrame(String title, java.awt.Component panel)
