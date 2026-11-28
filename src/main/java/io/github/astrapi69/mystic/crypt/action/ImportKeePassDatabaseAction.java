@@ -90,8 +90,8 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 		ApplicationPanel applicationPanel = instance.getApplicationPanel();
 		if (applicationPanel == null)
 		{
-			JOptionPane.showMessageDialog(instance, "Please sign in first.", "Import failed",
-				JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(instance, KeePassImportRefusal.notSignedIn(),
+				KeePassImportRefusal.title(), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		MemoizedKeePassModelBean memoized = MemoizedKeePassModelBean
@@ -107,8 +107,8 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 		File file = panel.getSelectedFile();
 		if (file == null)
 		{
-			JOptionPane.showMessageDialog(instance, "No KeePass file selected.", "Import failed",
-				JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(instance, KeePassImportRefusal.noFileSelected(),
+				KeePassImportRefusal.title(), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		// remember the chosen paths regardless of whether the import below succeeds, so a wrong
