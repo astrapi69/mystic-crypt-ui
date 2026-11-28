@@ -237,6 +237,38 @@ public class GeneralSettingsPanel extends JPanel
 	}
 
 	/**
+	 * Tells whether the installed look and feel of the given name is the one in use, with the given
+	 * theme when it is Metal
+	 *
+	 * @param name
+	 *            the name of an installed look and feel
+	 * @param metalTheme
+	 *            the theme for Metal, or {@code null} for no preference
+	 * @return true when a look and feel of that name is installed and in use, false when it is not
+	 *         in use or not installed
+	 */
+	public static boolean isLookAndFeelActive(String name, MetalThemeChoice metalTheme)
+	{
+		for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels())
+		{
+			if (info.getName().equals(name))
+			{
+				return isActive(info, metalTheme);
+			}
+		}
+		return false;
+	}
+
+	private static boolean isActive(UIManager.LookAndFeelInfo info, MetalThemeChoice metalTheme)
+	{
+		boolean themed = metalTheme != null
+			&& MetalLookAndFeel.class.getName().equals(info.getClassName());
+		LookAndFeel current = UIManager.getLookAndFeel();
+		return current != null && current.getClass().getName().equals(info.getClassName())
+			&& (!themed || metalTheme == MetalThemeChoice.ofTheRuntime());
+	}
+
+	/**
 	 * Applies the installed look and feel of the given name, and for Metal the given theme first
 	 * (#1065): Metal and Ocean share one class, so a Metal that is already active is set again when
 	 * it draws with another theme than the saved one
@@ -254,9 +286,7 @@ public class GeneralSettingsPanel extends JPanel
 			{
 				boolean themed = metalTheme != null
 					&& MetalLookAndFeel.class.getName().equals(info.getClassName());
-				LookAndFeel current = UIManager.getLookAndFeel();
-				if (current != null && current.getClass().getName().equals(info.getClassName())
-					&& (!themed || metalTheme == MetalThemeChoice.ofTheRuntime()))
+				if (isActive(info, metalTheme))
 				{
 					// already the active look and feel - skip the needless updateComponentTreeUI
 					// pass (it re-installs every menu's UI and spams KeyboardManager warnings)

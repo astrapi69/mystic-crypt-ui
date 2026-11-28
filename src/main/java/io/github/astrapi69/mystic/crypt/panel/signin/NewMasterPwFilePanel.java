@@ -28,6 +28,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.io.File;
+import java.net.URI;
 import java.net.URL;
 
 import javax.swing.*;
@@ -350,7 +351,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 	 */
 	protected boolean isHelpPageReachable(final String helpLink)
 	{
-		URL helpUrl = RuntimeExceptionDecorator.decorate(() -> new URL(helpLink));
+		URL helpUrl = RuntimeExceptionDecorator.decorate(() -> new URI(helpLink).toURL());
 		return URLExtensions.isReachable(helpUrl);
 	}
 

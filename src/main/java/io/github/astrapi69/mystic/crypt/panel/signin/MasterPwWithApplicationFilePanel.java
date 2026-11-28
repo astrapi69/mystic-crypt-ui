@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.panel.signin;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.Serial;
+import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -56,6 +57,7 @@ import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkCompon
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateMachine;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.DocumentExtensions;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
+import io.github.astrapi69.mystic.crypt.ui.form.LayoutSafePasswordField;
 import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
 import io.github.astrapi69.mystic.crypt.ui.work.CancellableWork;
 import io.github.astrapi69.mystic.crypt.vault.EntryIdentitySupport;
@@ -175,7 +177,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		lblSignInWorking.setName("lblSignInWorking");
 		cbxMasterPw = new JMCheckBox();
 		cbxKeyFile = new JMCheckBox();
-		txtMasterPw = new JMPasswordField();
+		txtMasterPw = new LayoutSafePasswordField();
 		btnMasterPw = new javax.swing.JButton();
 		btnKeyFileChooser = new javax.swing.JButton();
 		btnHelp = new javax.swing.JButton();
@@ -477,7 +479,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	 */
 	protected boolean isHelpPageReachable(final String helpLink)
 	{
-		URL helpUrl = RuntimeExceptionDecorator.decorate(() -> new URL(helpLink));
+		URL helpUrl = RuntimeExceptionDecorator.decorate(() -> new URI(helpLink).toURL());
 		return URLExtensions.isReachable(helpUrl);
 	}
 

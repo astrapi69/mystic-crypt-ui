@@ -53,6 +53,7 @@ import io.github.astrapi69.mystic.crypt.ApplicationPanel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassCredentials;
+import io.github.astrapi69.mystic.crypt.keepass.KeePassDialogTexts;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassEntryConverter;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassImportRefusal;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverter;
@@ -99,7 +100,7 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 		ImportKeePassPanel panel = new ImportKeePassPanel(memoized.getLastImportFilePath(),
 			memoized.getLastImportKeyFilePath());
 		int option = OwnedDialogs.selectedOption(instance, panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, "Import from KeePass", panel.getTxtFile());
+			JOptionPane.OK_CANCEL_OPTION, KeePassDialogTexts.importTitle(), panel.getTxtFile());
 		if (option != JOptionPane.OK_OPTION)
 		{
 			return;
@@ -163,8 +164,8 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 		// toolbar button stay disabled and the imported data cannot be saved
 		ApplicationEventBus.getSaveState().fireEvent(new EventObject<>(RenderMode.EDITABLE));
 
-		JOptionPane.showMessageDialog(instance, "KeePass database imported successfully.",
-			"Import successful", JOptionPane.INFORMATION_MESSAGE);
+		JOptionPane.showMessageDialog(instance, KeePassDialogTexts.importDone(),
+			KeePassDialogTexts.importDoneTitle(), JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	/**

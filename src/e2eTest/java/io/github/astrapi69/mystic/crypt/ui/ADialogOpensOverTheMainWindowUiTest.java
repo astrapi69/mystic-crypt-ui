@@ -44,6 +44,7 @@ import io.github.astrapi69.mystic.crypt.MenuId;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
+import io.github.astrapi69.mystic.crypt.action.SearchApplicationFileAction;
 import io.github.astrapi69.mystic.crypt.panel.signin.NewMasterPwFilePanel;
 
 /**
@@ -94,7 +95,8 @@ class ADialogOpensOverTheMainWindowUiTest extends AbstractUiTest
 		MovedMainWindow moved = signInAndMoveTheMainWindowAway("search-placement.mcrdb");
 
 		moved.application().fireMenuItem(MenuId.SEARCH.propertiesKey());
-		DialogFixture search = moved.application().findDialogWithTitle("Search");
+		DialogFixture search = moved.application()
+			.findDialogWithTitle(SearchApplicationFileAction.dialogTitle());
 		Rectangle[] settled = UiTestSpeed.awaitSettled(search.target(), moved.window());
 		Point dialogCentre = centreOf(settled[0]);
 		Point windowCentre = centreOf(settled[1]);

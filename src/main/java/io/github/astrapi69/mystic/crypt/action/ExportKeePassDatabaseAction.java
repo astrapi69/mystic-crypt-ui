@@ -41,6 +41,7 @@ import io.github.astrapi69.mystic.crypt.ApplicationPanel;
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassCredentials;
+import io.github.astrapi69.mystic.crypt.keepass.KeePassDialogTexts;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassExportRefusal;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverter;
 import io.github.astrapi69.mystic.crypt.keepass.MemoizedKeePassModelBean;
@@ -80,7 +81,7 @@ public class ExportKeePassDatabaseAction extends AbstractAction
 		ExportKeePassPanel panel = new ExportKeePassPanel(memoized.getLastExportFilePath(),
 			memoized.getLastExportKeyFilePath(), databaseExportNoticesOf(instance));
 		int option = OwnedDialogs.selectedOption(instance, panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, "Export to KeePass", panel.getTxtFile());
+			JOptionPane.OK_CANCEL_OPTION, KeePassDialogTexts.exportTitle(), panel.getTxtFile());
 		if (option != JOptionPane.OK_OPTION)
 		{
 			return;
@@ -120,8 +121,8 @@ public class ExportKeePassDatabaseAction extends AbstractAction
 			{
 				database.write(credentials, outputStream);
 			}
-			JOptionPane.showMessageDialog(instance, "KeePass database exported successfully.",
-				"Export successful", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(instance, KeePassDialogTexts.exportDone(),
+				KeePassDialogTexts.exportDoneTitle(), JOptionPane.INFORMATION_MESSAGE);
 		}
 		catch (Exception exception)
 		{
