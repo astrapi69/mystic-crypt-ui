@@ -25,8 +25,8 @@ deliberate major break: released 7.x and 8.x cannot read the new format.
 Every 9.0 vault carries a **random vault UUID, stored as the field `vaultId` in the JSON root** - the
 binary header carries only the magic and the version, so no binary encoding or position is needed for the
 id. The remaining byte-level choices (the magic bytes, byte order, the width of version and length
-fields, what the index's offsets refer to) are fixed with test vectors in **#862** before the first byte
-is written. Encodings, the maintainer's wording:
+fields, what the index's offsets refer to) are fixed in [the container's byte layout](../vault-container-9.0.md),
+with test vectors (#862), before the first byte is written. Encodings, the maintainer's wording:
 "Attachment checksums use SHA-256. Metadata JSON is UTF-8 without BOM. Timestamps are stored as RFC 3339
 strings in UTC with millisecond precision, for example 2026-11-10T14:02:00.000Z. No other representation
 is allowed. Other 64-bit integers are stored as strings."  9.0 holds attachments **in memory, with a size limit** whose number is set at
@@ -223,6 +223,6 @@ fields; the merge function itself follows in a later release.
 ## Issues of this initiative
 
 #775 (its format part solved by the model; #757's dataOfNodes question answered), #847 (save backup, merged), #848 (the legacy reader's admitted types - an independent hardening, wanted with or without 9.0 and outside its scope),
-#849 (key-file envelope), #855, #856, #858, #859, #860 (the sync design tickets of section 11), #862 (the binary layout, with test vectors), and the implementation issues to
+#849 (key-file envelope), #855, #856, #858, #859, #860 (the sync design tickets of section 11), #862 (the binary layout, with test vectors: `docs/vault-container-9.0.md`), and the implementation issues to
 be cut from this record. The options document this record replaces, with the full comparison and its
 evidence, is in the maintainer's private notes.

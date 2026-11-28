@@ -1,0 +1,8 @@
+# the JSON holds the byte ff, which is no UTF-8
+# verdict: refuse JSON_NOT_UTF8
+# header, 18 bytes
+4d 43 56 4c 54 31 00 09 00 00 00 00 00 00 00 00
+00 0f
+# json, 15 bytes
+7b 22 76 61 75 6c 74 49 64 22 3a 22 ff 22 7d
+# blob area, 0 bytes
