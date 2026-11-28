@@ -24,6 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.ui.form;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -54,5 +55,27 @@ class LayoutSafePasswordFieldTest
 
 		assertNotEquals(before, field.hashCode());
 		assertNull(places.get(field));
+	}
+
+	@Test
+	void layoutSafeField_keepsItsPlaceInAMap_whenTheTextChanges()
+	{
+		LayoutSafePasswordField field = new LayoutSafePasswordField();
+		Map<Object, String> places = new HashMap<>();
+		places.put(field, "place");
+
+		field.setText("typed");
+
+		assertEquals("place", places.get(field));
+	}
+
+	@Test
+	void layoutSafeField_isEqualOnlyToItself_whenAnotherFieldHasTheSameText()
+	{
+		LayoutSafePasswordField field = new LayoutSafePasswordField();
+		LayoutSafePasswordField other = new LayoutSafePasswordField();
+
+		assertEquals(field, field);
+		assertNotEquals(field, other);
 	}
 }

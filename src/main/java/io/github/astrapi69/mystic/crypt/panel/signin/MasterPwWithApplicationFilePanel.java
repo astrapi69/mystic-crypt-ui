@@ -55,6 +55,7 @@ import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkCompon
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateMachine;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.DocumentExtensions;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
+import io.github.astrapi69.mystic.crypt.ui.form.LayoutSafePasswordField;
 import io.github.astrapi69.mystic.crypt.ui.work.CancellableWork;
 import io.github.astrapi69.mystic.crypt.vault.EntryIdentitySupport;
 import io.github.astrapi69.mystic.crypt.write.DataClass;
@@ -173,7 +174,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		lblSignInWorking.setName("lblSignInWorking");
 		cbxMasterPw = new JMCheckBox();
 		cbxKeyFile = new JMCheckBox();
-		txtMasterPw = new JMPasswordField();
+		txtMasterPw = new LayoutSafePasswordField();
 		btnMasterPw = new javax.swing.JButton();
 		btnKeyFileChooser = new javax.swing.JButton();
 		btnHelp = new javax.swing.JButton();
