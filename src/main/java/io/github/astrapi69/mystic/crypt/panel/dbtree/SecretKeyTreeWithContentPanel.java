@@ -570,12 +570,8 @@ public class SecretKeyTreeWithContentPanel
 				return getMaxIndex() < id;
 			}
 		};
-		// NOT CloneQuietlyExtensions.clone(...): that resolves to a SHALLOW
-		// Object.clone(), so original and duplicate shared the same GenericTreeElement -
-		// renaming the duplicate renamed the original too, and both pointed at the same
-		// entry list. Deep-copy the subtree instead
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> clonedTreeNode = deepCopyTreeNode(
-			selectedTreeNode, null);
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> clonedTreeNode = NodeDuplication
+			.copyOf(selectedTreeNode, null);
 		NodePanel panel = new NodePanel()
 		{
 			protected void onInitializeMigLayout()
@@ -645,58 +641,6 @@ public class SecretKeyTreeWithContentPanel
 
 			reload(parent);
 		}
-	}
-
-	/**
-	 * Deep-copies the given tree node with its value, entries and children, so the copy shares no
-	 * mutable state with the source (ids are kept and are reindexed by the caller)
-	 *
-	 * @param source
-	 *            the tree node to copy
-	 * @param parent
-	 *            the parent of the new copy, or {@code null}
-	 * @return the deep copy
-	 */
-	private BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> deepCopyTreeNode(
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> source,
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parent)
-	{
-		GenericTreeElement<List<MysticCryptEntryModelBean>> sourceValue = source.getValue();
-		GenericTreeElement<List<MysticCryptEntryModelBean>> copiedValue = GenericTreeElement
-			.<List<MysticCryptEntryModelBean>> builder().name(sourceValue.getName())
-			.leaf(sourceValue.isLeaf()).withText(sourceValue.isWithText())
-			.iconPath(sourceValue.getIconPath()).selectedIconPath(sourceValue.getSelectedIconPath())
-			.build();
-		sourceValue.getProperties().forEach((key, propertyValue) -> {
-			if (!GenericTreeElement.DEFAULT_CONTENT_KEY.equals(key))
-			{
-				copiedValue.getProperties().put(key, propertyValue);
-			}
-		});
-		List<MysticCryptEntryModelBean> sourceEntries = sourceValue.getDefaultContent();
-		if (sourceEntries != null)
-		{
-			List<MysticCryptEntryModelBean> copiedEntries = new ArrayList<>();
-			for (MysticCryptEntryModelBean entry : sourceEntries)
-			{
-				copiedEntries.add(entry.duplicate());
-			}
-			copiedValue.setDefaultContent(copiedEntries);
-		}
-
-		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> copy = BaseTreeNode
-			.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder()
-			.id(source.getId()).value(copiedValue).parent(parent)
-			.displayValue(source.getDisplayValue()).leaf(source.isLeaf()).build();
-		if (source.getChildren() != null)
-		{
-			for (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> child : source
-				.getChildren())
-			{
-				copy.addChild(deepCopyTreeNode(child, copy));
-			}
-		}
-		return copy;
 	}
 
 	/**
