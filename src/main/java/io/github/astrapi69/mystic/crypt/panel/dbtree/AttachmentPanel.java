@@ -39,7 +39,7 @@ import javax.swing.*;
 import io.github.astrapi69.checksum.FileChecksumExtensions;
 import io.github.astrapi69.crypt.api.algorithm.HashAlgorithm;
 import io.github.astrapi69.file.create.model.FileContentInfo;
-import io.github.astrapi69.file.write.WriteFileExtensions;
+import io.github.astrapi69.file.write.StoreFileExtensions;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.Messages;
@@ -225,8 +225,8 @@ public class AttachmentPanel extends BasePanel<MysticCryptEntryModelBean>
 		{
 			return;
 		}
-		RuntimeExceptionDecorator.decorate(() -> WriteFileExtensions
-			.writeByteArrayToFile(fileToSave, fileContentInfo.getContent()));
+		RuntimeExceptionDecorator
+			.decorate(() -> StoreFileExtensions.toFile(fileToSave, fileContentInfo.getContent()));
 		if (notice.isPresent())
 		{
 			showWrittenFile(fileToSave, sha256Of(fileToSave));

@@ -346,12 +346,13 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	{
 		try
 		{
-			PluginArchives.unpackChanged(pluginManager.getPluginsRoot());
+			PluginArchives.unpackChanged(pluginManager.getPluginsRoots().getFirst());
 		}
 		catch (IOException exception)
 		{
-			log.log(Level.WARNING, "could not unpack the plugin zips in "
-				+ pluginManager.getPluginsRoot() + " by their content: " + exception.getMessage(),
+			log.log(Level.WARNING,
+				"could not unpack the plugin zips in " + pluginManager.getPluginsRoots().getFirst()
+					+ " by their content: " + exception.getMessage(),
 				exception);
 		}
 	}

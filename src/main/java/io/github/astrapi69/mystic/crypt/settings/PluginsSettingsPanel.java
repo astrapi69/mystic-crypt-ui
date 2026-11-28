@@ -153,7 +153,7 @@ public class PluginsSettingsPanel extends JPanel
 		File zip = fileChooser.getSelectedFile();
 		try
 		{
-			Path target = pluginManager.getPluginsRoot().resolve(zip.getName());
+			Path target = pluginManager.getPluginsRoots().getFirst().resolve(zip.getName());
 			PluginZipInstallation.Decision decision = PluginZipInstallation.decide(pluginManager,
 				zip.toPath(), target);
 			switch (decision.kind())
@@ -271,7 +271,7 @@ public class PluginsSettingsPanel extends JPanel
 	{
 		try
 		{
-			File folder = pluginManager.getPluginsRoot().toFile();
+			File folder = pluginManager.getPluginsRoots().getFirst().toFile();
 			if (Desktop.isDesktopSupported())
 			{
 				Desktop.getDesktop().open(folder);
