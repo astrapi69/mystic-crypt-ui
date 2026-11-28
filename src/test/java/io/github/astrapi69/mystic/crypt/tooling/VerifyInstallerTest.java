@@ -124,6 +124,22 @@ class VerifyInstallerTest
 	}
 
 	@Test
+	@DisplayName("an installer below 40 MB is refused for its size, and the line names both numbers")
+	void verify_refusesTheInstaller_whenItIsBelowFortyMegabytes() throws Exception
+	{
+		Path installer = installer(List.of(), List.of());
+		long size = Files.size(installer);
+
+		Run run = run(VERIFY.getPath(), "9.9", "--installer", installer.toString());
+
+		assertNotEquals(0, run.exit(), run.output());
+		assertTrue(
+			run.output().lines()
+				.anyMatch(line -> line.equals("FAILED size: " + size + " bytes, below 40000000")),
+			run.output());
+	}
+
+	@Test
 	@DisplayName("a check that fails or cannot run is reported FAILED, and the run fails")
 	void verify_reportsEveryCheckItCouldNotPass() throws Exception
 	{
