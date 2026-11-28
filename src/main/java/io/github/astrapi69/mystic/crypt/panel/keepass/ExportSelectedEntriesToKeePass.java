@@ -99,9 +99,8 @@ public final class ExportSelectedEntriesToKeePass
 		File file = panel.getDestination().getSelectedFile();
 		if (file == null)
 		{
-			JOptionPane.showMessageDialog(OwnedDialogs.ownerOf(caller), Messages
-				.getString("keepass.export.selected.no.file", "No destination file selected."),
-				title(), JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(OwnedDialogs.ownerOf(caller),
+				KeePassExportRefusal.noFileSelected(), title(), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		remember(frame, memoized, file, panel.getDestination().getSelectedKeyFile());

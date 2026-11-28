@@ -33,6 +33,7 @@ import javax.swing.*;
 
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.mystic.crypt.ApplicationPanel;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.SecretKeyTreeWithContentPanel;
@@ -67,7 +68,7 @@ public class SearchApplicationFileAction extends AbstractAction
 		ApplicationPanel applicationPanel = frame.getApplicationPanel();
 		if (applicationPanel == null)
 		{
-			JOptionPane.showMessageDialog(frame, "Please sign in first.", "Search",
+			JOptionPane.showMessageDialog(frame, notSignedIn(), dialogTitle(),
 				JOptionPane.ERROR_MESSAGE);
 			return;
 		}
@@ -79,7 +80,7 @@ public class SearchApplicationFileAction extends AbstractAction
 			new JLabel("Search for a node name or an entry's title, user name, URL or notes:"));
 		panel.add(searchField);
 		int option = OwnedDialogs.selectedOption(frame, panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, "Search", searchField);
+			JOptionPane.OK_CANCEL_OPTION, dialogTitle(), searchField);
 		if (option != JOptionPane.OK_OPTION)
 		{
 			return;
@@ -101,5 +102,26 @@ public class SearchApplicationFileAction extends AbstractAction
 			return;
 		}
 		treePanel.selectTreeNode(match);
+	}
+
+	/**
+	 * The title of the search dialogs, from the bundle; the e2e helpers that find the dialog by its
+	 * title read it here too
+	 *
+	 * @return the title
+	 */
+	public static String dialogTitle()
+	{
+		return Messages.getString("search.dialog.title", "Search");
+	}
+
+	/**
+	 * The message of the search asked for while no vault is open
+	 *
+	 * @return the message for the person
+	 */
+	public static String notSignedIn()
+	{
+		return Messages.getString("search.failed.not.signed.in", "Please sign in first.");
 	}
 }
