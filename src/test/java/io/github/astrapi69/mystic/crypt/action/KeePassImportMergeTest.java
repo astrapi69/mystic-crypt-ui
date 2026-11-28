@@ -89,6 +89,8 @@ class KeePassImportMergeTest
 	private static final UUID BANK = UUID.fromString("00000000-0000-4000-8000-00000000000b");
 	private static final UUID SHOP = UUID.fromString("00000000-0000-4000-8000-00000000000c");
 
+	private static final String ENTRY_PASSWORD = TestPasswords.throwaway();
+
 	private final String filePassword = TestPasswords.throwaway();
 
 	@TempDir
@@ -125,7 +127,7 @@ class KeePassImportMergeTest
 		final Instant modified)
 	{
 		return MysticCryptEntryModelBean.builder().id(id).title(title.toCharArray())
-			.password("secret".toCharArray())
+			.password(ENTRY_PASSWORD.toCharArray())
 			.lastModificationTime(
 				modified == null ? null : OffsetDateTime.ofInstant(modified, ZoneOffset.UTC))
 			.build();
@@ -185,7 +187,7 @@ class KeePassImportMergeTest
 	private static KdbxEntry entryOf(final KdbxDatabase database, final Spec spec)
 	{
 		KdbxEntry entry = (KdbxEntry)database.newEntry(spec.title());
-		entry.setPassword("secret");
+		entry.setPassword(ENTRY_PASSWORD);
 		if (spec.previous() != null)
 		{
 			KdbxHistory history = new KdbxHistory();
