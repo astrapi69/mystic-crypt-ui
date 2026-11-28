@@ -173,7 +173,7 @@ public final class MarkedEntryAccess implements VaultAccess
 	 * A copy that shares no array and no attachment with the given entry, so neither side can
 	 * change the other through it
 	 */
-	private static MysticCryptEntryModelBean copyOf(final MysticCryptEntryModelBean entry)
+	static MysticCryptEntryModelBean copyOf(final MysticCryptEntryModelBean entry)
 	{
 		MysticCryptEntryModelBean copy = entry.duplicate();
 		copy.setTitle(cloned(entry.getTitle()));

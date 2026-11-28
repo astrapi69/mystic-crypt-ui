@@ -31,6 +31,10 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.awt.image.MultiResolutionImage;
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -39,6 +43,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -81,9 +87,13 @@ class EveryPluginShowsAnIconOfItsOwnUiTest extends AbstractUiTest
 		signInWithExistingDatabase(databaseFile, MASTER_PASSWORD).showMainFrame();
 
 		Map<String, List<ItemIcon>> iconsByPlugin = iconsByPlugin();
-		assertEquals(installed.size(), iconsByPlugin.size(),
-			"every plugin under plugins/ must have its submenu in the Plugins menu, installed: "
-				+ installed + ", submenus: " + iconsByPlugin.keySet());
+		List<String> withoutAMenu = installed.stream().filter(plugin -> !bringsAMenu(plugin))
+			.toList();
+		assertEquals(installed.size() - withoutAMenu.size(), iconsByPlugin.size(),
+			"every plugin under plugins/ with a menu contribution must have its submenu in the "
+				+ "Plugins menu, installed: " + installed + ", without a menu (their entry action "
+				+ "carries the icon, WifiQrPluginUiTest): " + withoutAMenu + ", submenus: "
+				+ iconsByPlugin.keySet());
 
 		List<String> defects = new ArrayList<>();
 		iconsByPlugin.values().forEach(
@@ -92,6 +102,33 @@ class EveryPluginShowsAnIconOfItsOwnUiTest extends AbstractUiTest
 
 		assertEquals(Map.of(), sharedPictures(iconsByPlugin),
 			"no two plugins may show the same picture");
+	}
+
+	/**
+	 * Whether a plugin brings a menu: one of its classes implements {@code PluginMenuContribution}.
+	 * A plugin without one offers only an action on an entry (#1120), which has no submenu here
+	 */
+	private static boolean bringsAMenu(final String plugin)
+	{
+		Pattern implementing = Pattern
+			.compile("\\bclass\\s+\\w+\\s+implements\\s+[^{]*\\bPluginMenuContribution\\b");
+		try (Stream<Path> sources = Files.walk(Path.of("plugins", plugin, "src/main/java")))
+		{
+			return sources.filter(path -> path.toString().endsWith(".java")).anyMatch(path -> {
+				try
+				{
+					return implementing.matcher(Files.readString(path)).find();
+				}
+				catch (IOException exception)
+				{
+					throw new UncheckedIOException(exception);
+				}
+			});
+		}
+		catch (IOException exception)
+		{
+			throw new UncheckedIOException(exception);
+		}
 	}
 
 	/** A menu item of a plugin's submenu with the icon it shows */

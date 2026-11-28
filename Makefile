@@ -32,6 +32,7 @@ PLUGIN_FILE_CRYPT_DIR := plugins/file-crypt-plugin
 PLUGIN_SECRET_SHARING_DIR := plugins/secret-sharing-plugin
 PLUGIN_LETHENON_DIR := plugins/lethenon-plugin
 PLUGIN_RELEASE_KEY_DIR := plugins/release-key-plugin
+PLUGIN_WIFI_QR_DIR := plugins/wifi-qr-plugin
 PLUGIN_INSTALL_DIR := $(HOME)/.config/mystic-crypt-ui/plugins
 # what every plugin target runs besides packaging its zip: the host's formatting and license header check and the
 # plugin's unit tests (#666), and for the two plugins whose zip is started in a test of its own, that test. make run
@@ -47,7 +48,7 @@ SCRIPT_TESTS ?= yes
 	version-catalog-format version-catalog-update all-dependencies-jar \
 	build-stacktrace build-warning bump-check plugin-obfuscation plugin-checksum plugin-conversion \
 	plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo \
-	plugin-menu-designer plugin-pqc-signature plugin-keystore plugin-file-crypt plugin-secret-sharing plugin-lethenon plugin-release-key plugins plugins-install \
+	plugin-menu-designer plugin-pqc-signature plugin-keystore plugin-file-crypt plugin-secret-sharing plugin-lethenon plugin-release-key plugin-wifi-qr plugins plugins-install \
 	install-hooks
 
 # `make` without a target lists the targets: the first rule used to be install-hooks, so a bare
@@ -65,7 +66,7 @@ GRADLE_TARGETS := all all-dependencies-jar build build-full build-stacktrace bui
 	izpack-installer-signed jacoco-coverage jacoco-report jar javadoc license-format plugin-certificate \
 	plugin-checksum plugin-console plugin-conversion plugin-file-crypt plugin-kem-demo plugin-keygen \
 	plugin-keystore plugin-lethenon plugin-menu-designer plugin-obfuscation plugin-password-hash \
-	plugin-pqc-signature plugin-release-key plugin-secret-sharing plugins plugins-install publish-local \
+	plugin-pqc-signature plugin-release-key plugin-secret-sharing plugin-wifi-qr plugins plugins-install publish-local \
 	run run-isolated spotless-java spotless-misc tag-release test test-e2e test-e2e-demo test-fast \
 	verify-installer version-catalog-format version-catalog-update
 SLOT_GOALS := $(filter $(GRADLE_TARGETS),$(MAKECMDGOALS))
@@ -283,6 +284,12 @@ plugin-release-key: publish-local ## [plugins] the release key plugin: its tests
 	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_RELEASE_KEY_DIR) $(PLUGIN_TESTS) $(PLUGIN_ZIP_TESTS) pluginZip $(GRADLE_FLAGS)
 	@echo "==> plugin zip: $$(find $(PLUGIN_RELEASE_KEY_DIR)/build/plugin-dist -name '*.zip')"
 
+# build the internal Wi-Fi QR plugin zip (needs the host published locally first). It brings qrcodegen,
+# which the host does not carry, in its zip under lib/ (#1120)
+plugin-wifi-qr: publish-local ## [plugins] the Wi-Fi QR plugin: its tests and zip, which carries qrcodegen
+	JAVA_HOME=$(JAVA_HOME) ./gradlew $(PLUGIN_DAEMON) -p $(PLUGIN_WIFI_QR_DIR) $(PLUGIN_TESTS) pluginZip $(GRADLE_FLAGS)
+	@echo "==> plugin zip: $$(find $(PLUGIN_WIFI_QR_DIR)/build/plugin-dist -name '*.zip')"
+
 # the pre-check for ANY bump of crypt-data or mystic-crypt: the host's own suites AND every
 # internal plugin. The plugins depend on crypt-data DIRECTLY, so a breaking change there can leave
 # the host green and a plugin red - measured on the 13.3 bump (#480), where crypt-data 13.0's
@@ -297,7 +304,7 @@ bump-check: ## [plugins] before a crypt-data or mystic-crypt bump: the host unit
 	@echo "==> bump-check: the host suites and all internal plugins are green"
 
 # build every internal plugin
-plugins: plugin-obfuscation plugin-checksum plugin-conversion plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo plugin-menu-designer plugin-pqc-signature plugin-keystore plugin-file-crypt plugin-secret-sharing plugin-lethenon plugin-release-key ## [plugins] every internal plugin with its tests and zip, and the script test suites
+plugins: plugin-obfuscation plugin-checksum plugin-conversion plugin-console plugin-keygen plugin-certificate plugin-password-hash plugin-kem-demo plugin-menu-designer plugin-pqc-signature plugin-keystore plugin-file-crypt plugin-secret-sharing plugin-lethenon plugin-release-key plugin-wifi-qr ## [plugins] every internal plugin with its tests and zip, and the script test suites
 ifeq ($(SCRIPT_TESTS),yes)
 	python3 scripts/merge_pr_test.py
 	python3 scripts/assemble_changelog_test.py
@@ -328,6 +335,7 @@ plugins-install: plugins ## [plugins] plugins, then copies the zips into ~/.conf
 	cp $(PLUGIN_SECRET_SHARING_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	cp $(PLUGIN_LETHENON_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	cp $(PLUGIN_RELEASE_KEY_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
+	cp $(PLUGIN_WIFI_QR_DIR)/build/plugin-dist/*.zip "$(PLUGIN_INSTALL_DIR)/"
 	@# pf4j loads an already extracted plugin directory in preference to the zip beside it, so a
 	@# directory left over from an earlier install keeps serving old code however often the zip is
 	@# replaced - the freshly installed zip has to be the only thing left to extract

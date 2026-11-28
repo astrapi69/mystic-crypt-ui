@@ -51,9 +51,10 @@ import org.junit.jupiter.params.provider.MethodSource;
  * <p>
  * The test reads the plugin directories, the way {@link PublicPluginGrantTest} does: the plugins
  * are not on this suite's class path. Per plugin it checks the two images next to its menu
- * contribution class, the SVG they were rendered from, and that the contribution reads both of them
- * next to itself. The end-to-end test {@code EveryPluginShowsAnIconOfItsOwnUiTest} checks the same
- * through the built zips and the menu a user sees; this one answers in the everyday build.
+ * contribution class (or, for a plugin with no menu, its entry action, #1120), the SVG they were
+ * rendered from, and that the contribution reads both of them next to itself. The end-to-end test
+ * {@code EveryPluginShowsAnIconOfItsOwnUiTest} checks the same through the built zips and the menu
+ * a user sees; this one answers in the everyday build.
  */
 class EveryPluginCarriesItsIconTest
 {
@@ -83,7 +84,7 @@ class EveryPluginCarriesItsIconTest
 	@MethodSource("plugins")
 	void everyPlugin_carriesBothImages(final String plugin) throws IOException
 	{
-		Path resources = resourcesNextTo(plugin, menuContributionOf(plugin));
+		Path resources = resourcesNextTo(plugin, contributionOf(plugin));
 		for (int size : SIZES)
 		{
 			Path file = resources.resolve(imageName(size));
@@ -108,11 +109,11 @@ class EveryPluginCarriesItsIconTest
 		assertTrue(Files.isRegularFile(source), "missing " + source);
 	}
 
-	@ParameterizedTest(name = "{0} reads both images next to its menu contribution, once each")
+	@ParameterizedTest(name = "{0} reads both images next to its contribution, once each")
 	@MethodSource("plugins")
 	void everyPlugin_readsItsImagesNextToItsContribution(final String plugin) throws IOException
 	{
-		String contribution = Files.readString(menuContributionOf(plugin));
+		String contribution = Files.readString(contributionOf(plugin));
 		for (int size : SIZES)
 		{
 			Matcher matcher = Pattern.compile("getClass\\(\\)\\s*\\.\\s*getResource\\(\\s*\""
@@ -123,7 +124,7 @@ class EveryPluginCarriesItsIconTest
 				reads++;
 			}
 			assertEquals(1, reads, plugin + " reads " + imageName(size) + " " + reads
-				+ " times next to its menu contribution, once is right");
+				+ " times next to its contribution, once is right");
 		}
 	}
 
@@ -158,17 +159,43 @@ class EveryPluginCarriesItsIconTest
 			.resolve(pluginSources.relativize(contribution.getParent()));
 	}
 
-	private static Path menuContributionOf(final String plugin) throws IOException
+	/**
+	 * The class that sets the plugin's icon: its menu contribution, or, for a plugin that brings no
+	 * menu and only an action on an entry (#1120), that action, which hands the host its icon
+	 */
+	private static Path contributionOf(final String plugin) throws IOException
 	{
 		Path main = PLUGINS.resolve(plugin).resolve("src/main/java");
+		List<Path> menus = sourcesImplementing(main, "PluginMenuContribution");
+		List<Path> contributions = menus.isEmpty()
+			? sourcesImplementing(main, "EntryActionContribution")
+			: menus;
+		assertEquals(1, contributions.size(), plugin + " has " + contributions.size()
+			+ " menu contributions, or, without one, entry actions: " + contributions);
+		return contributions.get(0);
+	}
+
+	private static List<Path> sourcesImplementing(final Path main, final String contribution)
+		throws IOException
+	{
+		Pattern implementing = Pattern
+			.compile("\\bclass\\s+\\w+\\s+implements\\s+[^{]*\\b" + contribution + "\\b");
 		try (Stream<Path> files = Files.walk(main))
 		{
-			List<Path> contributions = files
-				.filter(path -> path.getFileName().toString().endsWith("MenuContribution.java"))
-				.toList();
-			assertEquals(1, contributions.size(),
-				plugin + " has " + contributions.size() + " menu contributions: " + contributions);
-			return contributions.get(0);
+			return files.filter(path -> path.toString().endsWith(".java"))
+				.filter(path -> implementing.matcher(read(path)).find()).toList();
+		}
+	}
+
+	private static String read(final Path source)
+	{
+		try
+		{
+			return Files.readString(source);
+		}
+		catch (IOException exception)
+		{
+			throw new UncheckedIOException(exception);
 		}
 	}
 }

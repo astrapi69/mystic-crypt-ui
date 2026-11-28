@@ -198,6 +198,10 @@ both images, its SVG source and the two `getResource` calls; the end-to-end test
 `EveryPluginShowsAnIconOfItsOwnUiTest` installs every plugin's zip and fails for a menu item without
 an icon, without the 32 px variant, or with a picture another plugin already shows.
 
+A plugin that brings no menu and only an action on an entry (`EntryActionContribution`) builds the
+icon the same way, next to that class, and returns it from `getIcon()`; the host sets it on the
+action's item in the entry's context menu.
+
 # The plugin's own text
 
 A plugin does not use the application's text bundle; it brings its own. The text lives in

@@ -23,6 +23,7 @@ rectangles, no font, no icon set, no template.
 | `pqc-signature-plugin.svg` | pen nib |
 | `release-key-plugin.svg` | tag with a hole |
 | `secret-sharing-plugin.svg` | three shares that belong together |
+| `wifi-qr-plugin.svg` | radio waves of a wireless network (#1120; drawn after the approved sheet, in its style) |
 | `sheet.png` | the sheet the maintainer approved: every icon at 16 and 32 px, enlarged, on light and dark |
 
 Each plugin carries its two images in its own jar, next to its menu contribution class:
@@ -37,6 +38,10 @@ Two tests keep it that way for every directory under `plugins/`:
 - `EveryPluginShowsAnIconOfItsOwnUiTest`, end to end: every clickable item of every plugin submenu
   carries the 16 px icon with its 32 px variant, read from the built zip, and no two plugins show
   the same picture.
+
+A plugin with no menu and only an action on an entry (the Wi-Fi QR plugin, #1120) carries the two
+images next to its `EntryActionContribution` instead, returns the icon from `getIcon()`, and the host
+sets it on the action's item in the entry's context menu; `WifiQrPluginUiTest` checks it there.
 
 ## How the images are made
 

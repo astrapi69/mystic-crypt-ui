@@ -1,0 +1,114 @@
+plugins {
+    id 'java'
+    alias(libs.plugins.dependency.analysis)
+    // the host's formatter and license header (#666)
+    alias(libs.plugins.spotless.plugin.gradle)
+    // the tests run on a display of the build's own, not on the one the build was started from (#505),
+    // and a test class that leaves no result fails the build (#699): astrapi69/own-display-gradle-plugin
+    alias(libs.plugins.own.display)
+    alias(libs.plugins.test.results.complete)
+}
+
+group = 'io.github.astrapi69'
+version = '1.0.0'
+
+java {
+    toolchain {
+        // must match the host: its classes are compiled for JDK 25 (class file major 69),
+        // which a lower toolchain's javac cannot read from the compile classpath
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+// Maven Central, and from the local repository the host - or, with -PuseMavenLocal, a family library
+// candidate too (#475, #508)
+apply from: '../../gradle/plugin-repositories.gradle'
+// what the dependency-analysis plugin checks here, the same in every plugin build
+apply from: '../../gradle/plugin-dependency-analysis.gradle'
+// the host's formatter, import order and license header, the same in every plugin build (#666)
+apply from: '../../gradle/plugin-formatting.gradle'
+
+// compileOnly against the host jar and the libraries the certificate wizard it launches references.
+// The wizard panels + models + the CertificateInfoModelToX509 generator stay in the host (shared
+// with the keygen plugin), so this plugin only needs the types to open the wizard dialog and to
+// generate/save the certificate; the wizard's own base classes (swing-wizard, state-pattern) are
+// needed to resolve CertificateWizardPanel's class hierarchy at compile time.
+// the host version comes from the root gradle.properties, the one hand-edited version field in
+// this repository - never repeated as a literal here, so a release cannot leave it pointing at a
+// snapshot that no longer exists (#217)
+def hostVersion = new Properties().with { properties ->
+    file("../../gradle.properties").withInputStream { properties.load(it) }
+    properties.getProperty("projectVersion")
+}
+
+// the one library the host does not carry: qrcodegen draws the code (#874, #1120). The zip brings
+// it under lib/, where pf4j's DefaultPluginClasspath looks for jars; everything else comes from the
+// host at runtime
+configurations {
+    bundled {
+        canBeResolved = true
+    }
+}
+
+dependencies {
+    compileOnly "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
+    // QrCode and QrSegment draw the network as a QR code; MIT, without dependencies
+    compileOnly libs.qrcodegen
+    bundled libs.qrcodegen
+    // ResourceBundleExtensions.getStringQuietly - the plugin's texts fall back to a default
+    compileOnly libs.resourcebundle.core
+    // the window's layout; the host carries MigLayout at runtime
+    compileOnly libs.miglayout.swing
+
+    compileOnly libs.pf4j
+    // required so the @Extension annotation processor runs and writes META-INF/extensions.idx
+    annotationProcessor libs.pf4j
+
+    testImplementation libs.junit.jupiter
+    testImplementation libs.qrcodegen
+    testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
+    testImplementation libs.pf4j
+    testRuntimeOnly libs.resourcebundle.core
+    testRuntimeOnly libs.miglayout.swing
+    testRuntimeOnly libs.junit.platform.launcher
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// the bounds of every test JVM, the same as the host's (#580)
+apply from: '../../gradle/test-jvms.gradle'
+// fixed entry times and order in the plugin's zip, as in the host build (#920)
+apply from: '../../gradle/reproducible-archives.gradle'
+
+// NOTICE.txt and qrcodegen's licence, which its jar does not carry, so src/main/legal holds the
+// header of its sources (#874); the zip carries them under legal/, and the installer installs the
+// same directory (#581)
+tasks.register('pluginLegal', Sync) {
+    into layout.buildDirectory.dir('legal')
+    from('src/main/legal')
+}
+
+// packages the plugin the way the host's DefaultPluginManager expects: plugin.properties at the
+// root, compiled classes under classes/, qrcodegen under lib/, the licences under legal/
+tasks.register('pluginZip', Zip) {
+    archiveFileName = "wifi-qr-plugin-${version}.zip"
+    destinationDirectory = layout.buildDirectory.dir("plugin-dist")
+    from("src/main/resources") {
+        include "plugin.properties"
+    }
+    into("classes") {
+        from sourceSets.main.output.classesDirs
+        from("src/main/resources") {
+            exclude "plugin.properties"
+        }
+    }
+    into("lib") {
+        from configurations.bundled
+    }
+    into("legal") {
+        from tasks.named('pluginLegal')
+    }
+    dependsOn classes
+}
