@@ -94,7 +94,9 @@ class NodeDuplicationTest
 	}
 
 	/**
-	 * The copy hung next to the original, the way the panel does it after the name dialog
+	 * The copy hung next to the original, the way the panel does it after the name dialog: renamed
+	 * first, since the children of a node are a set and a node equals another with the same id,
+	 * value and display value, so an unrenamed copy would not be added at all
 	 *
 	 * @return the copy
 	 */
@@ -102,8 +104,11 @@ class NodeDuplicationTest
 	{
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> copy = NodeDuplication
 			.copyOf(group, null);
+		copy.getValue().setName("group-Copy");
+		copy.setDisplayValue("group-Copy");
 		copy.setParent(root);
 		root.addChild(copy);
+		assertEquals(2, root.getChildren().size(), "the copy hangs next to the original");
 		return copy;
 	}
 
