@@ -9,7 +9,7 @@ library family (mystic-crypt, crypt-data, crypt-api) and BouncyCastle. Gradle bu
 Swing UI delegates to support/worker classes; all crypto primitives come from the
 libraries, never hand-rolled. Features live in internal plugins under `plugins/`
 (canonical inventory: the `plugins:` target in the Makefile), each with its own submenu
-and settings. `--cli` delegates to the mystic-crypt library's picocli root command —
+and settings. `--cli` delegates to the mystic-crypt library's picocli root command;
 new CLI capability is built in the library first. Vault format: versioned
 `PasswordVaultFormat` (MCRDB2, AEAD + PBKDF2) with legacy migration.
 
@@ -18,27 +18,27 @@ new CLI capability is built in the library first. Vault format: versioned
 `make` (= `make help`) lists every target with its description, which lives on the target's rule
 line in the Makefile (#911); `docs/development.md` says which to run for what.
 
-- `make build` / `make build-full` — build (full = with all checks)
+- `make build` / `make build-full` - build (full = with all checks)
 - A target that starts Gradle runs only inside the build slot (`GRADLE_SLOT`); without one it refuses:
   run it through the slot, or with `make without-slot TARGET=<target>`
-- `make test` — the everyday gate; must stay green after every change
-- `make test-e2e` — Swing e2e suite; every test task of every build runs on an Xvfb of its own,
+- `make test` - the everyday gate; must stay green after every change
+- `make test-e2e` - Swing e2e suite; every test task of every build runs on an Xvfb of its own,
   never on the desktop's display (#505, rules/lessons-learned.md)
-- `make plugins` / `make plugins-install` — build/install internal plugins
-- `make bump-check` — the pre-check before any crypt-data or mystic-crypt bump: host suites
+- `make plugins` / `make plugins-install` - build/install internal plugins
+- `make bump-check` - the pre-check before any crypt-data or mystic-crypt bump: host suites
   plus every plugin (the plugins depend on crypt-data directly, #480)
-- `make build-with-plugins` (alias `make bwp`) — `build` + `plugins-install` together
-- `make run` (= `make run-isolated`) — builds the internal plugin zips (without their tests) and the
+- `make build-with-plugins` (alias `make bwp`) - `build` + `plugins-install` together
+- `make run` (= `make run-isolated`) - builds the internal plugin zips (without their tests) and the
   host jar and starts the development build in a profile of its own (`ISOLATED_HOME`, default
   `~/mystic-crypt-ui-dev`), never touching the installed release (#498, #501); `make start` starts
   the last build there without building anything (#909)
-- `make spotless-java` — format before committing
+- `make spotless-java` - format before committing
 - `make install-hooks` - point git at `.githooks` (run once per clone/worktree): pre-commit Spotless,
   pre-push the private references check and the pull request check; the same references check runs as
   the tool hook of `.claude/settings.json` (`docs/development.md`, #1103)
-- `make izpack-installer` — installer
-- `make jacoco-report`, `./gradlew pitest` — coverage / mutation reports
-- `make dependency-updates` — dependency currency check
+- `make izpack-installer` - installer
+- `make jacoco-report`, `./gradlew pitest` - coverage / mutation reports
+- `make dependency-updates` - dependency currency check
 - `make dependency-analysis` - reports unused dependencies in the host and every plugin build (CI runs it; it fails
   on one only once the removals of 2026-11-18 are done)
 
