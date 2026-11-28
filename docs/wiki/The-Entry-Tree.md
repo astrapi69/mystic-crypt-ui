@@ -81,7 +81,9 @@ to the original, under the same parent.
 
 The copy is a real deep copy: the whole subtree below the node, and every entry inside it, is
 copied along with its attachments and its custom properties. Original and copy share nothing, so
-renaming or editing one never touches the other.
+renaming or editing one never touches the other. Every entry in the copy is a new entry, as a
+duplicated entry is (section 5): it has an identifier of its own, and the earlier versions KeePass
+kept of the original stay with the original.
 
 ### Delete a node
 

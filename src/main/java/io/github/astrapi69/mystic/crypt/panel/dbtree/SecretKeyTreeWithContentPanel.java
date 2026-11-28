@@ -1271,12 +1271,11 @@ public class SecretKeyTreeWithContentPanel
 		}
 		getTblTreeEntryTable().getSingleSelectedRowData().ifPresent(selectedTableEntry -> {
 			// NOT CloneQuietlyExtensions.clone(...): that resolves to a shallow copy, so original
-			// and duplicate would share the same resources/properties/modification lists
-			// id(null) on purpose: toBuilder copies the identifier, and a duplicate carrying the
-			// original's identity is exactly the reuse an identifier must never do. It gets its
-			// own in addNewTableEntryToModel, the one place that hands them out (#272)
-			MysticCryptEntryModelBean clonedMysticCryptEntry = selectedTableEntry.duplicate()
-				.toBuilder().id(null).build();
+			// and duplicate would share the same resources/properties/modification lists. The copy
+			// gets an identifier of its own, from the same place as the copies of "Duplicate
+			// node" (#272, #856)
+			MysticCryptEntryModelBean clonedMysticCryptEntry = EntryIdentitySupport
+				.duplicateAsNewEntry(selectedTableEntry);
 
 			String newName = EntryText.asText(clonedMysticCryptEntry.getTitle()) + "-Copy";
 			NewTableEntryModel newTableEntryModel = NewTableEntryModel.builder().name(newName)

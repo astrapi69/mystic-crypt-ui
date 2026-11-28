@@ -29,8 +29,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
@@ -42,12 +44,13 @@ import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
 /**
- * "Duplicate node" copies the node's subtree with every entry in it (#856 named the identifiers of
- * those entries as an open finding).
+ * "Duplicate node" copies the node's subtree with every entry in it, and every copied entry is a
+ * new entry, as the copy of "Duplicate entry" is: an identifier of its own, in the sub-nodes too,
+ * so the identifiers in a vault that holds the original and the copy stay unique, and no history.
  * <p>
- * Pins today's behaviour: the entries of the copy carry the identifiers of the entries they were
- * copied from, in the sub-nodes too, so a vault that holds the original and the copy holds every
- * identifier twice. Their history is not copied.
+ * Until this was fixed the copies carried the originals' identifiers, so two different entries
+ * shared one UUID in the vault and in a KDBX export, and an import that matches by UUID would have
+ * merged them (#856 named it as an open finding).
  */
 class NodeDuplicationTest
 {
@@ -133,24 +136,30 @@ class NodeDuplicationTest
 	}
 
 	@Test
-	@DisplayName("today the entries of the copy carry the identifiers of the originals, below too")
-	void copyOf_keepsTheIdentifiersOfTheEntries()
+	@DisplayName("every entry of the copy gets an identifier of its own, in the sub-nodes too")
+	void copyOf_givesEveryEntryAnIdentifierOfItsOwn()
 	{
 		buildTree();
+		List<UUID> originalIdentifiers = identifiersOf(List.of(first, second, third));
 
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> copy = duplicateGroup();
 
 		List<MysticCryptEntryModelBean> copiedEntries = entriesBelow(copy);
 		assertEquals(3, copiedEntries.size(),
 			"the copy holds the group's two entries and the sub-group's one");
-		assertEquals(identifiersOf(List.of(first, second, third)), identifiersOf(copiedEntries),
-			"every copied entry carries the identifier of the entry it was copied from, the one "
-				+ "in the sub-group as well");
+		List<UUID> copiedIdentifiers = identifiersOf(copiedEntries);
+		assertTrue(copiedIdentifiers.stream().allMatch(identifier -> identifier != null),
+			"every copied entry has an identifier: " + copiedIdentifiers);
+		assertTrue(Collections.disjoint(originalIdentifiers, copiedIdentifiers),
+			"no copied entry carries the identifier of an original, the one in the sub-group "
+				+ "neither: originals " + originalIdentifiers + ", copies " + copiedIdentifiers);
+		assertEquals(originalIdentifiers, identifiersOf(List.of(first, second, third)),
+			"and the originals keep theirs");
 	}
 
 	@Test
-	@DisplayName("today a vault holding the original and the copy holds every identifier twice")
-	void copyOf_leavesEveryIdentifierTwiceInTheVault()
+	@DisplayName("a vault holding the original and the copy holds every identifier once")
+	void copyOf_leavesTheIdentifiersInTheVaultUnique()
 	{
 		buildTree();
 
@@ -158,20 +167,23 @@ class NodeDuplicationTest
 
 		List<UUID> identifiersInTheVault = identifiersOf(entriesBelow(root));
 		assertEquals(6, identifiersInTheVault.size(), "three entries, each with its copy");
-		assertEquals(3, new HashSet<>(identifiersInTheVault).size(),
-			"two different entries share one identifier, three times over");
+		assertEquals(6, new HashSet<>(identifiersInTheVault).size(),
+			"no two entries share an identifier: " + identifiersInTheVault);
 	}
 
 	@Test
-	@DisplayName("today an entry without an identifier is copied without one")
-	void copyOf_leavesAnEntryWithoutIdentifierWithoutOne()
+	@DisplayName("the copy of an entry without an identifier gets one, and the original stays as it was")
+	void copyOf_givesTheCopyOfAnEntryWithoutIdentifierOne()
 	{
 		buildTree();
 		first.setId(null);
 
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> copy = duplicateGroup();
 
-		assertNull(copy.getValue().getDefaultContent().get(0).getId());
+		assertNotNull(copy.getValue().getDefaultContent().get(0).getId(),
+			"a copy is a new entry, and a new entry gets its identifier when it is made, as the "
+				+ "copy of \"Duplicate entry\" does");
+		assertNull(first.getId(), "copying does not change the original");
 	}
 
 	@Test
