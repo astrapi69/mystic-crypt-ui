@@ -34,6 +34,7 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
@@ -120,6 +121,30 @@ class KeePassImportRefusalTest
 			new IllegalStateException("no key file"));
 
 		assertEquals(wordsOfARefusedImport(), message);
+	}
+
+	/**
+	 * The refusals the import gives before it reads a file - no vault is open, or no KeePass file
+	 * was chosen - each with the key of its words and its words in English
+	 */
+	static Stream<Arguments> refusalsBeforeAFileIsRead()
+	{
+		return Stream.of(
+			Arguments.of("no vault is open", "keepass.import.failed.not.signed.in",
+				"Please sign in first.", (Supplier<String>)KeePassImportRefusal::notSignedIn),
+			Arguments.of("no KeePass file is chosen", "keepass.import.failed.no.file",
+				"No KeePass file selected.",
+				(Supplier<String>)KeePassImportRefusal::noFileSelected));
+	}
+
+	@ParameterizedTest(name = "{0}: the dialog shows English words the bundle does not hold")
+	@MethodSource("refusalsBeforeAFileIsRead")
+	void aRefusalBeforeAFileIsRead_showsWordsTheBundleDoesNotHold(final String caseName,
+		final String key, final String english, final Supplier<String> refusal)
+	{
+		assertEquals(english, refusal.get());
+		assertFalse(ResourceBundle.getBundle("ui.messages", Locale.GERMAN).containsKey(key),
+			"the bundle holds no words for it, in neither language");
 	}
 
 	@Test

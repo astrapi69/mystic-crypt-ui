@@ -30,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.UUID;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
@@ -69,6 +70,30 @@ class KeePassExportRefusalTest
 
 		assertEquals(Messages.getString(REFUSED_EXPORT, ""), message);
 		assertFalse(message.contains(TEXT), "nothing of the refusal");
+	}
+
+	/**
+	 * The refusals the export of the whole tree gives before it writes a file - no vault is open,
+	 * or no destination file was chosen - each with the key of its words and its words in English
+	 */
+	static Stream<Arguments> refusalsBeforeAFileIsWritten()
+	{
+		return Stream.of(
+			Arguments.of("no vault is open", "keepass.export.failed.not.signed.in",
+				"Please sign in first.", (Supplier<String>)KeePassExportRefusal::notSignedIn),
+			Arguments.of("no destination file is chosen", "keepass.export.failed.no.file",
+				"No destination file selected.",
+				(Supplier<String>)KeePassExportRefusal::noFileSelected));
+	}
+
+	@ParameterizedTest(name = "{0}: the dialog shows English words the bundle does not hold")
+	@MethodSource("refusalsBeforeAFileIsWritten")
+	void aRefusalBeforeAFileIsWritten_showsWordsTheBundleDoesNotHold(final String caseName,
+		final String key, final String english, final Supplier<String> refusal)
+	{
+		assertEquals(english, refusal.get());
+		assertFalse(ResourceBundle.getBundle("ui.messages", Locale.GERMAN).containsKey(key),
+			"the bundle holds no words for it, in neither language");
 	}
 
 	@Test

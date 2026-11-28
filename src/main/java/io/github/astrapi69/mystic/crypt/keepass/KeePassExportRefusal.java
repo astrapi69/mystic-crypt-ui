@@ -50,6 +50,26 @@ public final class KeePassExportRefusal
 	}
 
 	/**
+	 * The message for an export asked for while no vault is open
+	 *
+	 * @return the message for the person
+	 */
+	public static String notSignedIn()
+	{
+		return "Please sign in first.";
+	}
+
+	/**
+	 * The message for an export confirmed without a destination file
+	 *
+	 * @return the message for the person
+	 */
+	public static String noFileSelected()
+	{
+		return "No destination file selected.";
+	}
+
+	/**
 	 * The message for a refused export
 	 *
 	 * @param refusal

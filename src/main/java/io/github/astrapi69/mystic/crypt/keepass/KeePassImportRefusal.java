@@ -59,6 +59,26 @@ public final class KeePassImportRefusal
 	}
 
 	/**
+	 * The message for an import asked for while no vault is open
+	 *
+	 * @return the message for the person
+	 */
+	public static String notSignedIn()
+	{
+		return "Please sign in first.";
+	}
+
+	/**
+	 * The message for an import confirmed without a KeePass file
+	 *
+	 * @return the message for the person
+	 */
+	public static String noFileSelected()
+	{
+		return "No KeePass file selected.";
+	}
+
+	/**
 	 * The message for a refused import
 	 *
 	 * @param file

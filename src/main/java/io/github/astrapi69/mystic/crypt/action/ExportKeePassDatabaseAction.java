@@ -70,8 +70,8 @@ public class ExportKeePassDatabaseAction extends AbstractAction
 		ApplicationPanel applicationPanel = instance.getApplicationPanel();
 		if (applicationPanel == null)
 		{
-			JOptionPane.showMessageDialog(instance, "Please sign in first.", "Export failed",
-				JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(instance, KeePassExportRefusal.notSignedIn(),
+				"Export failed", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 
@@ -88,7 +88,7 @@ public class ExportKeePassDatabaseAction extends AbstractAction
 		File file = panel.getSelectedFile();
 		if (file == null)
 		{
-			JOptionPane.showMessageDialog(instance, "No destination file selected.",
+			JOptionPane.showMessageDialog(instance, KeePassExportRefusal.noFileSelected(),
 				"Export failed", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
