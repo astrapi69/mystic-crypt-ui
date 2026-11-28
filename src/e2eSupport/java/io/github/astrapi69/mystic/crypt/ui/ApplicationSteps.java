@@ -886,11 +886,7 @@ final class ApplicationSteps
 	ApplicationSteps addEntry(org.assertj.swing.fixture.FrameFixture frame, String title,
 		String userName, String password, String url, String notes)
 	{
-		javax.swing.JTable table = frame.table().target();
-		dispatchRightClick(table, 20, 10);
-		chooseFromShowingPopup("add...");
-
-		DialogFixture newEntryDialog = findDialogWithTitle("New Crypt Entry");
+		DialogFixture newEntryDialog = openTheNewEntryDialog(frame);
 		GuiActionRunner.execute(() -> {
 			newEntryDialog.textBox("txtEntryName").target().setText(title);
 			newEntryDialog.textBox("txtUsername").target().setText(userName);
@@ -917,17 +913,29 @@ final class ApplicationSteps
 	 */
 	ApplicationSteps addEntryButCancel(org.assertj.swing.fixture.FrameFixture frame, String title)
 	{
-		javax.swing.JTable table = frame.table().target();
-		dispatchRightClick(table, 20, 10);
-		chooseFromShowingPopup("add...");
-
-		DialogFixture newEntryDialog = findDialogWithTitle("New Crypt Entry");
+		DialogFixture newEntryDialog = openTheNewEntryDialog(frame);
 		GuiActionRunner
 			.execute(() -> newEntryDialog.textBox("txtEntryName").target().setText(title));
 		robot.waitForIdle();
 		UiTestSpeed.step();
 		disposeDialog("New Crypt Entry");
 		return this;
+	}
+
+	/**
+	 * Opens the "New Crypt Entry" dialog on the currently selected tree node: right-click the
+	 * entries table, "add..."
+	 *
+	 * @param frame
+	 *            the application frame
+	 * @return the open dialog
+	 */
+	DialogFixture openTheNewEntryDialog(org.assertj.swing.fixture.FrameFixture frame)
+	{
+		javax.swing.JTable table = frame.table().target();
+		dispatchRightClick(table, 20, 10);
+		chooseFromShowingPopup("add...");
+		return findDialogWithTitle("New Crypt Entry");
 	}
 
 	/** Selects the tree row (left click semantics) so entry operations target that node */
