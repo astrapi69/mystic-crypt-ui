@@ -34,6 +34,7 @@ import org.pf4j.Extension;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
+import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.util.JInternalFrameExtensions;
@@ -51,7 +52,7 @@ public class FileCryptMenuContribution implements PluginMenuContribution
 		JMenuItem encryptAndDecrypt = new JMenuItem("Encrypt and Decrypt");
 		encryptAndDecrypt.addActionListener(
 			event -> openInternalFrame("Encrypt and Decrypt", new FileCryptPanel()));
-		return List.of(encryptAndDecrypt);
+		return PluginIcon.onEvery(List.of(encryptAndDecrypt), getClass(), "file-crypt-plugin");
 	}
 
 	@Override

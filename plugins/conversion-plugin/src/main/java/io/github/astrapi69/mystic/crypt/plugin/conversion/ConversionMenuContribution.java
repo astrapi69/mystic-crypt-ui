@@ -48,6 +48,7 @@ import io.github.astrapi69.mystic.crypt.plugin.conversion.wizard.ConversionWizar
 import io.github.astrapi69.mystic.crypt.plugin.conversion.wizard.ConversionWizardPanel;
 import io.github.astrapi69.mystic.crypt.plugin.conversion.wizard.ConversionWizardState;
 import io.github.astrapi69.mystic.crypt.plugin.conversion.wizard.TargetPanel;
+import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 
 /**
  * Contributes the conversion wizard to the host's "Plugins" menu, replacing the two former menu
@@ -66,7 +67,7 @@ public class ConversionMenuContribution implements PluginMenuContribution
 	{
 		JMenuItem convert = new JMenuItem("Convert Key/Certificate...");
 		convert.addActionListener(event -> openWizard());
-		return List.of(convert);
+		return PluginIcon.onEvery(List.of(convert), getClass(), "conversion-plugin");
 	}
 
 	@Override

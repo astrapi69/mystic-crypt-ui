@@ -35,6 +35,7 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
+import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.util.JInternalFrameExtensions;
@@ -66,7 +67,7 @@ public class KeygenMenuContribution implements PluginMenuContribution
 			JInternalFrameExtensions.addInternalFrameToMainFrame(new GenerateKeysPanel(model),
 				internalFrame, instance);
 		});
-		return List.of(keyGeneration);
+		return PluginIcon.onEvery(List.of(keyGeneration), getClass(), "keygen-plugin");
 	}
 
 	@Override

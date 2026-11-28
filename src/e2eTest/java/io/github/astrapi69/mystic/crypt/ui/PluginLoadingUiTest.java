@@ -150,6 +150,12 @@ class PluginLoadingUiTest extends AbstractUiTest
 				"the keygen plugin must contribute 'Key Generation', found: "
 					+ pluginMenuItemTexts);
 		}
+
+		// each plugin reads its icon through its own class loader, which only a loaded zip has
+		// (#1192); an item without one is named, so a plugin that lost its images shows here
+		List<String> withoutAnIcon = readPluginMenuItemsWithoutAnIcon();
+		assertTrue(withoutAnIcon.isEmpty(),
+			"every plugin menu item carries its plugin's icon, these do not: " + withoutAnIcon);
 	}
 
 	private static void installPlugin(File pluginsDir, Path zip) throws Exception
@@ -181,6 +187,57 @@ class PluginLoadingUiTest extends AbstractUiTest
 			}
 			return texts;
 		});
+	}
+
+	/**
+	 * Reads the texts of the items under the frame's "Plugins" menu that carry no 16 px icon, on
+	 * the EDT
+	 */
+	private List<String> readPluginMenuItemsWithoutAnIcon()
+	{
+		return GuiActionRunner.execute(() -> {
+			List<JMenuItem> items = new ArrayList<>();
+			JMenuBar menuBar = MysticCryptApplicationFrame.getInstance().getJMenuBar();
+			for (int i = 0; menuBar != null && i < menuBar.getMenuCount(); i++)
+			{
+				JMenu menu = menuBar.getMenu(i);
+				if (menu != null && "Plugins".equals(menu.getText()))
+				{
+					for (MenuElement element : menu.getSubElements())
+					{
+						collectPluginItems(element, items);
+					}
+				}
+			}
+			assertTrue(!items.isEmpty(), "the Plugins menu holds no item to check");
+			return items.stream()
+				.filter(item -> item.getIcon() == null || item.getIcon().getIconWidth() != 16)
+				.map(JMenuItem::getText).toList();
+		});
+	}
+
+	/** The items a plugin contributed, without the submenu the host groups each plugin under */
+	private void collectPluginItems(MenuElement element, List<JMenuItem> items)
+	{
+		for (MenuElement child : element.getSubElements())
+		{
+			if (child instanceof JMenuItem item && !isHostSubmenu(item))
+			{
+				items.add(item);
+			}
+			collectPluginItems(child, items);
+		}
+	}
+
+	/**
+	 * Whether the item is the submenu the host builds for a plugin ({@code DesktopMenu}): it
+	 * carries the plugin's name, and the icon is the plugin's to set on its own items, not on it
+	 */
+	private boolean isHostSubmenu(JMenuItem item)
+	{
+		return item instanceof JMenu submenu
+			&& submenu.getParent()instanceof javax.swing.JPopupMenu popup
+			&& popup.getInvoker()instanceof JMenu parent && "Plugins".equals(parent.getText());
 	}
 
 	private void collectItemTexts(MenuElement element, List<String> texts)

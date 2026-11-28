@@ -34,6 +34,7 @@ import org.pf4j.Extension;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
+import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.util.JInternalFrameExtensions;
@@ -65,7 +66,7 @@ public class PasswordHashMenuContribution implements PluginMenuContribution
 		JMenuItem passwordHashing = new JMenuItem("Password Hashing");
 		passwordHashing.addActionListener(
 			event -> openInternalFrame("Password Hashing", new PasswordHashPanel()));
-		return List.of(passwordHashing);
+		return PluginIcon.onEvery(List.of(passwordHashing), getClass(), "password-hash-plugin");
 	}
 
 	@Override
