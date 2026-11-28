@@ -29,8 +29,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -1244,9 +1244,9 @@ public class SecretKeyTreeWithContentPanel
 	{
 		try
 		{
-			new URL(urlString).toURI();
+			new URI(urlString).toURL();
 		}
-		catch (MalformedURLException | URISyntaxException e)
+		catch (MalformedURLException | URISyntaxException | IllegalArgumentException e)
 		{
 			return false;
 		}
@@ -1397,11 +1397,10 @@ public class SecretKeyTreeWithContentPanel
 			String urlString = EntryText.asText(tableEntry.getUrl());
 			try
 			{
-				URL url = new URL(urlString);
-				url.toExternalForm();
+				new URI(urlString).toURL();
 				BrowserControlExtensions.displayURLonStandardBrowser(this, urlString);
 			}
-			catch (MalformedURLException e)
+			catch (MalformedURLException | URISyntaxException e)
 			{
 				throw new RuntimeException(e);
 			}

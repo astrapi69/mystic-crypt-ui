@@ -73,7 +73,7 @@ class KeePassExportUiTest extends AbstractUiTest
 			// read the way this application imports since #384. The Simple reader of 8.5.1 cannot
 			// read this file: it requires a DefaultUserName element the Jackson writer leaves out
 			KdbxDatabase database = KdbxDatabase
-				.load(new KdbxCredentials(password.getBytes(StandardCharsets.UTF_8)), inputStream);
+				.read(new KdbxCredentials(password.getBytes(StandardCharsets.UTF_8)), inputStream);
 			return database.getRootGroup() != null;
 		}
 		catch (Exception exception)
