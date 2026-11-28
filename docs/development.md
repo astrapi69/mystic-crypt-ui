@@ -11,13 +11,46 @@ says which of them to use for what. Releasing is in [build-and-release.md](build
   `~/.sdkman/candidates/java/` when it is there and falls back to the shell's `JAVA_HOME` otherwise.
 - **For any test run**: `Xvfb`, `fluxbox`, `wmctrl` and `xdpyinfo`. Every test task starts an X server
   and a window manager of its own with them and never uses the display of your desktop.
-- **`python3`** for the four script test suites that `make plugins` runs, and **`gpg`** for the tests
-  of the release key plugin.
+- **`python3`** for the script test suites that `make plugins` runs (its rule in the `Makefile` lists
+  them), and **`gpg`** for the tests of the release key plugin.
 - **`make install-hooks`**, once per clone and once per worktree: the pre-commit hook then refuses a
-  commit that Spotless would reformat, and the pre-push hook a push to the branch of a pull request
-  that is merged or closed (AG-061), asking GitHub through `gh`. When GitHub cannot be asked, that
-  hook refuses the push as well; `git push --no-verify`, which skips it, is used only on the
+  commit that Spotless would reformat, and the pre-push hook a push whose commits name the private
+  notes ([below](#references-to-the-private-notes)) and a push to the branch of a pull request that
+  is merged or closed (AG-061), asking GitHub through `gh`. When GitHub cannot be asked, that hook
+  refuses the push as well; `git push --no-verify`, which skips both checks, is used only on the
   maintainer's instruction, and only for that case.
+
+## References to the private notes
+
+The maintainer's private notes hold names, paths and rule ids that this public repository must not
+carry, and which strings those are is private too (#1103). So the repository holds only the check,
+`scripts/private_references.py`, and the patterns are in a list outside it, which a local setting
+names:
+
+```bash
+git config --global mysticcrypt.privateReferences <path to the list>
+export MYSTIC_CRYPT_PRIVATE_REFERENCES=<path to the list>    # wins over the key
+```
+
+The list holds one Python regular expression per line, searched in every line of a text; a line that
+starts with `#` is a comment. Two places run the check:
+
+- **The pre-push hook** checks the added lines and the message of every commit a push adds, the
+  commits the remote already has left out, and names the commit, the file and the line of a finding.
+- **The tool hook** in `.claude/settings.json` runs before every `Bash` call and every tool of the
+  GitHub MCP server. It blocks a `gh` call whose title, body, body file or `gh api` field names the
+  private notes, and an MCP write whose text does. A write into a repository the list itself names is
+  not checked, since that is the private notes.
+
+Without a setting nothing is checked, and both say so ("not checked"); a setting whose list cannot be
+read refuses the push or blocks the call. A text can be checked by hand before it is sent:
+`python3 scripts/private_references.py --file <file>`.
+
+`.claude/settings.json` holds this hook and nothing else. Personal settings for this project, plugins
+for example, belong in `.claude/settings.local.json`, which Claude Code applies over the committed file
+and keeps out of git (its documentation, "Settings files and who they affect"). A cloud session reads
+the committed file only when it works on this one repository outside a project's threads ("Settings in
+cloud sessions" there), and the list has to be at the path the variable names in that session.
 
 ## What to run
 
