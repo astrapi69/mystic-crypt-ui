@@ -417,14 +417,23 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		setTitle(Messages.getString("mainframe.title"));
 		MysticCryptSettings persistedSettings = MysticCryptSettings
 			.load(getConfigurationDirectory());
-		// on the event thread: re-installing the UI of every component takes the AWT tree lock,
-		// and from this thread it blocked against the event thread writing a text document (#1097)
-		EventThreadTask.runAndWait(() -> {
-			setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
-			// apply a persisted look-and-feel choice on top of the Nimbus default
-			GeneralSettingsPanel.applyLookAndFeel(persistedSettings.getLookAndFeel(),
-				persistedSettings.getMetalTheme());
-		});
+		// the sign-in dialog applied the persisted look before the components of this window were
+		// built, so it is normally in use already; a switch now only re-installs the UI of the
+		// finished menus and makes the JDK's keyboard manager write 14 stack traces (#1245). Only
+		// a persisted look that could not be applied then falls back to Nimbus and tries again
+		if (!GeneralSettingsPanel.isLookAndFeelActive(persistedSettings.getLookAndFeel(),
+			persistedSettings.getMetalTheme()))
+		{
+			// on the event thread: re-installing the UI of every component takes the AWT tree lock,
+			// and from this thread it blocked against the event thread writing a text document
+			// (#1097)
+			EventThreadTask.runAndWait(() -> {
+				setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
+				// apply a persisted look-and-feel choice on top of the Nimbus default
+				GeneralSettingsPanel.applyLookAndFeel(persistedSettings.getLookAndFeel(),
+					persistedSettings.getMetalTheme());
+			});
+		}
 		// same for a persisted "no tooltips" preference (#170)
 		GeneralSettingsPanel.applyTooltipsEnabled(persistedSettings.isTooltipsEnabled());
 		// the sign-in dialog has already been on screen at this point, and the screen it was on is

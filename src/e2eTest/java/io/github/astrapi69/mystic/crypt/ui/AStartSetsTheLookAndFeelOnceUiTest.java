@@ -25,7 +25,6 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 
@@ -45,7 +44,7 @@ class AStartSetsTheLookAndFeelOnceUiTest extends AbstractUiTest
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
-	void start_setsTheLookAndFeelThreeTimes_whenTheVaultIsOpened() throws Exception
+	void start_setsTheLookAndFeelOnce_whenTheVaultIsOpened() throws Exception
 	{
 		File databaseFile = new File(tempHome, "look-and-feel-database.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
@@ -54,9 +53,9 @@ class AStartSetsTheLookAndFeelOnceUiTest extends AbstractUiTest
 			signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 			awaitApplicationInitialized();
 
-			assertEquals(3, watch.lookAndFeelChanges().size(),
+			assertEquals(1, watch.lookAndFeelChanges().size(),
 				"look and feel changes of the start: " + watch.lookAndFeelChanges());
-			assertTrue(watch.occurrences("SwingUtilities.updateComponentTreeUI(") > 0,
+			assertEquals(0, watch.occurrences("SwingUtilities.updateComponentTreeUI("),
 				"stack traces from the look and feel switches:\n" + watch.standardError());
 		}
 	}
