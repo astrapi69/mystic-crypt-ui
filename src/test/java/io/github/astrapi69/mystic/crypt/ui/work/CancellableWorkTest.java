@@ -26,21 +26,29 @@ package io.github.astrapi69.mystic.crypt.ui.work;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Stream;
 
 import javax.swing.SwingUtilities;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Work that runs off the event dispatch thread, answers on it, and can be cancelled while it runs
@@ -125,6 +133,50 @@ class CancellableWorkTest
 		work.runAll();
 
 		assertEquals(List.of("failed:the password is wrong"), answer.calls);
+		assertFalse(cancellableWork.isRunning(), "the work still counts as running");
+	}
+
+	static Stream<Arguments> errorsTheWorkCanEndWith()
+	{
+		return Stream.of(Arguments.of("a stack overflow", new StackOverflowError()),
+			Arguments.of("a class that cannot be linked", new LinkageError("a class")),
+			Arguments.of("a class that is not there", new NoClassDefFoundError("a/Class")));
+	}
+
+	@ParameterizedTest(name = "{0}: the answer is a failure that carries the error, and the work no longer runs")
+	@MethodSource("errorsTheWorkCanEndWith")
+	void anErrorOfTheWork_isTheAnswer(final String caseName, final Error error)
+	{
+		List<Exception> failures = new ArrayList<>();
+		cancellableWork.start(() -> {
+			throw error;
+		}, new CancellableWork.Answer<>()
+		{
+			@Override
+			public void done(final String value)
+			{
+				fail("the work brought a value: " + value);
+			}
+
+			@Override
+			public void failed(final Exception failure)
+			{
+				failures.add(failure);
+			}
+
+			@Override
+			public void cancelled()
+			{
+				fail("the work was cancelled");
+			}
+		});
+
+		work.runAll();
+
+		assertEquals(1, failures.size(), "the answer comes once");
+		assertInstanceOf(ExecutionException.class, failures.get(0),
+			"an error is handed over as FutureTask hands one over");
+		assertSame(error, failures.get(0).getCause(), "the failure carries the error");
 		assertFalse(cancellableWork.isRunning(), "the work still counts as running");
 	}
 

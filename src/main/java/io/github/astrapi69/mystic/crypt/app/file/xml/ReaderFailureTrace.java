@@ -51,7 +51,8 @@ final class ReaderFailureTrace extends Exception
 	}
 
 	/**
-	 * The given failure and its causes, told by types, lines and frames
+	 * The given failure and its causes, told by types, lines and frames. A part of the chain that
+	 * is told this way already, as the cause of the reader's own exceptions is, stays as it is
 	 *
 	 * @param failure
 	 *            what the reader threw
@@ -59,6 +60,10 @@ final class ReaderFailureTrace extends Exception
 	 */
 	static ReaderFailureTrace of(final Throwable failure)
 	{
+		if (failure instanceof ReaderFailureTrace told)
+		{
+			return told;
+		}
 		Throwable cause = failure.getCause();
 		return new ReaderFailureTrace(failure, cause == null ? null : of(cause));
 	}

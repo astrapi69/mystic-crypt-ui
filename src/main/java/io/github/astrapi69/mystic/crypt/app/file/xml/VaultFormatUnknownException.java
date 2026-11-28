@@ -29,7 +29,8 @@ package io.github.astrapi69.mystic.crypt.app.file.xml;
  * reads: neither the one it writes nor the one 8 wrote. The key file is right, so the sign-in says
  * that the format is unknown instead of calling the key file wrong (#650).
  * <p>
- * The reason names the kind of failure alone and never quotes any of the content.
+ * The reason names the kind of failure alone and never quotes any of the content. The cause is the
+ * failure as a {@link ReaderFailureTrace}, told by its types.
  */
 public class VaultFormatUnknownException extends IllegalArgumentException
 {
@@ -53,7 +54,7 @@ public class VaultFormatUnknownException extends IllegalArgumentException
 	private VaultFormatUnknownException(final String reason, final Exception cause)
 	{
 		super("The key file opened the key of the database, but its content is in no known format: "
-			+ reason + ".", cause);
+			+ reason + ".", ReaderFailureTrace.of(cause));
 		this.reason = reason;
 	}
 

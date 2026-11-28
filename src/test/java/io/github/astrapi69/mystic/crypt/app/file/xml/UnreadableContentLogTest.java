@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.UnaryOperator;
 import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -85,7 +86,9 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
  * refusal the sign-in shows, the messages of the records the reader writes, the exceptions those
  * records carry below the reader's own failure, and, for every document, that the records and the
  * refusal, printed with every cause and suppressed exception, name the failure by its kind and
- * type.
+ * type. On the ways whose decryption authenticates nothing, no xml and a root the reader fails on
+ * before it converts anything are refused as a wrong password, and the record carries the exception
+ * of a database that was not decrypted, with its message alone (#1188).
  */
 class UnreadableContentLogTest
 {
@@ -118,8 +121,21 @@ class UnreadableContentLogTest
 	/** The reader's record of a database that decrypted and could not be read, before its reason */
 	private static final String RECORD_OF_UNREADABLE_CONTENT = "The database was decrypted, but its content could not be read: ";
 
-	/** The reader's record of a decryption without authentication that gave back no xml (#1188) */
-	private static final String RECORD_OF_NO_XML = "A decryption that authenticates nothing gave back no xml, which is what a wrong password or key leaves: ";
+	/** A root name cut short, followed by a character no xml document may hold */
+	private static final String A_ROOT_CUT_SHORT_AND_A_CHARACTER_NO_DOCUMENT_HAS = "<a_.zz>"
+		+ (char)1 + "junk";
+
+	/** A root whose name resolves to no type */
+	private static final String A_ROOT_THAT_NAMES_NO_TYPE = "<a.root.that.names.no.type/>";
+
+	/** A root of a type that exists and that no database holds */
+	private static final String A_ROOT_OF_A_TYPE_NO_DATABASE_HOLDS = "<java.io.File/>";
+
+	/**
+	 * The reader's record of a decryption without authentication that did not decrypt the database
+	 * (#1188)
+	 */
+	private static final String RECORD_OF_NOT_DECRYPTED = "A decryption that authenticates nothing did not decrypt the database: the password or the key is wrong, or the file is damaged.";
 
 	/**
 	 * The sign-in's words for a database that decrypted and could not be read, before its reason
@@ -200,39 +216,88 @@ class UnreadableContentLogTest
 
 	static Stream<Arguments> everyWayADatabaseIsProtected()
 	{
+		return Stream.concat(everyWayThatAuthenticates(), everyWayThatAuthenticatesNothing()
+			.map(way -> Arguments.of(way.get()[0], way.get()[1])));
+	}
+
+	/** The ways whose decryption authenticates the content: what decrypts was decrypted */
+	static Stream<Arguments> everyWayThatAuthenticates()
+	{
 		return Stream.of(
 			Arguments.of("the password, in the format this version writes",
 				(Opening)UnreadableContentLogTest::openWithThePasswordInTheCurrentFormat),
-			Arguments.of("the password, in the format before the marker",
-				(Opening)UnreadableContentLogTest::openWithThePasswordBeforeTheMarker),
-			Arguments.of("the password and a key file",
-				(Opening)UnreadableContentLogTest::openWithBoth),
 			Arguments.of("a key file alone",
 				(Opening)UnreadableContentLogTest::openWithTheKeyAlone));
 	}
 
 	/**
-	 * Every way a database is protected, with what the reader records and the sign-in shows for
-	 * content that is no xml: where the decryption authenticates nothing, that is a failed
-	 * decryption (#1188)
+	 * The ways whose decryption authenticates nothing, with what the sign-in shows for a wrong
+	 * password on each (#1188)
+	 */
+	static Stream<Arguments> everyWayThatAuthenticatesNothing()
+	{
+		return Stream.of(
+			Arguments.of("the password, in the format before the marker",
+				(Opening)UnreadableContentLogTest::openWithThePasswordBeforeTheMarker,
+				"Wrong master password."),
+			Arguments.of("the password and a key file",
+				(Opening)UnreadableContentLogTest::openWithBoth,
+				"The master password or the key file is wrong."));
+	}
+
+	/**
+	 * The ways whose decryption authenticates the content, with what the reader records and the
+	 * sign-in shows for content that is no xml
 	 */
 	static Stream<Arguments> everyWayAndItsRefusalOfNoXml()
 	{
 		String reason = "the reader failed with XmlPullParserException";
-		return Stream.of(
-			Arguments.of("the password, in the format this version writes",
-				(Opening)UnreadableContentLogTest::openWithThePasswordInTheCurrentFormat,
-				RECORD_OF_UNREADABLE_CONTENT + reason + ".",
-				SHOWN_FOR_UNREADABLE_CONTENT + reason + NOT_OPENED),
-			Arguments.of("the password, in the format before the marker",
-				(Opening)UnreadableContentLogTest::openWithThePasswordBeforeTheMarker,
-				RECORD_OF_NO_XML + reason + ".", "Wrong master password."),
-			Arguments.of("the password and a key file",
-				(Opening)UnreadableContentLogTest::openWithBoth, RECORD_OF_NO_XML + reason + ".",
-				"The master password or the key file is wrong."),
-			Arguments.of("a key file alone", (Opening)UnreadableContentLogTest::openWithTheKeyAlone,
-				RECORD_OF_UNREADABLE_CONTENT + reason + ".",
-				SHOWN_FOR_UNREADABLE_CONTENT + reason + NOT_OPENED));
+		return everyWayThatAuthenticates().map(way -> Arguments.of(way.get()[0], way.get()[1],
+			RECORD_OF_UNREADABLE_CONTENT + reason + ".",
+			SHOWN_FOR_UNREADABLE_CONTENT + reason + NOT_OPENED));
+	}
+
+	/**
+	 * The ways whose decryption authenticates nothing, with each document that is no vault: no xml,
+	 * or a root the reader fails on before it converts anything - a name it cannot decode or
+	 * resolve, or a type other than the vault (#1188)
+	 */
+	static Stream<Arguments> everyWayThatAuthenticatesNothingAndEveryDocumentThatIsNoVault()
+	{
+		return everyWayThatAuthenticatesNothing().flatMap(way -> Stream.of(
+			Arguments.of(way.get()[0] + ", a document that breaks", way.get()[1], way.get()[2],
+				brokenInsideTheFirstEntry()),
+			Arguments.of(way.get()[0] + ", a root name cut short and a character no document has",
+				way.get()[1], way.get()[2], A_ROOT_CUT_SHORT_AND_A_CHARACTER_NO_DOCUMENT_HAS),
+			Arguments.of(way.get()[0] + ", a root name whose escape is no number", way.get()[1],
+				way.get()[2], A_ROOT_NAME_WITH_AN_ESCAPE_THAT_IS_NO_NUMBER),
+			Arguments.of(way.get()[0] + ", a root name whose escape is cut short", way.get()[1],
+				way.get()[2], A_ROOT_NAME_WITH_AN_ESCAPE_CUT_SHORT),
+			Arguments.of(way.get()[0] + ", a root that names no type", way.get()[1], way.get()[2],
+				A_ROOT_THAT_NAMES_NO_TYPE),
+			Arguments.of(way.get()[0] + ", a root of a type no database holds", way.get()[1],
+				way.get()[2], A_ROOT_OF_A_TYPE_NO_DATABASE_HOLDS),
+			Arguments.of(way.get()[0] + ", a root of another type", way.get()[1], way.get()[2],
+				A_ROOT_OF_ANOTHER_TYPE)));
+	}
+
+	@ParameterizedTest(name = "{0}: refused as a wrong password, and recorded as a database that was not decrypted")
+	@MethodSource("everyWayThatAuthenticatesNothingAndEveryDocumentThatIsNoVault")
+	void aDocumentThatIsNoVault_isAWrongPassword_recordedAsNotDecrypted(final String caseName,
+		final Opening opening, final String shown, final String xml) throws Exception
+	{
+		RuntimeException refused = opening.refusal(this, xml);
+
+		assertTrue(refused.getMessage().endsWith("<p>" + shown), refused::getMessage);
+		assertEquals(List.of(RECORD_OF_NOT_DECRYPTED), recordMessages());
+		LogRecord logRecord = records.get(0);
+		assertEquals(Level.SEVERE, logRecord.getLevel());
+		assertEquals(List.of(VaultNotDecryptedException.class.getName()),
+			typesOf(logRecord.getThrown()),
+			"the record carries the exception of a database that was not decrypted");
+		assertEquals(List.of(RECORD_OF_NOT_DECRYPTED), messagesOf(logRecord.getThrown()),
+			"and its message alone");
+		assertEquals(0, logRecord.getThrown().getSuppressed().length, "and nothing suppressed");
 	}
 
 	/** Every way a database is protected, with each place a document gives a type in */
@@ -312,10 +377,13 @@ class UnreadableContentLogTest
 		assertEquals(List.of(RECORD_OF_UNREADABLE_CONTENT + reason + "."), recordMessages());
 	}
 
-	/** Every way a database is protected, with each document the reader fails before converting */
+	/**
+	 * The ways whose decryption authenticates the content, with each document the reader fails
+	 * before converting
+	 */
 	static Stream<Arguments> everyWayAndEveryDocumentTheReaderFailsBeforeConverting()
 	{
-		return everyWayADatabaseIsProtected().flatMap(way -> Stream.of(
+		return everyWayThatAuthenticates().flatMap(way -> Stream.of(
 			Arguments.of(way.get()[0] + ", a root name whose escape is no number", way.get()[1],
 				A_ROOT_NAME_WITH_AN_ESCAPE_THAT_IS_NO_NUMBER, NumberFormatException.class),
 			Arguments.of(way.get()[0] + ", a root name whose escape is cut short", way.get()[1],
@@ -420,6 +488,28 @@ class UnreadableContentLogTest
 	private List<String> recordMessages()
 	{
 		return records.stream().map(LogRecord::getMessage).toList();
+	}
+
+	/** The class name of each exception of the chain, cause by cause */
+	private static List<String> typesOf(final Throwable thrown)
+	{
+		List<String> types = new ArrayList<>();
+		for (Throwable link = thrown; link != null; link = link.getCause())
+		{
+			types.add(link.getClass().getName());
+		}
+		return types;
+	}
+
+	/** The message of each exception of the chain, cause by cause */
+	private static List<String> messagesOf(final Throwable thrown)
+	{
+		List<String> messages = new ArrayList<>();
+		for (Throwable link = thrown; link != null; link = link.getCause())
+		{
+			messages.add(link.getMessage());
+		}
+		return messages;
 	}
 
 	/** The messages of the exceptions below the reader's failure, in the reader's one record */
