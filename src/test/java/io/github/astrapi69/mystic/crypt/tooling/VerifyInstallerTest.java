@@ -37,8 +37,12 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -46,13 +50,15 @@ import java.util.zip.ZipOutputStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 /**
  * The checks of an installer before a release is tagged (#793): {@code scripts/installer-pack.py},
  * which reads what the installer packs, and {@code scripts/verify-installer.sh}, which fails when
  * any check failed or could not run. The installers here are built in the test the way IzPack packs
  * its files, zlib streams one after another in {@code resources/packs/<pack>}; none of them is
- * signed or large, so no check that needs the application jar, the network or a build runs
+ * signed, so no check that needs the application jar, the network or a build runs
  */
 class VerifyInstallerTest
 {
@@ -62,6 +68,9 @@ class VerifyInstallerTest
 	private static final File VERIFY = new File("scripts/verify-installer.sh").getAbsoluteFile();
 
 	private static final String APPLICATION_CLASS = "io/github/astrapi69/mystic/crypt/StartMysticCryptApplication.class";
+
+	/** A line a check prints, "ok <check>: ..." or "FAILED <check>: ...", with the check's name */
+	private static final Pattern CHECK_LINE = Pattern.compile("^(?:ok|FAILED) ([^:]+): ");
 
 	@TempDir
 	Path directory;
@@ -124,6 +133,41 @@ class VerifyInstallerTest
 	}
 
 	@Test
+	@DisplayName("a small installer is not refused for its size: every check but a size check reports")
+	void verify_checksNoSize_whenTheInstallerIsSmall() throws Exception
+	{
+		Path installer = installer(List.of(), List.of());
+
+		Run run = run(VERIFY.getPath(), "9.9", "--installer", installer.toString());
+
+		List<String> reported = run.output().lines().map(CHECK_LINE::matcher).filter(Matcher::find)
+			.map(matcher -> matcher.group(1)).toList();
+		assertEquals(List.of("archive", "sha256", "sha512", "application jar", "signature",
+			"class major", "mystic-crypt", "plugins", "jar tests", "start"), reported,
+			run.output());
+	}
+
+	@ParameterizedTest(name = "an installer without resources/packs/{0} fails the check {1}")
+	@CsvSource({ "pack-plugins, plugins", "pack-executables, application jar" })
+	void verify_failsTheCheckThatReadsThePack_whenTheInstallerHasNoSuchPack(final String missing,
+		final String check) throws Exception
+	{
+		Map<String, List<byte[]>> packs = new LinkedHashMap<>();
+		packs.put("pack-executables",
+			List.of("a launcher script".getBytes(StandardCharsets.UTF_8)));
+		packs.put("pack-plugins", List.of(zip("plugin.properties", "plugin.id=checksum-plugin\n")));
+		packs.remove(missing);
+		Path installer = installer(packs);
+
+		Run run = run(VERIFY.getPath(), "9.9", "--installer", installer.toString());
+
+		assertNotEquals(0, run.exit(), run.output());
+		String expected = "FAILED " + check + ": " + installer + " holds no resources/packs/"
+			+ missing;
+		assertTrue(run.output().lines().anyMatch(expected::equals), run.output());
+	}
+
+	@Test
 	@DisplayName("a check that fails or cannot run is reported FAILED, and the run fails")
 	void verify_reportsEveryCheckItCouldNotPass() throws Exception
 	{
@@ -138,7 +182,7 @@ class VerifyInstallerTest
 		Run run = run(VERIFY.getPath(), "9.9", "--installer", installer.toString());
 
 		assertNotEquals(0, run.exit(), run.output());
-		for (String check : List.of("size", "sha256", "sha512", "application jar", "signature",
+		for (String check : List.of("sha256", "sha512", "application jar", "signature",
 			"class major", "mystic-crypt", "jar tests", "start"))
 		{
 			assertTrue(run.output().lines().anyMatch(line -> line.startsWith("FAILED " + check)),
@@ -178,13 +222,23 @@ class VerifyInstallerTest
 	private Path installer(final List<byte[]> executables, final List<byte[]> plugins)
 		throws IOException
 	{
+		Map<String, List<byte[]>> packs = new LinkedHashMap<>();
+		packs.put("pack-executables", executables);
+		packs.put("pack-plugins", plugins);
+		return installer(packs);
+	}
+
+	/** An installer with only the given packs, by their entry name under resources/packs/ */
+	private Path installer(final Map<String, List<byte[]>> packs) throws IOException
+	{
 		Path installer = directory.resolve("mystic-crypt-ui-9.9-installer.jar");
 		try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(installer)))
 		{
-			zip.putNextEntry(new ZipEntry("resources/packs/pack-executables"));
-			zip.write(streams(executables));
-			zip.putNextEntry(new ZipEntry("resources/packs/pack-plugins"));
-			zip.write(streams(plugins));
+			for (Map.Entry<String, List<byte[]>> pack : packs.entrySet())
+			{
+				zip.putNextEntry(new ZipEntry("resources/packs/" + pack.getKey()));
+				zip.write(streams(pack.getValue()));
+			}
 		}
 		return installer;
 	}

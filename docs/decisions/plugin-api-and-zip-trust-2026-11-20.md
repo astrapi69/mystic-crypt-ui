@@ -552,8 +552,9 @@ code runs from `build/classes` (`ApplicationInfo.java:36,54-57`): a display valu
 host main code: `mystic.crypt.ui.config.dir` (relocates the configuration directory, `PluginSettings.java:58,77`),
 `mystic.crypt.ui.startup.signal`, and for the command line only `mystic.crypt.ui.plugins.dir` (`MysticCryptUiCli.java:62,110`), which
 nothing in the Makefile, Gradle files or workflows sets (tests only). The one in-plugin precedent is `-Dmystic.crypt.ui.menu.designer=true`,
-which sits in the not-shipped menu-designer plugin (`MenuDesignerMenuContribution.java:60`) and is kept out of the installer by
-`verify-installer.sh:125`.
+which sits in the not-shipped menu-designer plugin (`MenuDesignerMenuContribution.java:60`) and is kept out of the installer, which
+the `plugins` check of `verify-installer.sh` confirms (it drops menu-designer from the Makefile's list before comparing it with the
+pack).
 
 **What can reach an installed application from outside.** The launchers lay down plain `java ... -jar mystic-crypt-ui.jar` with no
 fixed properties and no wrapper (`src/main/resources/doc/start.sh`, `mystic-crypt-ui.desktop`, `start.bat`;
@@ -603,7 +604,7 @@ development build, which is the numbered question:
    1412 files searched, 44 with hits, those in the Makefile and the workflows are comments).
 3. **A build-time binding: the development code does not exist in a release jar.** The switch and the extra trust entry live in
    a class (or source set) that the host jar of a release version does not contain, the way the menu designer is not shipped
-   (architecture.md, `verify-installer.sh:125`); the installer pack check would refuse a jar that contains it. Cost: the largest,
+   (architecture.md, the `plugins` check of `verify-installer.sh`); the installer pack check would refuse a jar that contains it. Cost: the largest,
    a second source set or build variant and one more check. What it changes: nothing at run time in a release; the development
    build and the release differ in bytes, which `make verify-installer` can state.
 
@@ -614,7 +615,7 @@ mode. Option 2 alone is the cheap form and is acceptable if the maintainer prefe
 (ii) keeps one code path and means the real key is never involved in development. Enforcement, as checks that fail the release
 and not as promises: (a) `make verify-installer` gains two checks: the jar's `Implementation-Version` has no `SNAPSHOT`, and the
 development class is absent (`unzip -l` of the extracted application jar); it already checks that the version equals
-`gradle.properties` and runs `jarsigner -verify` (`verify-installer.sh:70-81`); (b) a unit test that builds the trust set the way
+`gradle.properties` and runs `jarsigner -verify` (the `application jar` and `signature` checks of `verify-installer.sh`); (b) a unit test that builds the trust set the way
 a release host does and proves an unsigned zip, a zip signed by an unknown throwaway key and the development key are all refused
 when the version is a release version, and that the development key is accepted only when the development build says so; (c) the
 e2e and `zipTest` suites run with throwaway keys they create, so no test depends on the development mode being on. Best practice:

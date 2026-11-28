@@ -46,8 +46,8 @@ sha512sum -c mystic-crypt-ui-<version>-installer.jar.sha512
 
 Check the installer only after `make izpack-installer` has finished, against the file the
 checksums describe: `checksumInstaller` runs `izPackCreateInstaller` again, which writes the jar
-anew. `make verify-installer PREVIOUS=<last release>` runs the checks of a release on it: the
-size, that it opens as an archive, both checksum files, a signer equal to the previous release's,
+anew. `make verify-installer PREVIOUS=<last release>` runs the checks of a release on it: that
+it opens as an archive, both checksum files, a signer equal to the previous release's,
 and more. With `INSTALLER=<file>` it checks another file, such as the one downloaded from the
 release.
 
