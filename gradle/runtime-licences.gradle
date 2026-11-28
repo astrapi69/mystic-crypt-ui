@@ -10,6 +10,9 @@ import org.gradle.maven.MavenPomArtifact
 // Metadata: 21 of the 142 runtime modules had no POM in the cache on 2026-11-18. One line per module:
 // "group:module:version<TAB>name <url> | name <url><TAB>the POM the licences come from, or why there are none".
 def runtimeLicencesFile = layout.buildDirectory.file('runtime-licences.tsv')
+// taken here, at configuration time: inside doLast, `project` would be Task.project, deprecated at execution time
+def licenceDependencies = dependencies
+def licenceClasspath = configurations.runtimeClasspath
 def runtimeLicences = tasks.register('runtimeLicences') {
     description = 'Writes the licence of every module on runtimeClasspath, read from its POM chain, for ShippedLicencesTest'
     group = 'verification'
@@ -18,7 +21,7 @@ def runtimeLicences = tasks.register('runtimeLicences') {
     notCompatibleWithConfigurationCache('resolves the POMs of the runtime class path through the project when it runs')
     doLast {
         def pomOf = { String group, String module, String version ->
-            def result = project.dependencies.createArtifactResolutionQuery()
+            def result = licenceDependencies.createArtifactResolutionQuery()
                 .forModule(group, module, version)
                 .withArtifacts(MavenModule, MavenPomArtifact)
                 .execute()
@@ -33,7 +36,7 @@ def runtimeLicences = tasks.register('runtimeLicences') {
             slurper.setFeature('http://apache.org/xml/features/disallow-doctype-decl', true)
             slurper.parse(pom)
         }
-        def modules = project.configurations.runtimeClasspath.incoming.resolutionResult.allComponents
+        def modules = licenceClasspath.incoming.resolutionResult.allComponents
             .collect { it.id }
             .findAll { it instanceof ModuleComponentIdentifier }
             .sort { it.displayName }
