@@ -37,7 +37,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
@@ -46,6 +48,8 @@ import java.util.zip.ZipOutputStream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 /**
  * The checks of an installer before a release is tagged (#793): {@code scripts/installer-pack.py},
@@ -139,6 +143,26 @@ class VerifyInstallerTest
 			run.output());
 	}
 
+	@ParameterizedTest(name = "an installer without resources/packs/{0} fails the check {1}")
+	@CsvSource({ "pack-plugins, plugins", "pack-executables, application jar" })
+	void verify_failsTheCheckThatReadsThePack_whenTheInstallerHasNoSuchPack(final String missing,
+		final String check) throws Exception
+	{
+		Map<String, List<byte[]>> packs = new LinkedHashMap<>();
+		packs.put("pack-executables",
+			List.of("a launcher script".getBytes(StandardCharsets.UTF_8)));
+		packs.put("pack-plugins", List.of(zip("plugin.properties", "plugin.id=checksum-plugin\n")));
+		packs.remove(missing);
+		Path installer = installer(packs);
+
+		Run run = run(VERIFY.getPath(), "9.9", "--installer", installer.toString());
+
+		assertNotEquals(0, run.exit(), run.output());
+		String expected = "FAILED " + check + ": " + installer + " holds no resources/packs/"
+			+ missing;
+		assertTrue(run.output().lines().anyMatch(expected::equals), run.output());
+	}
+
 	@Test
 	@DisplayName("a check that fails or cannot run is reported FAILED, and the run fails")
 	void verify_reportsEveryCheckItCouldNotPass() throws Exception
@@ -194,13 +218,23 @@ class VerifyInstallerTest
 	private Path installer(final List<byte[]> executables, final List<byte[]> plugins)
 		throws IOException
 	{
+		Map<String, List<byte[]>> packs = new LinkedHashMap<>();
+		packs.put("pack-executables", executables);
+		packs.put("pack-plugins", plugins);
+		return installer(packs);
+	}
+
+	/** An installer with only the given packs, by their entry name under resources/packs/ */
+	private Path installer(final Map<String, List<byte[]>> packs) throws IOException
+	{
 		Path installer = directory.resolve("mystic-crypt-ui-9.9-installer.jar");
 		try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(installer)))
 		{
-			zip.putNextEntry(new ZipEntry("resources/packs/pack-executables"));
-			zip.write(streams(executables));
-			zip.putNextEntry(new ZipEntry("resources/packs/pack-plugins"));
-			zip.write(streams(plugins));
+			for (Map.Entry<String, List<byte[]>> pack : packs.entrySet())
+			{
+				zip.putNextEntry(new ZipEntry("resources/packs/" + pack.getKey()));
+				zip.write(streams(pack.getValue()));
+			}
 		}
 		return installer;
 	}
