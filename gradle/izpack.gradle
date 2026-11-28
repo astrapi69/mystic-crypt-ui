@@ -61,10 +61,11 @@ tasks.register('checksumInstaller') {
  * a FAILED target, which is precisely what has to be cleaned up, while a checksum must never be
  * written for a build that failed.
  *
- * The floor is a sanity floor, not the release policy floor. Anything below a megabyte cannot be
- * this installer - it packs an 80 MB uber jar - while the "is this a plausible release artifact"
- * question is a separate check with its own number in release-workflow.md, asked against the file
- * the checksums describe.
+ * The floor is a sanity floor, not a release check. Anything below a megabyte cannot be this
+ * installer, which packs the signed application jar and every shipped plugin. Whether an installer
+ * is a complete release artifact is asked by verify-installer, against the file the checksums
+ * describe: its archive, its checksums, its application jar and its plugins (release-workflow.md
+ * step 5).
  */
 tasks.register('discardBrokenInstaller') {
     description = "Removes an installer file that a failed build left behind."

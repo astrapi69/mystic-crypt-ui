@@ -58,7 +58,7 @@ import org.junit.jupiter.params.provider.CsvSource;
  * which reads what the installer packs, and {@code scripts/verify-installer.sh}, which fails when
  * any check failed or could not run. The installers here are built in the test the way IzPack packs
  * its files, zlib streams one after another in {@code resources/packs/<pack>}; none of them is
- * signed or large, so no check that needs the application jar, the network or a build runs
+ * signed, so no check that needs the application jar, the network or a build runs
  */
 class VerifyInstallerTest
 {
