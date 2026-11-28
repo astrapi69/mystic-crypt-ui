@@ -291,6 +291,65 @@ class WordGridTest
 			+ "vielleicht hast du dich vertippt.", german.getLast());
 	}
 
+	@Test
+	@DisplayName("the start of a word typed into a field offers the words of the list that begin so")
+	void typingTheStartOfAWord_offersTheWordsThatBeginSo()
+	{
+		field(3).setText("act");
+
+		assertEquals(List.of("act", "action", "actor", "actress", "actual"), grid.offered());
+	}
+
+	@Test
+	@DisplayName("taking an offered word puts it into its field and the model, and closes the list")
+	void takingAnOfferedWord_fillsTheFieldAndTheModel()
+	{
+		field(3).setText("acto");
+
+		grid.take(0);
+
+		assertEquals("actor", textOf(grid, "txtWords3"));
+		assertEquals("actor", words.get(3));
+		assertTrue(grid.offered().isEmpty());
+	}
+
+	@Test
+	@DisplayName("a taken word is checked: a field marked for a mistake loses its mark")
+	void aTakenWord_removesTheMarkOfAMistake()
+	{
+		field(3).setText("abanx");
+		leave(3);
+		field(3).setText("aban");
+
+		grid.take(0);
+
+		assertNull(field(3).getClientProperty(OUTLINE));
+		assertEquals("", said.getLast());
+	}
+
+	@Test
+	@DisplayName("a pasted phrase and an emptied grid offer nothing")
+	void aPasteAndAnEmptiedGrid_offerNothing()
+	{
+		field(3).setText("ab");
+		paste(1, String.join(" ", phrase));
+		assertTrue(grid.offered().isEmpty(), "after the paste");
+
+		field(3).setText("ab");
+		grid.clear();
+		assertTrue(grid.offered().isEmpty(), "after the grid was emptied");
+	}
+
+	@Test
+	@DisplayName("deleting back to one letter closes the list")
+	void deletingBackToOneLetter_closesTheList()
+	{
+		field(3).setText("ab");
+		field(3).setText("a");
+
+		assertTrue(grid.offered().isEmpty());
+	}
+
 	private JTextField field(final int position)
 	{
 		return component(grid, "txtWords" + position, JTextField.class);

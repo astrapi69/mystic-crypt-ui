@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -39,6 +40,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import javax.swing.text.JTextComponent;
@@ -181,6 +183,59 @@ class LethenonWalletUiTest extends AbstractUiTest
 		assertEquals(wallet.address().toText(), textOf(tool, "txtAddress"),
 			"the overview shows the restored wallet's address");
 		assertEquals(1, walletsOfTheVault().size(), "the restored wallet is an entry of the vault");
+	}
+
+	/**
+	 * While a word is typed into a field of the restore, the field offers the words of the word
+	 * list that begin with it, and Enter takes the chosen one and moves on to the next field
+	 * (#804). The text goes into the field on the event thread and Enter is dispatched to it, the
+	 * way this class fills its fields: the robot could not obtain the position of the field to type
+	 * into (measured locally on Xvfb, 2026-11-28)
+	 */
+	@Test
+	@DisplayName("the start of a word typed into the restore offers the words of the list, and Enter takes one and moves on to the next field (#804)")
+	void theStartOfATypedWord_offersTheWords_andEnterTakesOne() throws Exception
+	{
+		JInternalFrameFixture tool = openTheWalletWindow("lethenon-wallet-suggestions.mcrdb");
+		click(tool, "btnRestore");
+
+		GuiActionRunner.execute(() -> {
+			JTextComponent first = tool.textBox("txtWords1").target();
+			first.requestFocusInWindow();
+			first.setText("acto");
+		});
+		Pause.pause(new Condition("the list below field 1 offers a word")
+		{
+			@Override
+			public boolean test()
+			{
+				return GuiActionRunner.execute(() -> robot.finder()
+					.findAll(component -> component instanceof JMenuItem item
+						&& "mnuWordsSuggestion1".equals(item.getName()) && item.isShowing())
+					.size() == 1);
+			}
+		}, 10000);
+		JMenuItem offered = (JMenuItem)robot.finder().findByName("mnuWordsSuggestion1", true);
+		assertEquals("actor", GuiActionRunner.execute(offered::getText));
+
+		GuiActionRunner.execute(() -> {
+			JTextComponent first = tool.textBox("txtWords1").target();
+			first.dispatchEvent(new KeyEvent(first, KeyEvent.KEY_PRESSED,
+				System.currentTimeMillis(), 0, KeyEvent.VK_ENTER, KeyEvent.CHAR_UNDEFINED));
+		});
+		UiTestSpeed.step();
+
+		assertEquals("actor", textOf(tool, "txtWords1"), "Enter takes the offered word");
+		assertFalse(GuiActionRunner.execute(offered::isShowing), "the list is closed");
+		Pause.pause(new Condition("the next field has the focus")
+		{
+			@Override
+			public boolean test()
+			{
+				return GuiActionRunner
+					.execute(() -> tool.textBox("txtWords2").target().isFocusOwner());
+			}
+		}, 5000);
 	}
 
 	/**
