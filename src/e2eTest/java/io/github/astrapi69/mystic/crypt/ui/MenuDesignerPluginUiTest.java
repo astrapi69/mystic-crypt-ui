@@ -34,9 +34,8 @@ import javax.swing.JMenuBar;
 
 import org.assertj.swing.edt.GuiActionRunner;
 import org.assertj.swing.fixture.FrameFixture;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
@@ -47,37 +46,13 @@ import io.github.astrapi69.mystic.crypt.TestPasswords;
  * the layout for the next start - all through the real UI.
  * <p>
  * The tool is for development and an installation does not receive it, so the test asks for it the
- * way a developer does, with the property the plugin looks at.
+ * way a developer does, with the property the plugin looks at ({@link MenuDesignerShown}).
  */
+@ExtendWith(MenuDesignerShown.class)
 class MenuDesignerPluginUiTest extends AbstractUiTest
 {
 
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
-
-	/** The property the plugin looks at, kept here rather than depending on the plugin's class */
-	private static final String DEVELOPER_PROPERTY = "mystic.crypt.ui.menu.designer";
-
-	private String originalProperty;
-
-	@BeforeEach
-	void askForTheDevelopmentTool()
-	{
-		originalProperty = System.getProperty(DEVELOPER_PROPERTY);
-		System.setProperty(DEVELOPER_PROPERTY, "true");
-	}
-
-	@AfterEach
-	void stopAskingForIt()
-	{
-		if (originalProperty == null)
-		{
-			System.clearProperty(DEVELOPER_PROPERTY);
-		}
-		else
-		{
-			System.setProperty(DEVELOPER_PROPERTY, originalProperty);
-		}
-	}
 
 	@Test
 	void exportsValidatesAppliesAndSavesTheMenuThroughTheUi() throws Exception

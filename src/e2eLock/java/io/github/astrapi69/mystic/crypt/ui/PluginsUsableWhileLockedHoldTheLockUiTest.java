@@ -30,18 +30,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.awt.Component;
 import java.awt.Container;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.swing.JButton;
 import javax.swing.JInternalFrame;
@@ -114,7 +107,7 @@ class PluginsUsableWhileLockedHoldTheLockUiTest extends AbstractUiTest
 	@DisplayName("a locked workspace survives everything a plugin offers while locked")
 	void aLockedWorkspaceSurvivesEveryPluginEntry() throws Exception
 	{
-		installEveryShippedPlugin();
+		installEveryPluginRequiringItBuilt(NOT_INSTALLED.keySet());
 		File databaseFile = new File(tempHome, "plugin-invariant.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 
@@ -206,39 +199,6 @@ class PluginsUsableWhileLockedHoldTheLockUiTest extends AbstractUiTest
 				what + " wrote the vault's file while the workspace is locked");
 			assertTrue(ScreenText.nothingOnScreenShows(SECRET_TITLE, SECRET_PASSWORD),
 				what + " showed an entry of the locked vault");
-		}
-	}
-
-	/**
-	 * Installs the built zip of every directory under {@code plugins/} except the ones named in
-	 * {@link #NOT_INSTALLED}. A missing zip fails the test (TestPrerequisites): a plugin that is
-	 * not installed here is a plugin this harness silently does not measure
-	 */
-	private void installEveryShippedPlugin() throws IOException
-	{
-		List<Path> zips = new ArrayList<>();
-		try (Stream<Path> directories = Files.list(Path.of("plugins")))
-		{
-			for (Path directory : directories.filter(Files::isDirectory)
-				.collect(Collectors.toCollection(TreeSet::new)))
-			{
-				String name = directory.getFileName().toString();
-				if (!NOT_INSTALLED.containsKey(name))
-				{
-					zips.add(directory.resolve("build/plugin-dist/" + name + "-1.0.0.zip"));
-				}
-			}
-		}
-		TestPrerequisites.requireBuiltPluginZips(zips.toArray(Path[]::new));
-		File pluginsDir = new File(tempHome, ".config/mystic-crypt-ui/plugins");
-		if (!pluginsDir.mkdirs() && !pluginsDir.isDirectory())
-		{
-			throw new IOException("could not create plugins dir " + pluginsDir);
-		}
-		for (Path zip : zips)
-		{
-			Files.copy(zip, pluginsDir.toPath().resolve(zip.getFileName()),
-				StandardCopyOption.REPLACE_EXISTING);
 		}
 	}
 
