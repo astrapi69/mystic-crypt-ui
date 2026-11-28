@@ -138,6 +138,9 @@ class GeneratePasswordUiTest extends AbstractUiTest
 		noSetChosen.requireTitle("No characters chosen");
 		noSetChosen.requireMessage("Choose at least one set of characters for the password.");
 		UiTestSpeed.step();
+		// the message is a new dialog too: 32 of the 1600 repetitions of #1205 failed at this click
+		UiTestSpeed.awaitSettled(
+			GuiActionRunner.execute(() -> SwingUtilities.getWindowAncestor(noSetChosen.target())));
 		noSetChosen.okButton().click();
 
 		assertTrue(GuiActionRunner.execute(() -> generatorDialog.target().isShowing()),
@@ -150,7 +153,15 @@ class GeneratePasswordUiTest extends AbstractUiTest
 		signIn.cancel();
 	}
 
-	/** Opens the generator from the Generate button and waits for it to show */
+	/**
+	 * Opens the generator from the Generate button and waits until it is showing and its bounds on
+	 * screen have settled ({@link UiTestSpeed#awaitSettled}), the same wait as #1130 and #1131. The
+	 * window manager of the test display reports a dialog that was just shown at another place for
+	 * a moment: the generator, placed at (960, 589), was read at (1920, 1156), so its check boxes
+	 * lay right of the 1920 pixel wide screen and the robot refused the click. Measured on CI in
+	 * 1600 repetitions of the case without this wait, 72 failed so at the first check box, which
+	 * was clicked 0 to 13 ms after the dialog was found (#1205).
+	 */
 	private DialogFixture openTheGenerator(final CreateMasterKeySteps createMasterKey)
 	{
 		// Generate opens the modal password-generator dialog
@@ -166,6 +177,7 @@ class GeneratePasswordUiTest extends AbstractUiTest
 						&& candidate.isShowing();
 				}
 			}).withTimeout(10, TimeUnit.SECONDS).using(robot);
+		UiTestSpeed.awaitSettled(generatorDialog.target());
 		UiTestSpeed.step();
 		return generatorDialog;
 	}
