@@ -67,7 +67,7 @@ times ride as ISO text in string properties. The 9.0 model instead:
 
 **The format part of #775 is solved by this as a side effect**: no silly-bean type is part of the 9.0
 format. #775 keeps its other parts - the frozen legacy reader still resolves `KeyValuePair` and
-`KeySetPair`, and the obfuscation plugin's rule tables and the panels are its own chapters. The vestigial
+`KeySetPair`, through frozen copies of both classes (the maintainer, 2026-11-28, #866), and the obfuscation plugin's rule tables and the panels are its own chapters. The vestigial
 `dataOfNodes` that #757 found (closed by #763 before this record) does not exist in the format.
 
 ## 4. Unknown fields and plugin data: canonical JSON
@@ -162,15 +162,29 @@ alike** (groups are renamed, moved and deleted too):
 - a **modification time** per entry and per group, UTC with millisecond precision;
 - a **list of deleted objects** (tombstones), covering entries and groups; a tombstone holds the
   **object type, the object id and the deletion time**;
-- the **time of the last move** per entry and per group.
+- the **time of the last move** per entry and per group;
+- the **history** of each entry: its earlier versions, each with its own modification time;
+- one **modification time of the vault root**, for its own settings and `extensions`.
 
 **Limit, decided:** the merge's base is a **shared 9.0 vault**, recognised by the vault UUID of section
 1 - one migration, then the copies. Legacy copies migrated independently are distinct vaults: merging
-them is refused and import is offered instead (#856). The open design questions each have their ticket
-and are designed before the merge function is built: tombstone retention #858, clock skew between devices
-#859, merge granularity #860 (which can still touch the 9.0 format, as a last-save field out of #859
-could), and the rules for merging groups #855. Migration identity (#856) is decided by this record:
-section 6 and the shared-vault limit above; #856 was closed on 2026-11-10.
+them is refused and import is offered instead (#856); migration identity is decided by this record (section 6
+and this limit), and #856 was closed on 2026-11-10. The design of the merge is decided too (the maintainer,
+2026-11-28), before the merge function is built:
+
+- **Granularity, per entry (#860).** The version with the newer modification time wins as a whole and the
+  other becomes a history item of that entry, as KeePass's Synchronize and KeePassXC's merge do; no field is
+  taken from two copies, so a user name and its password always come from the same version. The format
+  carries no time per field.
+- **Tombstones are kept (#858).** Every tombstone is kept; one goes only when the merge keeps its object, as
+  in KeePass and KeePassXC; the user can forget the deletions by hand, with a warning.
+- **Clock skew (#859).** Times are taken as they are. When the other file's newest time lies more than five
+  minutes ahead of this device's clock, the merge asks the user before it goes on. The format carries no
+  last-save time.
+- **Groups (#855)**, the rules KeePass and KeePassXC share: the newer modification time wins a rename, the
+  newer move time wins a move, a move into the group's own subtree is skipped, moves come before deletions,
+  and a deleted group goes only when it is empty and unchanged since the deletion, otherwise it stays and
+  its tombstone goes. The user sees the list of changes before the merged vault is saved.
 
 ## 9. Attachments
 
@@ -192,15 +206,11 @@ present.
   natively, and binds the vault to a dependency with a single maintainer and a spec this project does not
   own. KDBX stays import and export.
 
-## 11. Open points, each with its ticket
+## 11. Open points
 
-1. **Tombstone retention** - when a deleted object's record may be discarded: #858.
-2. **Clock skew between devices**: #859.
-3. **Merge granularity**, per entry or per field - it can still touch the 9.0 format (as a last-save
-   field out of #859 could), so it is decided before 9.0 ships: #860.
-4. **The rules for merging groups**: #855.
-
-Until these are designed, 9.0 carries the fields and no merge exists.
+None of the merge design is open any more: granularity (#860), tombstones (#858), clock skew (#859) and the
+rules for groups (#855) are decided in section 8, migration identity (#856) in section 6. 9.0 carries the
+fields; the merge function itself follows in a later release.
 
 ## Standards referenced
 
