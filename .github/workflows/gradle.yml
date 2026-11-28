@@ -29,6 +29,14 @@ on:
         description: 'Dependency currency check: make dependency-updates instead of the build, its report uploaded'
         type: boolean
         default: false
+      jvm-flags:
+        description: 'Measurement (#593): JVM flags added to the Gradle daemon and every test JVM, e.g. -XX:+UseCompactObjectHeaders'
+        type: string
+        default: ''
+      measure:
+        description: 'Measurement (#593): print the java memory peak (and, with force, the application start) as notices'
+        type: boolean
+        default: false
 
 # a newer push to a pull request makes its older run pointless; a run on develop, master or a hotfix branch is the
 # record of what landed there and is never cancelled
@@ -70,6 +78,14 @@ jobs:
         # v5.0.2 lies in the range of GHSA-chpw-2mqm-95cc (fixed in 6.4.1), which affects only the two-workflow
         # download-and-submit setup; this workflow generates and submits in one job. Do not switch to download-and-submit.
         uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
+      - name: Apply the JVM flags being measured (#593)
+        if: ${{ inputs.jvm-flags != '' }}
+        env:
+          JVM_FLAGS: ${{ inputs.jvm-flags }}
+        run: scripts/measure-jvm.sh flags "$JVM_FLAGS"
+      - name: Start sampling the java memory (#593)
+        if: ${{ inputs.measure }}
+        run: scripts/measure-jvm.sh sample-start "$RUNNER_TEMP/java-peak"
       - name: Dependency currency check (dependency-updates only)
         # What make dependency-updates runs: gradlew dependencyUpdates of the host build, the one build that applies
         # the versions plugin. The report is build/dependencyUpdates/report.txt, the plugin's default plain format; the
@@ -197,6 +213,14 @@ jobs:
         # forced run, so a result restored from the build cache cannot pass for a run
         if: ${{ inputs.force && !inputs.dependency-updates }}
         run: scripts/check-forced-run-results.sh "$(cat "$RUNNER_TEMP/forced-run-started")" build/test-results/test
+      - name: Stop sampling the java memory (#593)
+        if: ${{ always() && inputs.measure }}
+        run: scripts/measure-jvm.sh sample-stop "$RUNNER_TEMP/java-peak" "gradle.yml"
+      - name: Measure the application start (#593)
+        if: ${{ inputs.measure && inputs.force }}
+        env:
+          JVM_FLAGS: ${{ inputs.jvm-flags }}
+        run: scripts/measure-jvm.sh app-start "$(ls build/libs/*-all.jar)" 3 "$JVM_FLAGS"
       - name: Check for unused dependencies
         # Fails on a declared dependency nothing uses, in the host and in every plugin build
         # (gradle/dependency-analysis.gradle, gradle/plugin-dependency-analysis.gradle). It reads the classes the

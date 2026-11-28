@@ -19,6 +19,14 @@ on:
         description: 'Release gate: force each suite with --rerun and check the results'
         type: boolean
         default: true
+      jvm-flags:
+        description: 'Measurement (#593): JVM flags added to the Gradle daemon and every test JVM, e.g. -XX:+UseCompactObjectHeaders'
+        type: string
+        default: ''
+      measure:
+        description: 'Measurement (#593): print the java memory peak as notices'
+        type: boolean
+        default: false
   schedule:
     - cron: '17 2 * * *'
 
@@ -58,6 +66,14 @@ jobs:
         # v5.0.2 lies in the range of GHSA-chpw-2mqm-95cc (fixed in 6.4.1), which affects only the two-workflow
         # download-and-submit setup; this workflow submits no dependency graph. Do not switch to download-and-submit.
         uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
+      - name: Apply the JVM flags being measured (#593)
+        if: ${{ inputs.jvm-flags != '' }}
+        env:
+          JVM_FLAGS: ${{ inputs.jvm-flags }}
+        run: scripts/measure-jvm.sh flags "$JVM_FLAGS"
+      - name: Start sampling the java memory (#593)
+        if: ${{ inputs.measure }}
+        run: scripts/measure-jvm.sh sample-start "$RUNNER_TEMP/java-peak"
       - name: Install Xvfb and the e2e harness's tools
         # the same as in gradle.yml: the refresh may fail on a third-party repository of the runner image, the
         # install is the gate (#293); fluxbox, wmctrl, x11-utils and iproute2 are what the own-display plugin's
@@ -92,6 +108,9 @@ jobs:
           else
             ./gradlew --continue e2eTest e2eLockTest e2eKdbxTest
           fi
+      - name: Stop sampling the java memory (#593)
+        if: ${{ always() && inputs.measure }}
+        run: scripts/measure-jvm.sh sample-stop "$RUNNER_TEMP/java-peak" "e2e.yml"
       - name: Check that the results are from the forced run
         # every result file exists and is not older than the forced run, as in gradle.yml (#630)
         env:
