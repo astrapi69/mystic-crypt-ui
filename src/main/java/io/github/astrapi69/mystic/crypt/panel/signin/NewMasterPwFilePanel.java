@@ -51,6 +51,7 @@ import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordDialog;
 import io.github.astrapi69.mystic.crypt.panel.pw.GeneratePasswordModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkComponentStateEnum;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateMachine;
+import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
 import io.github.astrapi69.mystic.crypt.write.DataClass;
 import io.github.astrapi69.mystic.crypt.write.GuardedCreate;
 import io.github.astrapi69.mystic.crypt.write.OverwriteConfirmation;
@@ -336,6 +337,7 @@ public class NewMasterPwFilePanel extends BasePanel<MasterPwFileModelBean>
 				Messages.getString("signin.help.create.dialog.title", HELP_CREATE_TITLE), true,
 				helpModel);
 			helpDialog.setSize(800, 300);
+			ScreenPlacement.centerOverOwner(helpDialog);
 			helpDialog.setVisible(true);
 		}
 	}

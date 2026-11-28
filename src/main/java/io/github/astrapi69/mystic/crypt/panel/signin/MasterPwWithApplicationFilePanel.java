@@ -58,6 +58,7 @@ import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateM
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.DocumentExtensions;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
 import io.github.astrapi69.mystic.crypt.ui.form.LayoutSafePasswordField;
+import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
 import io.github.astrapi69.mystic.crypt.ui.work.CancellableWork;
 import io.github.astrapi69.mystic.crypt.vault.EntryIdentitySupport;
 import io.github.astrapi69.mystic.crypt.write.DataClass;
@@ -464,6 +465,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 				Messages.getString("signin.help.open.dialog.title", HELP_OPEN_TITLE), true,
 				helpModel);
 			helpDialog.setSize(800, 300);
+			ScreenPlacement.centerOverOwner(helpDialog);
 			helpDialog.setVisible(true);
 		}
 	}
