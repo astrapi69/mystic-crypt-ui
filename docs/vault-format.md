@@ -239,34 +239,34 @@ than an error, which is why the legacy test
 (`theOldFormatCannotEvenTellAWrongPasswordApart`) can only assert that the content does not come
 back, not that decryption throws.
 
-`decryptLegacy` pins those parameters by hand:
+`PasswordVaultFormat.decryptLegacy(byte[], String)` (`PasswordVaultFormat.java:273-293` on develop) pins
+those parameters by hand:
 
 ```java
-// salt and iteration count MUST be pinned exactly as they were when the file was written:
-// without them the decryptor draws its own random salt, which can never match
 CryptModel<Cipher, String, String> legacyModel = CryptModel
     .<Cipher, String, String> builder().key(password)
     .algorithm(SunJCEAlgorithm.PBEWithMD5AndDES).salt(CompoundAlgorithm.SALT)
     .iterationCount(CompoundAlgorithm.ITERATIONCOUNT).build();
-File decrypted = new PBEFileDecryptor(legacyModel).decrypt(applicationFile);
-try
-{
-    return ReadFileExtensions.fromFile(decrypted);
-}
-finally
-{
-    DeleteFileExtensions.delete(decrypted);
-}
+new PBEFileDecryptor(legacyModel);
+byte[] decryptedBytes = legacyModel.getCipher().doFinal(encryptedBytes);
+return new String(decryptedBytes, StandardCharsets.UTF_8);
 ```
 
 Pinning is not optional: the library's PBE helpers now generate a fresh random salt per call, so
 without the explicit `salt` and `iterationCount` the decryptor would never reproduce the key the old
 file was written with.
 
-`PBEFileDecryptor` only works on files, so this path briefly writes the decrypted XML next to the
-encrypted one, as `<basename>.decrypted` in the same directory (`legacy.mcrdb` becomes
-`legacy.decrypted`). The `finally` block removes it. This is the one place where a decrypted
-database touches the disk, and it is walked at most once per database, because the next save writes
+**The decrypted database stays in memory.** `PBEFileDecryptor` is file-in, file-out by design, but
+this path never calls its `decrypt(File)`: constructing it (line 290) is what matters, because its
+constructor derives the key from the model and sets an initialized `DECRYPT_MODE` cipher back onto
+`legacyModel`. The method then decrypts the bytes it was given with that cipher (line 291) and
+returns them as UTF-8 text (line 292). The file entry points, `decryptLegacy(File, String)` (line
+254) and `decryptLegacy(File, char[])` (line 236), only read the file's bytes with `Files.readAllBytes`
+and hand them on. No decrypted copy is written next to the encrypted file. Until 9eb0632b (#353) it
+was: the method called `decrypt(File)`, which wrote `<basename>.decrypted` beside `legacy.mcrdb`
+and deleted it again afterwards, and deleting is not wiping. The blocks of such a file stay on the
+medium until something else reuses them, which is why a password database must never touch the disk
+unencrypted. A legacy database is read at most once per database, because the next save writes
 MCRDB2.
 
 **The migration path is "open it and save it".** There is no migration command and no conversion
