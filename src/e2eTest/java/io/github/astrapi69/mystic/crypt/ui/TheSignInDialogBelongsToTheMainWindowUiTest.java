@@ -50,6 +50,9 @@ import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
  * on the screen; when "Open Database File" shows it again the main window is visible and the dialog
  * opens centred over it. The display of the tests has one screen, so the second case moves the main
  * window far from the middle of it.
+ * <p>
+ * "Create your master key", which the sign-in opens for a new database, belongs to the main window
+ * too and, as long as that is not shown, is centred on the screen as well.
  */
 class TheSignInDialogBelongsToTheMainWindowUiTest extends AbstractUiTest
 {
@@ -119,26 +122,28 @@ class TheSignInDialogBelongsToTheMainWindowUiTest extends AbstractUiTest
 	}
 
 	/**
-	 * Pins where "Create your master key" opens today when the sign-in starts a new database: it
-	 * centres itself in its constructor, while it is still 0 by 0 pixels, and is given its size of
-	 * 840 by 520 only afterwards, so its upper left corner lands on the middle of the screen
+	 * "Create your master key", opened from the sign-in for a new database, is centred on the
+	 * screen: the main window it belongs to is not shown yet. It used to centre itself in its
+	 * constructor, while it was still 0 by 0 pixels, and was given its size only afterwards, so its
+	 * upper left corner landed on the middle of the screen
 	 */
 	@Test
-	@DisplayName("Create your master key opens with its upper left corner on the middle of the screen")
-	void createYourMasterKey_opensWithItsCornerOnTheMiddleOfTheScreen()
+	@DisplayName("Create your master key, opened from the sign-in, is centred on the screen")
+	void createYourMasterKey_isCentredOnTheScreen()
 	{
 		SignInDialogSteps signIn = launchApplication();
 		CreateMasterKeySteps createMasterKey = signIn
 			.startNewDatabase(new File(tempHome, "master-key-placement.mcrdb"));
 		Window dialog = createMasterKey.dialog().target();
 		Rectangle settled = UiTestSpeed.awaitSettled(dialog)[0];
+		Point dialogCentre = centreOf(settled);
 		Point usableCentre = usableCentreOf(dialog);
 		createMasterKey.cancelAndAwaitClose();
 		signIn.cancel();
 
-		assertTrue(near(settled.getLocation(), usableCentre, PLACEMENT_TOLERANCE),
-			"the upper left corner of the dialog " + settled
-				+ " lies on the middle of the screen's usable area " + usableCentre);
+		assertTrue(near(dialogCentre, usableCentre, PLACEMENT_TOLERANCE),
+			"the dialog " + settled + " is centred on the screen's usable area: its centre "
+				+ dialogCentre + ", the area's " + usableCentre);
 	}
 
 	private static Point usableCentreOf(final Window window)

@@ -41,7 +41,6 @@ import org.junit.jupiter.api.Test;
 import io.github.astrapi69.mystic.crypt.MenuId;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
-import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
 
 /**
  * Where the dialogs of the application open when the main window is not in the middle of the screen
@@ -104,24 +103,24 @@ class ADialogOpensOverTheMainWindowUiTest extends AbstractUiTest
 	}
 
 	/**
-	 * Pins where the password generator of a new entry opens today: it centres itself in its
-	 * constructor, while it is still 0 by 0 pixels, and is given its size of 600 by 420 only
-	 * afterwards, so its upper left corner lands on the middle of the screen
+	 * The password generator of a new entry opens centred over the main window it belongs to. It
+	 * used to centre itself in its constructor, while it was still 0 by 0 pixels, and was given its
+	 * size only afterwards, so its upper left corner landed on the middle of the screen
 	 */
 	@Test
-	@DisplayName("the password generator of a new entry opens with its upper left corner on the middle of the screen")
-	void theGeneratorOfANewEntry_opensWithItsCornerOnTheMiddleOfTheScreen() throws Exception
+	@DisplayName("the password generator of a new entry opens centred over the moved main window")
+	void theGeneratorOfANewEntry_opensCentredOverTheMainWindow() throws Exception
 	{
 		MovedMainWindow moved = signInAndMoveTheMainWindowAway("generator-placement.mcrdb");
 
-		Rectangle generator = openTheGeneratorOfANewEntry(moved)[0];
-		Rectangle usable = GuiActionRunner.execute(
-			() -> ScreenPlacement.usableBoundsOf(moved.window().getGraphicsConfiguration()));
-		Point usableCentre = new Point(usable.x + usable.width / 2, usable.y + usable.height / 2);
+		Rectangle[] settled = openTheGeneratorOfANewEntry(moved);
+		Point generatorCentre = centreOf(settled[0]);
+		Point windowCentre = centreOf(settled[1]);
 
-		assertTrue(near(generator.getLocation(), usableCentre, GENERATOR_TOLERANCE),
-			"the upper left corner of the generator " + generator
-				+ " lies on the middle of the screen's usable area " + usableCentre);
+		assertTrue(near(generatorCentre, windowCentre, GENERATOR_TOLERANCE),
+			"the generator " + settled[0] + " is centred over the main window " + settled[1]
+				+ ": its centre " + generatorCentre + ", the window's " + windowCentre
+				+ ", the screen's " + moved.screenCentre());
 	}
 
 	/**
