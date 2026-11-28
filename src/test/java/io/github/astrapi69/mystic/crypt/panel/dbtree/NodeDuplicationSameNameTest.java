@@ -34,7 +34,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.gen.tree.BaseTreeNode;
-import io.github.astrapi69.gen.tree.visitor.ReindexTreeNodeVisitor;
 import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
@@ -77,17 +76,15 @@ class NodeDuplicationSameNameTest
 			.copyOf(group, null);
 		copy.getValue().setName("group");
 		copy.setDisplayValue("group");
-		copy.setParent(root);
-		root.addChild(copy);
-		copy.accept(new ReindexTreeNodeVisitor<>(LongIdGenerator.of(10L)));
+		NodeDuplication.attach(copy, root, LongIdGenerator.of(10L));
 		return root.getChildren().size();
 	}
 
 	@Test
-	@DisplayName("pin: a copy of an empty group confirmed under the original's name is dropped")
-	void copyUnderTheSameName_ofAnEmptyGroup_isDropped()
+	@DisplayName("a copy of an empty group confirmed under the original's name is a second child")
+	void copyUnderTheSameName_ofAnEmptyGroup_isASecondChild()
 	{
-		assertEquals(1, childrenAfterDuplicatingUnderTheSameName());
+		assertEquals(2, childrenAfterDuplicatingUnderTheSameName());
 	}
 
 	@Test

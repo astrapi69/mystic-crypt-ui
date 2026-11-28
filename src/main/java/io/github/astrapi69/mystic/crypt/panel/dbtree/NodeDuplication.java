@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.github.astrapi69.gen.tree.BaseTreeNode;
+import io.github.astrapi69.gen.tree.visitor.ReindexTreeNodeVisitor;
+import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.mystic.crypt.vault.EntryIdentitySupport;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
@@ -101,5 +103,28 @@ public final class NodeDuplication
 			}
 		}
 		return copy;
+	}
+
+	/**
+	 * Hangs the copy into the given parent after it has got node ids of its own: the children of a
+	 * node are a set, and a node equals another with the same id, value and display value, so a
+	 * copy confirmed under its original's exact name and hung in under the original's id was not
+	 * added at all, while the Swing tree still showed it
+	 *
+	 * @param copy
+	 *            the copy, named as confirmed
+	 * @param parent
+	 *            the parent of the original, which the copy hangs next to
+	 * @param idGenerator
+	 *            hands out the ids of the copy's nodes, none of them in the tree yet
+	 */
+	public static void attach(
+		final BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> copy,
+		final BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> parent,
+		final LongIdGenerator idGenerator)
+	{
+		copy.accept(new ReindexTreeNodeVisitor<>(idGenerator));
+		copy.setParent(parent);
+		parent.addChild(copy);
 	}
 }
