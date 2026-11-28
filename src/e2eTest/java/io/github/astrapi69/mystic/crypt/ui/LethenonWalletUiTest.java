@@ -188,7 +188,9 @@ class LethenonWalletUiTest extends AbstractUiTest
 	/**
 	 * While a word is typed into a field of the restore, the field offers the words of the word
 	 * list that begin with it, and Enter takes the chosen one and moves on to the next field
-	 * (#804). Typed through the robot, as a person types
+	 * (#804). The text goes into the field on the event thread and Enter is dispatched to it, the
+	 * way this class fills its fields: the robot could not obtain the position of the field to type
+	 * into (measured locally on Xvfb, 2026-11-28)
 	 */
 	@Test
 	@DisplayName("the start of a word typed into the restore offers the words of the list, and Enter takes one and moves on to the next field (#804)")
@@ -197,7 +199,11 @@ class LethenonWalletUiTest extends AbstractUiTest
 		JInternalFrameFixture tool = openTheWalletWindow("lethenon-wallet-suggestions.mcrdb");
 		click(tool, "btnRestore");
 
-		tool.textBox("txtWords1").focus().enterText("acto");
+		GuiActionRunner.execute(() -> {
+			JTextComponent first = tool.textBox("txtWords1").target();
+			first.requestFocusInWindow();
+			first.setText("acto");
+		});
 		Pause.pause(new Condition("the list below field 1 offers a word")
 		{
 			@Override
@@ -212,13 +218,24 @@ class LethenonWalletUiTest extends AbstractUiTest
 		JMenuItem offered = (JMenuItem)robot.finder().findByName("mnuWordsSuggestion1", true);
 		assertEquals("actor", GuiActionRunner.execute(offered::getText));
 
-		tool.textBox("txtWords1").pressAndReleaseKeys(KeyEvent.VK_ENTER);
+		GuiActionRunner.execute(() -> {
+			JTextComponent first = tool.textBox("txtWords1").target();
+			first.dispatchEvent(new KeyEvent(first, KeyEvent.KEY_PRESSED,
+				System.currentTimeMillis(), 0, KeyEvent.VK_ENTER, KeyEvent.CHAR_UNDEFINED));
+		});
 		UiTestSpeed.step();
 
 		assertEquals("actor", textOf(tool, "txtWords1"), "Enter takes the offered word");
-		assertTrue(GuiActionRunner.execute(() -> tool.textBox("txtWords2").target().isFocusOwner()),
-			"and the next field has the focus");
 		assertFalse(GuiActionRunner.execute(offered::isShowing), "the list is closed");
+		Pause.pause(new Condition("the next field has the focus")
+		{
+			@Override
+			public boolean test()
+			{
+				return GuiActionRunner
+					.execute(() -> tool.textBox("txtWords2").target().isFocusOwner());
+			}
+		}, 5000);
 	}
 
 	/**
