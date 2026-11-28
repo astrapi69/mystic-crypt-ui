@@ -109,7 +109,7 @@ Prompt triggers: "release new version", "new release".
      `make without-slot TARGET=izpack-installer PLUGIN_TESTS= PLUGIN_ZIP_TESTS= SCRIPT_TESTS=no`
      (the plugin set in `install.xml` must match the Makefile `plugins:` list).
    - **verify the installer AFTER the checksums are written**, against the file the checksums
-     describe: size (floor 40 MB; below it is an abort, not a warning), it opens as an archive, and
+     describe: it opens as an archive, and
      `sha256sum -c` / `sha512sum -c` pass. Verifying before the checksums verifies a file that is
      then replaced: `checksumInstaller` depends on `izPackCreateInstaller`, which re-runs and
      rewrites the jar (measured 2026-09-07: 81743356 bytes verified, 81743359 bytes shipped).

@@ -649,7 +649,7 @@ points there instead of carrying numbers that age.
   `KeePassRoundTripUiTest`) are in `src/e2eTest`, not here.
 - `src/test` (task `test`) - the unit suites, including `WikiLinksTest` (TS-0014's
   automated half), `VaultFileWriterTest` (TS-0002) and the vault format round trips.
-- `make verify-installer PREVIOUS=<release>` - size, archive, checksums, signer, class
+- `make verify-installer PREVIOUS=<release>` - archive, checksums, signer, class
   major, mystic-crypt against Central, plugins, the jar tests, a start.
 
 ## What PART B cannot do

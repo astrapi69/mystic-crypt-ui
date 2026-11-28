@@ -41,6 +41,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -66,6 +68,9 @@ class VerifyInstallerTest
 	private static final File VERIFY = new File("scripts/verify-installer.sh").getAbsoluteFile();
 
 	private static final String APPLICATION_CLASS = "io/github/astrapi69/mystic/crypt/StartMysticCryptApplication.class";
+
+	/** A line a check prints, "ok <check>: ..." or "FAILED <check>: ...", with the check's name */
+	private static final Pattern CHECK_LINE = Pattern.compile("^(?:ok|FAILED) ([^:]+): ");
 
 	@TempDir
 	Path directory;
@@ -128,18 +133,17 @@ class VerifyInstallerTest
 	}
 
 	@Test
-	@DisplayName("an installer below 40 MB is refused for its size, and the line names both numbers")
-	void verify_refusesTheInstaller_whenItIsBelowFortyMegabytes() throws Exception
+	@DisplayName("a small installer is not refused for its size: every check but a size check reports")
+	void verify_checksNoSize_whenTheInstallerIsSmall() throws Exception
 	{
 		Path installer = installer(List.of(), List.of());
-		long size = Files.size(installer);
 
 		Run run = run(VERIFY.getPath(), "9.9", "--installer", installer.toString());
 
-		assertNotEquals(0, run.exit(), run.output());
-		assertTrue(
-			run.output().lines()
-				.anyMatch(line -> line.equals("FAILED size: " + size + " bytes, below 40000000")),
+		List<String> reported = run.output().lines().map(CHECK_LINE::matcher).filter(Matcher::find)
+			.map(matcher -> matcher.group(1)).toList();
+		assertEquals(List.of("archive", "sha256", "sha512", "application jar", "signature",
+			"class major", "mystic-crypt", "plugins", "jar tests", "start"), reported,
 			run.output());
 	}
 
@@ -178,7 +182,7 @@ class VerifyInstallerTest
 		Run run = run(VERIFY.getPath(), "9.9", "--installer", installer.toString());
 
 		assertNotEquals(0, run.exit(), run.output());
-		for (String check : List.of("size", "sha256", "sha512", "application jar", "signature",
+		for (String check : List.of("sha256", "sha512", "application jar", "signature",
 			"class major", "mystic-crypt", "jar tests", "start"))
 		{
 			assertTrue(run.output().lines().anyMatch(line -> line.startsWith("FAILED " + check)),
