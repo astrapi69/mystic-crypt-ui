@@ -48,6 +48,8 @@ import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.mystic.crypt.MenuId;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.action.SearchApplicationFileAction;
+import io.github.astrapi69.mystic.crypt.keepass.KeePassDialogTexts;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.swing.base.BaseMenuId;
 import io.github.astrapi69.swing.enumeration.FrameMode;
@@ -160,7 +162,7 @@ final class ApplicationSteps
 	{
 		clickMenuItem(MenuId.IMPORT_KEEPASS.propertiesKey());
 
-		DialogFixture importDialog = findDialogWithTitle("Import from KeePass");
+		DialogFixture importDialog = findDialogWithTitle(KeePassDialogTexts.importTitle());
 		browseAndPickFile(importDialog, "btnFile", keePassFile);
 		if (passwordOrNull != null)
 		{
@@ -179,7 +181,7 @@ final class ApplicationSteps
 		UiTestSpeed.step();
 		clickDialogButton(importDialog, "OK");
 
-		dismissMessageDialog("Import successful", KEY_DERIVATION_TIMEOUT_SECONDS);
+		dismissMessageDialog(KeePassDialogTexts.importDoneTitle(), KEY_DERIVATION_TIMEOUT_SECONDS);
 		return this;
 	}
 
@@ -198,7 +200,7 @@ final class ApplicationSteps
 	{
 		clickMenuItem(MenuId.IMPORT_KEEPASS.propertiesKey());
 
-		DialogFixture importDialog = findDialogWithTitle("Import from KeePass");
+		DialogFixture importDialog = findDialogWithTitle(KeePassDialogTexts.importTitle());
 		browseAndPickFile(importDialog, "btnFile", keePassFile);
 		GuiActionRunner
 			.execute(() -> importDialog.textBox("txtPassword").target().setText(password));
@@ -220,7 +222,7 @@ final class ApplicationSteps
 		clickMenuItem(MenuId.IMPORT_KEEPASS.propertiesKey());
 		// cancel through the option pane's value (locale-independent: the button reads "Abbrechen"
 		// under the app's German locale, not "Cancel")
-		cancelOptionPaneDialog("Import from KeePass");
+		cancelOptionPaneDialog(KeePassDialogTexts.importTitle());
 		return this;
 	}
 
@@ -279,7 +281,7 @@ final class ApplicationSteps
 	{
 		clickMenuItem(MenuId.EXPORT_KEEPASS.propertiesKey());
 
-		DialogFixture exportDialog = findDialogWithTitle("Export to KeePass");
+		DialogFixture exportDialog = findDialogWithTitle(KeePassDialogTexts.exportTitle());
 		browseAndPickFile(exportDialog, "btnFile", destinationFile);
 		GuiActionRunner
 			.execute(() -> exportDialog.textBox("txtPassword").target().setText(password));
@@ -287,7 +289,7 @@ final class ApplicationSteps
 		UiTestSpeed.step();
 		clickDialogButton(exportDialog, "OK");
 
-		dismissMessageDialog("Export successful", KEY_DERIVATION_TIMEOUT_SECONDS);
+		dismissMessageDialog(KeePassDialogTexts.exportDoneTitle(), KEY_DERIVATION_TIMEOUT_SECONDS);
 		return this;
 	}
 
@@ -314,7 +316,7 @@ final class ApplicationSteps
 		robot.waitForIdle();
 		UiTestSpeed.step();
 		clickDialogButton(exportDialog, "OK");
-		dismissMessageDialog("Export successful", KEY_DERIVATION_TIMEOUT_SECONDS);
+		dismissMessageDialog(KeePassDialogTexts.exportDoneTitle(), KEY_DERIVATION_TIMEOUT_SECONDS);
 		return this;
 	}
 
@@ -335,7 +337,7 @@ final class ApplicationSteps
 	{
 		clickMenuItem(MenuId.EXPORT_KEEPASS.propertiesKey());
 
-		DialogFixture exportDialog = findDialogWithTitle("Export to KeePass");
+		DialogFixture exportDialog = findDialogWithTitle(KeePassDialogTexts.exportTitle());
 		browseAndPickFile(exportDialog, "btnFile", destinationFile);
 		GuiActionRunner
 			.execute(() -> exportDialog.textBox("txtPassword").target().setText(password));
@@ -388,7 +390,7 @@ final class ApplicationSteps
 	ApplicationSteps exportKeePassCancel()
 	{
 		clickMenuItem(MenuId.EXPORT_KEEPASS.propertiesKey());
-		cancelOptionPaneDialog("Export to KeePass");
+		cancelOptionPaneDialog(KeePassDialogTexts.exportTitle());
 		return this;
 	}
 
@@ -1885,7 +1887,7 @@ final class ApplicationSteps
 	ApplicationSteps searchFor(String term)
 	{
 		clickMenuItem(MenuId.SEARCH.propertiesKey());
-		DialogFixture searchDialog = findDialogWithTitle("Search");
+		DialogFixture searchDialog = findDialogWithTitle(SearchApplicationFileAction.dialogTitle());
 		GuiActionRunner.execute(() -> searchDialog.textBox("txtSearch").target().setText(term));
 		robot.waitForIdle();
 		UiTestSpeed.step();
@@ -1902,7 +1904,7 @@ final class ApplicationSteps
 	ApplicationSteps searchExpectingNoMatch(String term)
 	{
 		clickMenuItem(MenuId.SEARCH.propertiesKey());
-		DialogFixture searchDialog = findDialogWithTitle("Search");
+		DialogFixture searchDialog = findDialogWithTitle(SearchApplicationFileAction.dialogTitle());
 		GuiActionRunner.execute(() -> searchDialog.textBox("txtSearch").target().setText(term));
 		robot.waitForIdle();
 		UiTestSpeed.step();

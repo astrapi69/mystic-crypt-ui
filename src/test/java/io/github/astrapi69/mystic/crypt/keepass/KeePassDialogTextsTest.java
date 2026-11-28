@@ -26,6 +26,8 @@ package io.github.astrapi69.mystic.crypt.keepass;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Locale;
+import java.util.ResourceBundle;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -62,11 +64,13 @@ class KeePassDialogTextsTest
 				"Export erfolgreich", (Supplier<String>)KeePassDialogTexts::exportDoneTitle));
 	}
 
-	@ParameterizedTest(name = "{0}: the words read as the dialog showed them")
+	@ParameterizedTest(name = "{0}: the bundle holds the words in English and in German")
 	@MethodSource("everyText")
 	void everyText_isInTheBundleInBothLanguages(final String caseName, final String key,
 		final String english, final String german, final Supplier<String> text)
 	{
+		assertEquals(english, ResourceBundle.getBundle("ui.messages", Locale.ROOT).getString(key));
+		assertEquals(german, ResourceBundle.getBundle("ui.messages", Locale.GERMAN).getString(key));
 		assertEquals(english, text.get());
 	}
 }
