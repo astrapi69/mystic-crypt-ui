@@ -65,6 +65,9 @@ class ARefusedKeePassImportShowsTheWordsOfTheBundleUiTest extends AbstractUiTest
 
 	private static final String NAME_TO_REPLACE = "name-to-replace";
 
+	/** The header version of a KDBX 3.1 file, as the library's header takes it */
+	private static final int KDBX_3 = 3;
+
 	@Test
 	@DisplayName("a file whose content cannot be read after its password opened it shows the bundle's words")
 	void aFileWhoseContentCannotBeRead_showsTheWordsOfTheBundle() throws Exception
@@ -95,7 +98,7 @@ class ARefusedKeePassImportShowsTheWordsOfTheBundleUiTest extends AbstractUiTest
 		File written = new File(tempHome, "written.kdbx");
 		try (OutputStream out = new FileOutputStream(written))
 		{
-			database.write(new KdbxStreamFormat(KdbxStreamFormat.Version.KDBX31), credentials, out);
+			database.write(new KdbxStreamFormat(new KdbxHeader(KDBX_3)), credentials, out);
 		}
 		KdbxHeader header = new KdbxHeader();
 		String xml;
@@ -105,6 +108,7 @@ class ARefusedKeePassImportShowsTheWordsOfTheBundleUiTest extends AbstractUiTest
 		{
 			xml = new String(plain.readAllBytes(), StandardCharsets.UTF_8);
 		}
+		assertEquals(KDBX_3, header.getVersion(), "the library wrote a KDBX 3.1 file");
 		assertTrue(xml.contains(NAME_TO_REPLACE), "the library wrote the database name");
 		File keePassFile = new File(tempHome, "content-cannot-be-read.kdbx");
 		try (OutputStream out = new FileOutputStream(keePassFile);
