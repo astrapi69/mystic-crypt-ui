@@ -33,7 +33,9 @@ line in the Makefile (#911); `docs/development.md` says which to run for what.
   `~/mystic-crypt-ui-dev`), never touching the installed release (#498, #501); `make start` starts
   the last build there without building anything (#909)
 - `make spotless-java` — format before committing
-- `make install-hooks` — point git at `.githooks` (run once per clone/worktree)
+- `make install-hooks` - point git at `.githooks` (run once per clone/worktree): pre-commit Spotless,
+  pre-push the private references check and the pull request check; the same references check runs as
+  the tool hook of `.claude/settings.json` (`docs/development.md`, #1103)
 - `make izpack-installer` — installer
 - `make jacoco-report`, `./gradlew pitest` — coverage / mutation reports
 - `make dependency-updates` — dependency currency check

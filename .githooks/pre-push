@@ -1,15 +1,24 @@
 #!/usr/bin/env bash
 #
-# Refuses a push to the branch of a pull request that is merged or closed (AG-061).
+# Two checks before a push, each in a script that a test drives directly:
 #
-# Thin on purpose: which branches count and what GitHub is asked lives in scripts/pr_state_guard.py,
-# which a test drives directly. Git passes the remote's name and URL as arguments and the pushed
-# refs on standard input, and both go through unchanged.
+# - scripts/private_references.py refuses a push whose commits name the private notes (#1103): an
+#   added line or a commit message that a pattern of the list matches. The list lives outside this
+#   repository; the variable MYSTIC_CRYPT_PRIVATE_REFERENCES or the git config key
+#   mysticcrypt.privateReferences names it. Without either the check says that it did not check.
+#   It needs no network, so it runs first.
+# - scripts/pr_state_guard.py refuses a push to the branch of a pull request that is merged or
+#   closed (AG-061). When GitHub cannot be asked, the push is refused too.
 #
-# When GitHub cannot be asked, the push is refused too. git push --no-verify skips this hook; it is
-# used only on the maintainer's instruction, and only for the case that GitHub cannot be reached.
+# Git passes the remote's name and URL as arguments and the pushed refs on standard input. The hook
+# reads standard input once and gives both checks the same lines.
+#
+# git push --no-verify skips both checks; it is used only on the maintainer's instruction, and only
+# for the case that GitHub cannot be reached.
 #
 # Installed with: make install-hooks   (sets core.hooksPath to this directory)
 set -euo pipefail
 repository_root="$(git rev-parse --show-toplevel)"
-exec python3 -I "$repository_root/scripts/pr_state_guard.py" "$@"
+pushed_refs="$(cat)"
+python3 -I "$repository_root/scripts/private_references.py" --push "$@" <<<"$pushed_refs"
+python3 -I "$repository_root/scripts/pr_state_guard.py" "$@" <<<"$pushed_refs"
