@@ -51,6 +51,7 @@ import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.app.file.JsonFileStore;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileReader;
+import io.github.astrapi69.mystic.crypt.app.file.xml.SignInRefusal;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkComponentStateEnum;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateMachine;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.DocumentExtensions;
@@ -896,24 +897,16 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			MemoizedSigninModelBean.class);
 	}
 
-	/** Shows why the sign-in was refused, and logs it */
+	/**
+	 * Shows why the sign-in was refused, in the bundle's words, and logs the failure by its types
+	 * ({@link SignInRefusal})
+	 */
 	private void showRefusal(final Exception exception)
 	{
-		String exceptionMessage = exception.getMessage();
-		if (StringUtils.isNotEmpty(exceptionMessage) && exceptionMessage.contains("::"))
-		{
-			String[] split = exceptionMessage.split("::");
-			String title = split[0];
-			String htmlMessage = split[1];
-			JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.ERROR_MESSAGE);
-		}
-		else
-		{
-			String localizedMessage = exception.getLocalizedMessage();
-			JOptionPane.showMessageDialog(this, localizedMessage, exceptionMessage,
-				JOptionPane.ERROR_MESSAGE);
-		}
-		log.log(Level.SEVERE, exception.getMessage(), exception);
+		SignInRefusal refusal = SignInRefusal.of(exception);
+		JOptionPane.showMessageDialog(this, refusal.getHtml(), refusal.getTitle(),
+			JOptionPane.ERROR_MESSAGE);
+		log.log(Level.SEVERE, refusal.getTitle(), refusal.getToldByItsTypes());
 	}
 
 	/**

@@ -26,7 +26,9 @@ package io.github.astrapi69.mystic.crypt.app.file.xml;
 
 /**
  * A file read as a vault names a type no vault holds. The reader refuses it before that type is
- * built, so the file is not opened.
+ * built, so the file is not opened. Where the decryption authenticates nothing, such a type as the
+ * root ({@link #isAtTheRoot()}) proves no key right, and the reader takes it for a database that
+ * was not decrypted (#1188).
  */
 public class VaultHoldsAForeignTypeException extends IllegalArgumentException
 {
@@ -36,19 +38,36 @@ public class VaultHoldsAForeignTypeException extends IllegalArgumentException
 	/** The fully qualified name of the type the file names */
 	private final String typeName;
 
+	/** Whether the root names the type, so the reader converted nothing */
+	private final boolean atTheRoot;
+
 	/**
-	 * A refusal of the given type
+	 * A refusal of the given type, and where the file names it
 	 *
 	 * @param typeName
 	 *            the fully qualified name of the type the file names
 	 * @param cause
-	 *            the reader's own refusal
+	 *            the reader's own refusal, told by its types
+	 * @param atTheRoot
+	 *            whether the root names the type, so the reader converted nothing
 	 */
-	public VaultHoldsAForeignTypeException(final String typeName, final Throwable cause)
+	public VaultHoldsAForeignTypeException(final String typeName, final Throwable cause,
+		final boolean atTheRoot)
 	{
 		super("This file names the type " + typeName + ", which no database of this application "
 			+ "holds. It was not opened.", cause);
 		this.typeName = typeName;
+		this.atTheRoot = atTheRoot;
+	}
+
+	/**
+	 * Whether the root names the type, so the reader converted nothing
+	 *
+	 * @return true if the root names it
+	 */
+	public boolean isAtTheRoot()
+	{
+		return atTheRoot;
 	}
 
 	/**

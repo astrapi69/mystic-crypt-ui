@@ -27,8 +27,9 @@ package io.github.astrapi69.mystic.crypt.app.file.xml;
 import java.security.GeneralSecurityException;
 
 /**
- * A decryption that authenticates nothing ended without an error, and what it gave back is no xml
- * at all: the database was not decrypted (#1188).
+ * A decryption that authenticates nothing did not decrypt the database (#1188): its padding check
+ * refused the key, or let it through and what came out is content a wrong key could leave - no xml
+ * at all, or a root the reader fails on before it converts anything.
  * <p>
  * Such a decryption ends with a padding check and nothing else, and a wrong key passes that check
  * about once in 256 tries, measured in {@code WrongPasswordsWithoutAuthenticationTest}. What comes
@@ -38,23 +39,17 @@ import java.security.GeneralSecurityException;
  * key (#1005). Without authentication a damaged file reads the same way, and there is nothing that
  * could tell the two apart.
  * <p>
- * The cause is the reader's failure, for the log; like {@link VaultContentUnreadableException} it
- * names the kind of failure alone and never quotes any of the content.
+ * It carries no cause and always the same message.
  */
 public class VaultNotDecryptedException extends GeneralSecurityException
 {
 
 	private static final long serialVersionUID = 1L;
 
-	/**
-	 * The failure of reading what a decryption without authentication gave back
-	 *
-	 * @param unreadable
-	 *            what the reader threw for it
-	 */
-	public VaultNotDecryptedException(final VaultContentUnreadableException unreadable)
+	/** A decryption without authentication that did not decrypt the database */
+	public VaultNotDecryptedException()
 	{
-		super("A decryption that authenticates nothing gave back no xml, which is what a wrong "
-			+ "password or key leaves: " + unreadable.getReason() + ".", unreadable);
+		super("A decryption that authenticates nothing did not decrypt the database: the password "
+			+ "or the key is wrong, or the file is damaged.");
 	}
 }

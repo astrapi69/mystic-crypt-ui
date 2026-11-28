@@ -378,7 +378,7 @@ final class UnauthenticatedVaults
 	static boolean couldStartAnXmlDocument(final String text)
 	{
 		int index = 0;
-		while (index < text.length() && " \t\r\n﻿".indexOf(text.charAt(index)) >= 0)
+		while (index < text.length() && " \t\r\n\uFEFF".indexOf(text.charAt(index)) >= 0)
 		{
 			index++;
 		}

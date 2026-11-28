@@ -80,7 +80,8 @@ class VaultContentUnreadableExceptionTest
 	void aReaderFailure_isNamedByItsKind_andToldByTypesAndPositions(final String caseName,
 		final XStreamException failure, final boolean noXml, final String reason)
 	{
-		VaultContentUnreadableException unreadable = new VaultContentUnreadableException(failure);
+		VaultContentUnreadableException unreadable = new VaultContentUnreadableException(failure,
+			false);
 
 		assertEquals(noXml, unreadable.isNoXml());
 		assertEquals(reason, unreadable.getReason());

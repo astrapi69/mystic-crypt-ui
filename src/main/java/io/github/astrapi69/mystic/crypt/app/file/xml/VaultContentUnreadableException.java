@@ -32,8 +32,9 @@ import com.thoughtworks.xstream.mapper.CannotResolveClassException;
  * file holds something this version cannot build. The sign-in says so and names the reason, instead
  * of calling the password or the key file wrong (#624, decided by the maintainer).
  * <p>
- * Where the decryption authenticates nothing, content that is no xml at all ({@link #isNoXml()})
- * proves no key right: the reader turns it into a {@link VaultNotDecryptedException} there (#1188).
+ * Where the decryption authenticates nothing, content that is no xml at all ({@link #isNoXml()}) or
+ * whose root the reader fails on before it converts anything ({@link #isAtTheRoot()}) proves no key
+ * right: the reader turns it into a {@link VaultNotDecryptedException} there (#1188).
  * <p>
  * The reason never quotes the content: the only text taken from the failure is a type name, which
  * is no secret. Anything else is named by the kind of failure alone, because a parser's message can
@@ -41,7 +42,8 @@ import com.thoughtworks.xstream.mapper.CannotResolveClassException;
  * <p>
  * A type name is taken in the form {@link #isAClassNameOfThisFamily(String)} accepts; a type of any
  * other form is named as a type this version does not know. The cause is the reader's failure as a
- * {@link ReaderFailureTrace}.
+ * {@link ReaderFailureTrace}; a vault that was read and holds no sign-in data has none
+ * ({@link #withoutItsSignInData()}).
  */
 public class VaultContentUnreadableException extends IllegalArgumentException
 {
@@ -63,24 +65,43 @@ public class VaultContentUnreadableException extends IllegalArgumentException
 	/** Whether the parser refused the document itself, read off the reader's own failure */
 	private final boolean noXml;
 
+	/** Whether the reader failed on the root, before it converted anything */
+	private final boolean atTheRoot;
+
 	/**
-	 * The failure of reading a decrypted vault
+	 * The failure of reading a decrypted vault, and where it happened
 	 *
 	 * @param cause
 	 *            what the reader threw: an exception of XStream, or any other the reading ended
 	 *            with before or after XStream converted anything
+	 * @param atTheRoot
+	 *            whether the reader failed on the root, before it converted anything: a root it
+	 *            cannot read, decode or resolve, or a root of another type than the vault
 	 */
-	public VaultContentUnreadableException(final RuntimeException cause)
+	public VaultContentUnreadableException(final RuntimeException cause, final boolean atTheRoot)
 	{
-		this(reasonOf(cause), cause);
+		this(reasonOf(cause), ReaderFailureTrace.of(cause), refusedByTheParser(cause), atTheRoot);
 	}
 
-	private VaultContentUnreadableException(final String reason, final RuntimeException cause)
+	private VaultContentUnreadableException(final String reason, final ReaderFailureTrace cause,
+		final boolean noXml, final boolean atTheRoot)
 	{
 		super("The database was decrypted, but its content could not be read: " + reason + ".",
-			ReaderFailureTrace.of(cause));
+			cause);
 		this.reason = reason;
-		this.noXml = refusedByTheParser(cause);
+		this.noXml = noXml;
+		this.atTheRoot = atTheRoot;
+	}
+
+	/**
+	 * A vault that was read and holds no sign-in data: the content is a vault, and the sign-in has
+	 * nothing to take over from it
+	 *
+	 * @return the failure, without a cause
+	 */
+	public static VaultContentUnreadableException withoutItsSignInData()
+	{
+		return new VaultContentUnreadableException("it holds no sign-in data", null, false, false);
 	}
 
 	/**
@@ -104,6 +125,19 @@ public class VaultContentUnreadableException extends IllegalArgumentException
 	public boolean isNoXml()
 	{
 		return noXml;
+	}
+
+	/**
+	 * Whether the reader failed on the root, before it converted anything: a root it cannot read,
+	 * decode or resolve, or a root of another type than the vault. After a decryption that
+	 * authenticates nothing a wrong key can leave such a root as well as no xml, and such a
+	 * database was not decrypted either (#1188)
+	 *
+	 * @return true if the reader failed on the root
+	 */
+	public boolean isAtTheRoot()
+	{
+		return atTheRoot;
 	}
 
 	/**
