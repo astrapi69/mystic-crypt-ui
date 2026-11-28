@@ -68,8 +68,8 @@ dependencies {
     testImplementation libs.qrcodegen
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
     testImplementation libs.pf4j
-    testImplementation libs.resourcebundle.core
-    testImplementation libs.miglayout.swing
+    testRuntimeOnly libs.resourcebundle.core
+    testRuntimeOnly libs.miglayout.swing
     testRuntimeOnly libs.junit.platform.launcher
 }
 
