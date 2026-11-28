@@ -33,6 +33,8 @@ import java.util.ResourceBundle;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Every host message comes back as the bundle holds it (#533). The lookup with a default ran each
@@ -64,5 +66,23 @@ class MessagesTest
 	{
 		assertEquals("the certificate's unique serial number, assigned by whoever issues it",
 			Messages.getString("wizard.certificate.dates.tooltip.serial.number", "default"));
+	}
+
+	@ParameterizedTest(name = "a missing key with the default [{0}]")
+	@ValueSource(strings = { "x", "the default" })
+	@DisplayName("a missing key with a non-empty default shows that default")
+	void getString_aMissingKeyWithANonEmptyDefault_returnsTheDefault(final String defaultValue)
+	{
+		assertEquals(defaultValue,
+			Messages.getString("no.such.key.in.the.host.bundle", defaultValue));
+	}
+
+	@ParameterizedTest(name = "a missing key with the default [{0}] shows the default")
+	@ValueSource(strings = { "", " " })
+	@DisplayName("a missing key with an empty default shows the literal default (i18n.md)")
+	void getString_aMissingKeyWithAnEmptyDefault_returnsTheLiteralDefault(final String defaultValue)
+	{
+		assertEquals(defaultValue,
+			Messages.getString("no.such.key.in.the.host.bundle", defaultValue));
 	}
 }
