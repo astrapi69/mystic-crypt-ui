@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.wizard;
 import java.awt.event.ActionEvent;
 import java.math.BigInteger;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -34,7 +35,6 @@ import javax.swing.JLabel;
 import com.github.lgooddatepicker.components.DatePicker;
 
 import io.github.astrapi69.collection.array.ArrayFactory;
-import io.github.astrapi69.collection.pair.ValueBox;
 import io.github.astrapi69.crypt.data.algorithm.AlgorithmExtensions;
 import io.github.astrapi69.design.pattern.observer.event.EventObject;
 import io.github.astrapi69.design.pattern.observer.event.EventSource;
@@ -96,16 +96,15 @@ public class DatesPanel extends BasePanel<BaseWizardStateMachineModel<Certificat
 		txtSerialNumber = new JMBigIntegerTextField();
 		btnGenerateSerialNumber = new JButton();
 
-		ValueBox<String> signatureAlgorithmValueBox;
+		AtomicReference<String> signatureAlgorithmSelection;
 		IModel<String> selectedSignatureAlgorithmModel;
 		CertificateInfoModel modelObject = getModelObject().getModelObject();
 		String selectedSignatureAlgorithm = modelObject.getSignatureAlgorithm();
 		Set<String> signatureAlgorithms = AlgorithmExtensions.getAlgorithms("Signature");
 		GenericMutableComboBoxModel<String> cmbApplicationFileModel;
-		signatureAlgorithmValueBox = ValueBox.<String> builder().value(selectedSignatureAlgorithm)
-			.build();
-		selectedSignatureAlgorithmModel = LambdaModel.of(signatureAlgorithmValueBox::getValue,
-			signatureAlgorithmValueBox::setValue);
+		signatureAlgorithmSelection = new AtomicReference<>(selectedSignatureAlgorithm);
+		selectedSignatureAlgorithmModel = LambdaModel.of(signatureAlgorithmSelection::get,
+			signatureAlgorithmSelection::set);
 
 		cmbApplicationFileModel = new GenericMutableComboBoxModel<>(signatureAlgorithms,
 			selectedSignatureAlgorithm);
@@ -114,12 +113,12 @@ public class DatesPanel extends BasePanel<BaseWizardStateMachineModel<Certificat
 			selectedSignatureAlgorithmModel);
 
 		GenericComboBoxModel<Integer> comboBoxModel;
-		ValueBox<Integer> valueBox;
+		AtomicReference<Integer> versionSelection;
 		IModel<Integer> selectedItemModel;
-		valueBox = ValueBox.<Integer> builder().value(3).build();
+		versionSelection = new AtomicReference<>(3);
 		Integer[] cmbArray = ArrayFactory.newArray(1, 3);
 		comboBoxModel = new GenericComboBoxModel<>(cmbArray);
-		selectedItemModel = LambdaModel.of(valueBox::getValue, valueBox::setValue);
+		selectedItemModel = LambdaModel.of(versionSelection::get, versionSelection::set);
 		cmbVersion = new JMComboBox<>(comboBoxModel, selectedItemModel);
 
 		cmbVersion.addActionListener(this::onChangeVersion);

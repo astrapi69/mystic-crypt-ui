@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import javax.swing.*;
@@ -42,7 +43,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.apache.commons.lang3.StringUtils;
 
 import io.github.astrapi69.browser.BrowserControlExtensions;
-import io.github.astrapi69.collection.pair.ValueBox;
 import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
@@ -277,13 +277,12 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		String selectedKeyFilePath = modelObject.getSelectedKeyFilePath();
 
 
-		ValueBox<String> keyFileValueBox;
+		AtomicReference<String> keyFileSelection;
 		IModel<String> selectedKeyFileItemModel;
 		cmbKeyFileModel = new GenericMutableComboBoxModel<>(modelObject.getKeyFilePaths(),
 			selectedKeyFilePath);
-		keyFileValueBox = ValueBox.<String> builder().value(selectedKeyFilePath).build();
-		selectedKeyFileItemModel = LambdaModel.of(keyFileValueBox::getValue,
-			keyFileValueBox::setValue);
+		keyFileSelection = new AtomicReference<>(selectedKeyFilePath);
+		selectedKeyFileItemModel = LambdaModel.of(keyFileSelection::get, keyFileSelection::set);
 		cmbKeyFile = new JMComboBox<>(cmbKeyFileModel, selectedKeyFileItemModel);
 		cmbKeyFile.setName("cmbKeyFile");
 
@@ -299,12 +298,11 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			modelObject.getApplicationFilePaths().add(selectedApplicationFilePath);
 		}
 
-		ValueBox<String> applicationFileValueBox;
+		AtomicReference<String> applicationFileSelection;
 		IModel<String> selectedApplicationFileItemModel;
-		applicationFileValueBox = ValueBox.<String> builder().value(selectedApplicationFilePath)
-			.build();
-		selectedApplicationFileItemModel = LambdaModel.of(applicationFileValueBox::getValue,
-			applicationFileValueBox::setValue);
+		applicationFileSelection = new AtomicReference<>(selectedApplicationFilePath);
+		selectedApplicationFileItemModel = LambdaModel.of(applicationFileSelection::get,
+			applicationFileSelection::set);
 
 		cmbApplicationFileModel = new GenericMutableComboBoxModel<>(
 			modelObject.getApplicationFilePaths(), selectedApplicationFilePath);

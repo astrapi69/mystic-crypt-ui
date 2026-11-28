@@ -30,7 +30,6 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import io.github.astrapi69.collection.pair.Pair;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
 import io.github.astrapi69.model.api.IModel;
@@ -46,7 +45,7 @@ import lombok.Getter;
  * reads what the user entered from {@link #getModelObject()} and not out of the widgets.
  */
 @Getter
-public class EnDecryptPanel extends BasePanel<Pair<String, String>>
+public class EnDecryptPanel extends BasePanel<EnDecryptTexts>
 {
 
 	/** The Constant serialVersionUID. */
@@ -87,8 +86,7 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 	 */
 	public EnDecryptPanel()
 	{
-		this(BaseModel.<Pair<String, String>> of(
-			Pair.<String, String> builder().leftContent("").rightContent("").build()));
+		this(BaseModel.of(new EnDecryptTexts("", "")));
 	}
 
 	/**
@@ -97,7 +95,7 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 	 * @param model
 	 *            the model
 	 */
-	public EnDecryptPanel(final IModel<Pair<String, String>> model)
+	public EnDecryptPanel(final IModel<EnDecryptTexts> model)
 	{
 		super(model);
 	}
@@ -232,10 +230,10 @@ public class EnDecryptPanel extends BasePanel<Pair<String, String>>
 	 */
 	private void bindToModel()
 	{
-		txtToEncrypt.setPropertyModel(
-			LambdaModel.of(getModel(), Pair::getLeftContent, Pair::setLeftContent));
-		txtEncrypted.setPropertyModel(
-			LambdaModel.of(getModel(), Pair::getRightContent, Pair::setRightContent));
+		txtToEncrypt.setPropertyModel(LambdaModel.of(getModel(), EnDecryptTexts::getLeftContent,
+			EnDecryptTexts::setLeftContent));
+		txtEncrypted.setPropertyModel(LambdaModel.of(getModel(), EnDecryptTexts::getRightContent,
+			EnDecryptTexts::setRightContent));
 	}
 
 	/**
