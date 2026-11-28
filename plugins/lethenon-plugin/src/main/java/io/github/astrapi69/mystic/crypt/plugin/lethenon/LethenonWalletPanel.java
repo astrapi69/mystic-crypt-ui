@@ -47,6 +47,7 @@ import java.util.concurrent.Executors;
 import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -103,6 +104,9 @@ public class LethenonWalletPanel extends JPanel
 	private final JMTextField txtNetwork;
 
 	private final JTextArea txtAddress = message("txtAddress", false);
+
+	/** The address as a QR code, for a phone to read off the screen (#874) */
+	private final JLabel lblAddressQr = new JLabel();
 
 	private final JMTextField txtWalletFile = new JMTextField(34);
 
@@ -213,6 +217,11 @@ public class LethenonWalletPanel extends JPanel
 		txtAddress.setToolTipText(text("lethenon.wallet.tooltip.address",
 			"your address: give it to whoever pays you; it is public and opens nothing"));
 		txtAddress.setFont(new Font(Font.MONOSPACED, Font.PLAIN, txtAddress.getFont().getSize()));
+		lblAddressQr.setName("lblAddressQr");
+		lblAddressQr.setToolTipText(text("lethenon.wallet.tooltip.address.qr",
+			"your address as a QR code, for a phone to read it off the screen"));
+		lblAddressQr.getAccessibleContext().setAccessibleName(
+			text("lethenon.wallet.label.address.qr", "Your address as a QR code"));
 		pnlViews.add(noVaultView(), WalletView.NO_VAULT.name());
 		pnlViews.add(emptyView(), WalletView.EMPTY.name());
 		pnlViews.add(overviewView(), WalletView.OVERVIEW.name());
@@ -462,12 +471,20 @@ public class LethenonWalletPanel extends JPanel
 		AnswerFields.setText(txtNetwork,
 			chosen == null ? "" : WalletNetwork.nameOf(chosen.network(), locale));
 		txtAddress.setText(chosen == null ? "" : chosen.address());
+		showTheAddressQrCode(chosen == null ? "" : chosen.address());
 		NetworkKind network = NetworkKind.of(chosen == null ? "" : chosen.network());
 		network.paint(lblNetworkBadge, locale);
 		txtRiskNote.setText(network.riskNote(locale));
 		showTheBackupNotice(chosen);
 		btnRemoveWords.setVisible(chosen != null && vault.keepsWords(chosen.id()));
 		readTheBalance(chosen);
+	}
+
+	/** Shows the address as a QR code, and nothing while there is no address */
+	private void showTheAddressQrCode(final String address)
+	{
+		lblAddressQr.setIcon(AddressQrCode.imageOf(address).map(ImageIcon::new).orElse(null));
+		lblAddressQr.setVisible(lblAddressQr.getIcon() != null);
 	}
 
 	/**
@@ -874,6 +891,7 @@ public class LethenonWalletPanel extends JPanel
 					"copy the whole address, to give it to whoever pays you"),
 				locale)),
 			ToolForm.BUTTON_ROW);
+		view.add(lblAddressQr, ToolForm.BUTTON_ROW + ", hidemode 3");
 		txtBackupNotice.setToolTipText(text("lethenon.wallet.tooltip.backup.notice",
 			"whether your 24 words were checked, and when"));
 		view.add(txtBackupNotice, ToolForm.WIDE + ", wmin 0, gaptop 8, hidemode 3");

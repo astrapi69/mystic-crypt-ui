@@ -70,7 +70,7 @@ configurations {
     }
 }
 
-def bundledModules = ['lethenon', 'sqlite-jdbc']
+def bundledModules = ['lethenon', 'sqlite-jdbc', 'qrcodegen']
 def bundledJars = configurations.bundled.incoming.artifactView {
     componentFilter { id -> id instanceof ModuleComponentIdentifier && id.module in bundledModules }
 }.files
@@ -84,6 +84,10 @@ dependencies {
     // reimplemented here (architecture.md: the plugin is UI over library calls)
     compileOnly libs.lethenon
     bundled libs.lethenon
+    // QrCode.encodeText draws the overview's address as a QR code (#874); a library of its own,
+    // MIT, without dependencies, which the host does not carry, so the zip brings it under lib/
+    compileOnly libs.qrcodegen
+    bundled libs.qrcodegen
     // ResourceBundleExtensions.getStringQuietly - label and tooltip text from
     // lethenon/messages.properties falls back to a literal default rather than throwing when a key
     // is missing, the same way the host's own Messages class behaves (.claude/rules/i18n.md)
@@ -110,6 +114,7 @@ dependencies {
     // the tests replay real chains, so the chain library is a test dependency rather than only a
     // compile-time one
     testImplementation libs.lethenon
+    testImplementation libs.qrcodegen
     // the contribution classes implement the host's extension points, so the host jar has to be on
     // the test classpath to load them - for the main sources they stay compileOnly
     testImplementation "io.github.astrapi69:mystic-crypt-ui:$hostVersion"
@@ -134,7 +139,8 @@ apply from: '../../gradle/reproducible-archives.gradle'
 // cannot drift from them, next to NOTICE.txt, which names each library and where its licence is:
 // sqlite-jdbc is under the Apache License 2.0 and contains code under the Zentus licence, which asks
 // for its notice in every binary distribution; lethenon is under the MIT License; SQLite itself is
-// in the public domain. The zip carries them under legal/, and the installer installs the same
+// in the public domain; qrcodegen is under the MIT License, whose text its jar does not carry, so
+// src/main/legal holds it, taken from the header of its own sources (#874). The zip carries them under legal/, and the installer installs the same
 // directory (#581)
 def bundledJar = { String module -> bundledJars.filter { it.name.startsWith("${module}-") } }
 tasks.register('pluginLegal', Sync) {

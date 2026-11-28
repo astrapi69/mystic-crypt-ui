@@ -202,6 +202,11 @@ class LethenonPluginFromItsZipTest
 				entry(zip, "legal/sqlite-jdbc/LICENSE.zentus"));
 			assertArrayEquals(entryOfJar(zip, library(libraries, "lethenon"), "LICENSE.txt"),
 				entry(zip, "legal/lethenon/LICENSE.txt"));
+			// qrcodegen's jar carries no licence text; the zip carries the one of its sources
+			// (#874)
+			library(libraries, "qrcodegen");
+			assertTrue(new String(entry(zip, "legal/qrcodegen/LICENSE.txt"), StandardCharsets.UTF_8)
+				.contains("Copyright (c) Project Nayuki. (MIT License)"));
 		}
 	}
 
