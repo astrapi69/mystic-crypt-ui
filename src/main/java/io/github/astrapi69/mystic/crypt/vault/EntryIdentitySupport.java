@@ -135,6 +135,33 @@ public final class EntryIdentitySupport
 	}
 
 	/**
+	 * A copy of the entry that is a new entry, for "Duplicate entry" and "Duplicate node": what
+	 * {@link MysticCryptEntryModelBean#duplicate()} copies, with an identifier of its own instead
+	 * of the original's, given by {@link #assignIdentifierIfMissing(MysticCryptEntryModelBean)}.
+	 * <p>
+	 * {@code duplicate()} keeps the identifier, because the copy written by an export of chosen
+	 * entries and the copy a plugin is handed stand for the same entry. A copy the user makes is a
+	 * different entry, and one carrying the original's identity is exactly the reuse an identifier
+	 * must never do (#272): two entries under one UUID in the vault and in a KDBX export, which an
+	 * import that matches by UUID would merge into one. "Duplicate node" kept the identifiers of
+	 * the entries it copied until it took its copies from here too (#856). Like every duplicate,
+	 * the copy carries no history (#384), so no previous version brings the original's identifier
+	 * back.
+	 *
+	 * @param entry
+	 *            the entry to copy
+	 * @return the copy, with an identifier of its own
+	 */
+	public static MysticCryptEntryModelBean duplicateAsNewEntry(
+		final MysticCryptEntryModelBean entry)
+	{
+		MysticCryptEntryModelBean copy = entry.duplicate();
+		copy.setId(null);
+		assignIdentifierIfMissing(copy);
+		return copy;
+	}
+
+	/**
 	 * Records that this entry has just been changed.
 	 * <p>
 	 * Only an actual edit sets it. A missing modification time cannot be reconstructed, so filling

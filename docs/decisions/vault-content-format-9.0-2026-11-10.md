@@ -120,7 +120,9 @@ Measured for that rule on 2026-11-10 (develop at `c1b930c`): **an entry's id is 
 lacks one when a vault is opened (#287, #272), in every release since 8.5 (8.5 marked the vault changed
 for it; since 8.6 the ids travel with the next real save). It is **not guaranteed unique inside a vault**:
 "Duplicate node" copies every entry of the group with its id unchanged, so migration **reuses an entry id
-only where it is unique in the vault** and mints new ones for duplicates. **A group made in this
+only where it is unique in the vault** and mints new ones for duplicates. Since #1221 "Duplicate node" gives
+every entry it copies an id of its own, as "Duplicate entry" does; a vault saved before keeps the duplicates
+it already holds, so the rule stays. **A group made in this
 application has no UUID**: the tree key is a per-vault sequential `Long` (`rootTreeAsMap`, `lastId` with
 `LongIdGenerator`), so groups **receive new random UUIDs**. A group imported from KDBX carries its KeePass
 group UUID in `properties["keepass.uuid"]` (since 8.1.1), which stays a property but is no stable unique

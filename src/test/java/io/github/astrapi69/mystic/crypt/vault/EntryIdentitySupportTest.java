@@ -153,6 +153,26 @@ class EntryIdentitySupportTest
 	}
 
 	@Test
+	@DisplayName("a copy made as a new entry has an identifier of its own and no history")
+	void duplicateAsNewEntry_givesTheCopyItsOwnIdentity()
+	{
+		MysticCryptEntryModelBean original = MysticCryptEntryModelBean.builder()
+			.id(UUID.randomUUID()).title("original".toCharArray()).build();
+		original.setHistory(List.of(MysticCryptEntryModelBean.builder().id(original.getId())
+			.title("original, before".toCharArray()).build()));
+		UUID identifierOfTheOriginal = original.getId();
+
+		MysticCryptEntryModelBean copy = EntryIdentitySupport.duplicateAsNewEntry(original);
+
+		assertNotNull(copy.getId());
+		assertNotEquals(identifierOfTheOriginal, copy.getId(),
+			"duplicate() keeps the identifier, and a copy the user makes is a different entry");
+		assertEquals(identifierOfTheOriginal, original.getId(), "the original keeps its own");
+		assertNull(copy.getHistory(),
+			"a previous version carries the original's identifier, and a duplicate has none");
+	}
+
+	@Test
 	@DisplayName("an empty or absent model is not an error")
 	void assignMissingIdentifiers_handlesAnEmptyModel()
 	{
