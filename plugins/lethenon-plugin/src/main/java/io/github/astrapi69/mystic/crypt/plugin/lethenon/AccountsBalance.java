@@ -39,8 +39,10 @@ import io.github.astrapi69.lethenon.Amount;
  * @param lastBlock
  *            when the last block of the chain the balance was read from was mined: the balance is
  *            as of then (#831)
+ * @param waiting
+ *            the transfers of both accounts that wait for a block (#921)
  */
-record AccountsBalance(Amount ed25519, Amount mlDsa, Instant lastBlock) {
+record AccountsBalance(Amount ed25519, Amount mlDsa, Instant lastBlock, WaitingTransfers waiting) {
 
 	/**
 	 * @return what both accounts hold together; one-time payments are not in it
@@ -48,5 +50,14 @@ record AccountsBalance(Amount ed25519, Amount mlDsa, Instant lastBlock) {
 	Amount total()
 	{
 		return ed25519.plus(mlDsa);
+	}
+
+	/**
+	 * @return what both accounts hold once the waiting transfers are in a block: what the next
+	 *         transfer can still spend
+	 */
+	Amount afterWaiting()
+	{
+		return total().minus(waiting.amount());
 	}
 }
