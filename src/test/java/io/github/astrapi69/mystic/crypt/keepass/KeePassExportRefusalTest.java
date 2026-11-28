@@ -73,27 +73,28 @@ class KeePassExportRefusalTest
 	}
 
 	/**
-	 * The refusals the export of the whole tree gives before it writes a file - no vault is open,
-	 * or no destination file was chosen - each with the key of its words and its words in English
+	 * The refusals an export gives before it writes a file - no vault is open, or no destination
+	 * file was chosen - each with the key of its words and its words in English and in German
 	 */
 	static Stream<Arguments> refusalsBeforeAFileIsWritten()
 	{
 		return Stream.of(
 			Arguments.of("no vault is open", "keepass.export.failed.not.signed.in",
-				"Please sign in first.", (Supplier<String>)KeePassExportRefusal::notSignedIn),
+				"Please sign in first.", "Bitte zuerst anmelden.",
+				(Supplier<String>)KeePassExportRefusal::notSignedIn),
 			Arguments.of("no destination file is chosen", "keepass.export.failed.no.file",
-				"No destination file selected.",
+				"No destination file selected.", "Keine Zieldatei gewählt.",
 				(Supplier<String>)KeePassExportRefusal::noFileSelected));
 	}
 
-	@ParameterizedTest(name = "{0}: the dialog shows English words the bundle does not hold")
+	@ParameterizedTest(name = "{0}: the dialog shows the words of the bundle, in English and in German")
 	@MethodSource("refusalsBeforeAFileIsWritten")
-	void aRefusalBeforeAFileIsWritten_showsWordsTheBundleDoesNotHold(final String caseName,
-		final String key, final String english, final Supplier<String> refusal)
+	void aRefusalBeforeAFileIsWritten_isShownInTheWordsOfTheBundle(final String caseName,
+		final String key, final String english, final String german, final Supplier<String> refusal)
 	{
-		assertEquals(english, refusal.get());
-		assertFalse(ResourceBundle.getBundle("ui.messages", Locale.GERMAN).containsKey(key),
-			"the bundle holds no words for it, in neither language");
+		assertEquals(Messages.getString(key, ""), refusal.get());
+		assertEquals(english, ResourceBundle.getBundle("ui.messages", Locale.ROOT).getString(key));
+		assertEquals(german, ResourceBundle.getBundle("ui.messages", Locale.GERMAN).getString(key));
 	}
 
 	@Test

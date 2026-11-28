@@ -71,7 +71,7 @@ public class ExportKeePassDatabaseAction extends AbstractAction
 		if (applicationPanel == null)
 		{
 			JOptionPane.showMessageDialog(instance, KeePassExportRefusal.notSignedIn(),
-				"Export failed", JOptionPane.ERROR_MESSAGE);
+				KeePassExportRefusal.title(), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 
@@ -89,7 +89,7 @@ public class ExportKeePassDatabaseAction extends AbstractAction
 		if (file == null)
 		{
 			JOptionPane.showMessageDialog(instance, KeePassExportRefusal.noFileSelected(),
-				"Export failed", JOptionPane.ERROR_MESSAGE);
+				KeePassExportRefusal.title(), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		// remember the chosen paths regardless of whether the export below succeeds, so a wrong

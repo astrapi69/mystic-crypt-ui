@@ -29,7 +29,8 @@ import io.github.astrapi69.mystic.crypt.Messages;
 /**
  * What a KeePass export tells a person when it cannot write the file: the export of the whole tree
  * and the export of chosen entries say it the same way, from here, in the bundle's words. The text
- * of the exception is never shown (#1005)
+ * of the exception is never shown (#1005). So does an export of the whole tree refused before it
+ * writes a file, because no vault is open or no destination was chosen.
  */
 public final class KeePassExportRefusal
 {
@@ -56,7 +57,7 @@ public final class KeePassExportRefusal
 	 */
 	public static String notSignedIn()
 	{
-		return "Please sign in first.";
+		return Messages.getString("keepass.export.failed.not.signed.in", "Please sign in first.");
 	}
 
 	/**
@@ -66,7 +67,7 @@ public final class KeePassExportRefusal
 	 */
 	public static String noFileSelected()
 	{
-		return "No destination file selected.";
+		return Messages.getString("keepass.export.failed.no.file", "No destination file selected.");
 	}
 
 	/**
