@@ -277,7 +277,8 @@ the new file somewhere other than where the old one was read from.
 
 ## What the key file variants do differently
 
-Neither key file variant uses `PasswordVaultFormat`, `PassphraseEnvelope`, PBKDF2 or a marker. They use
+Neither key file variant writes with `PasswordVaultFormat`, `PassphraseEnvelope`, PBKDF2 or a marker
+(reading what 8 wrote borrows `PasswordVaultFormat.decryptLegacy`, below). They use
 the mystic-crypt library's public-key encryptors, and the shape on disk is a Java-serialized
 `AesRsaCryptModel` produced by `SerializationUtils.serialize`, holding two fields:
 
@@ -299,6 +300,33 @@ Differences that matter when working on these paths:
   opposite order. The transformation is `CompoundAlgorithm.PBE_WITH_SHA1_AND_128BIT_AES_CBC_BC`,
   whose algorithm string is `PBEWITHSHA1AND128BITAES-CBC-BC`. It exists only in the Bouncy Castle
   provider, which is why the format tests register that provider before touching anything.
+- **What 8 wrote is read as well, one layer after the other.** 8 wrapped the key the same way, but
+  wrote the layers under it in older formats, and nothing in the file says which format a layer is
+  in: each layer is read in the current format first, and in 8's format when that fails. The next
+  save writes every layer in the current format, so a database leaves 8's formats by being used
+  (#650). In `ApplicationXmlFileReader`:
+  - The content behind the key, in both variants (`decryptedWithKeyFile`): AES-GCM first. A key
+    file that does not open the key fails there, and is a wrong key file. A failed GCM tag
+    (`AEADBadTagException`) means that the key was right and the content is older: it is
+    decrypted with plain AES (`AesAlgorithm.AES`), as 8 wrote it, and content that reads in neither
+    format is refused as a format this version does not read, not as a wrong key file.
+  - The password layer of a database with a password and a key file (`decryptedWithPassword`):
+    `PasswordStringDecryptor` first. When it throws a `GeneralSecurityException`, the layer is
+    decrypted the way 8 wrote it, with `PBEWithMD5AndDES`, the fixed salt `CompoundAlgorithm.SALT`
+    and `CompoundAlgorithm.ITERATIONCOUNT` iterations: `PasswordVaultFormat.decryptLegacy`, the
+    parameters of the legacy format above.
+  - Neither format of the password layer authenticates: both end their decryption with a padding
+    check and nothing else. A layer 8 wrote whose length after the salt is a whole number of the
+    current format's cipher blocks passes that format's check for about one password in 256, at
+    every sign-in, and the text it then gives back is no XML at all. So when the text the password
+    layer gave back is no XML, the layer is decrypted in 8's format as well, and the database is
+    read from that (`readTheWayEightWroteIt`, #1209). Well-formed XML that cannot be read is not
+    tried again.
+  - A password that reads the layer in neither format is a wrong password (#1188). When both
+    decryptions throw, the failure of the current format stands; when the current format gave back
+    no XML and 8's format reads no database either, the layer counts as not decrypted
+    (`VaultNotDecryptedException`). The sign-in refuses both as a failed decryption, never as a
+    decrypted database whose content cannot be read.
 - **Key file reading differs between the two variants.** The key-file-only read path checks
   `PemObjectReader.isPemObject(keyFile)` and reads PEM or DER accordingly; the password-plus-key-file
   path calls `PrivateKeyReader.readPemPrivateKey` unconditionally.

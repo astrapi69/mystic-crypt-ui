@@ -766,7 +766,7 @@ could sit, measured:
 - Not in the MCRDB2 header: the plaintext is 26 bytes (marker, salt, iteration count), all of it associated data, and
   `docs/vault-format.md` says a further header field needs a new marker (`PasswordVaultFormat.java:41-80`,
   `docs/vault-format.md:45-59`, `:202-203`). A plaintext list would also be readable before the sign-in.
-- Not in the two key-file variants: they have no marker and no header and are not versioned (`docs/vault-format.md:278-321`), so
+- Not in the two key-file variants: they have no marker and no header and are not versioned (`docs/vault-format.md:278-349`), so
   for a vault of that kind anything new goes into the XML content or nowhere.
 - (a) As a marked entry with a host-owned marker, through the mechanism of `plugin-vault-access-2026-10-31.md` (a custom property
   in the namespace of its owner). No format change, readable by every build from 8.5. It is visible and editable as an ordinary
