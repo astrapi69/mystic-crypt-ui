@@ -99,9 +99,13 @@ for combination in $combinations; do
     || { cat "$work/written.err" >&2; die "$version could not write its vault with $protection"; }
   grep -qx WRITTEN "$work/written.txt" || die "$version did not say WRITTEN for $protection"
   [ "$(grep -c '^ENTRY ' "$work/written.txt")" = 2 ] || { cat "$work/written.txt" >&2; die "$version did not write two entries"; }
+  # a copy is opened, in a directory of its own: 8's password path decrypts into a file beside the vault and
+  # leaves it there when it fails (vault-8.decrypted, the second run, 46119243787), and nothing a release
+  # leaves behind belongs in the output
+  rm -rf "$work/open" && mkdir "$work/open" && cp "$vault" "$work/open/"
   opened=0
-  printf '%s' "$password" | "$java" -cp "$jar" "$fixtures/OpenWithAnOldRelease.java" "$vault" "${options[@]}" \
-    > "$work/opened.txt" 2> "$work/opened.err" || opened=$?
+  printf '%s' "$password" | "$java" -cp "$jar" "$fixtures/OpenWithAnOldRelease.java" "$work/open/${vault##*/}" \
+    "${options[@]}" > "$work/opened.txt" 2> "$work/opened.err" || opened=$?
   { printf '== written by %s with %s\n' "$version" "$protection"; cat "$work/written.txt"
     printf '== opened by %s with %s, exit %s\n' "$version" "$protection" "$opened"; cat "$work/opened.txt"; } > "$log"
   if [ "$combination" = "$refused_by_its_own_release" ]; then
@@ -116,4 +120,6 @@ for combination in $combinations; do
   printf '==> %s with %s: %s\n' "$version" "$protection" "$(grep '^OPENED' "$work/opened.txt")"
 done
 
+stray="$(cd "$out" && ls -A | grep -vE '^vault-[0-9.]+(-key-file|-password-and-key-file)?\.mcrdb(\.log)?$' || true)"
+[ -z "$stray" ] || die "the output holds what no step here wrote: $stray"
 (cd "$out" && sha256sum -- *.mcrdb > SHA256SUMS && cat SHA256SUMS)
