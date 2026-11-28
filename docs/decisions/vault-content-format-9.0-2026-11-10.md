@@ -169,7 +169,8 @@ alike** (groups are renamed, moved and deleted too):
 them is refused and import is offered instead (#856). The open design questions each have their ticket
 and are designed before the merge function is built: tombstone retention #858, clock skew between devices
 #859, merge granularity #860 (which can still touch the 9.0 format, as a last-save field out of #859
-could), the rules for merging groups #855, and migration identity #856.
+could), and the rules for merging groups #855. Migration identity (#856) is decided by this record:
+section 6 and the shared-vault limit above; #856 was closed on 2026-11-10.
 
 ## 9. Attachments
 
@@ -198,8 +199,6 @@ present.
 3. **Merge granularity**, per entry or per field - it can still touch the 9.0 format (as a last-save
    field out of #859 could), so it is decided before 9.0 ships: #860.
 4. **The rules for merging groups**: #855.
-5. **Migration identity**, with the measurement of section 6: #856. Until decided otherwise, the
-   shared-vault limit of section 8 is the answer.
 
 Until these are designed, 9.0 carries the fields and no merge exists.
 
