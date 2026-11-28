@@ -25,6 +25,8 @@
 package io.github.astrapi69.mystic.crypt.panel.dbtree;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -118,8 +120,8 @@ class NodeDuplicationKdbxExportTest
 	}
 
 	@Test
-	@DisplayName("pin: a duplicated group and its original share their UUIDs in the exported file")
-	void export_ofADuplicatedGroup_sharesTheGroupUuids() throws Exception
+	@DisplayName("a duplicated group and its original have two distinct UUIDs in the exported file")
+	void export_ofADuplicatedGroup_hasTwoDistinctGroupUuids() throws Exception
 	{
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root = newNode(0,
 			"root", null);
@@ -140,14 +142,14 @@ class NodeDuplicationKdbxExportTest
 		collectUuids(read.getRootGroup(), uuids);
 		Set<UUID> distinct = new HashSet<>(uuids);
 		assertEquals(4, uuids.size(), "two groups with a sub-group each: " + uuids);
-		assertEquals(2, distinct.size(),
-			"today the copy and the original share their UUIDs: " + uuids);
-		assertEquals(Set.of(groupUuid, subGroupUuid), distinct);
+		assertEquals(4, distinct.size(), "no two groups of the file share a UUID: " + uuids);
+		assertTrue(distinct.containsAll(Set.of(groupUuid, subGroupUuid)),
+			"the original keeps its own UUIDs");
 	}
 
 	@Test
-	@DisplayName("pin: the copy of a group carries the KeePass group UUID of the original")
-	void copyOf_carriesTheKeePassGroupUuid()
+	@DisplayName("the copy of a group carries no KeePass group UUID of the original, in its sub-groups neither")
+	void copyOf_carriesNoKeePassGroupUuid()
 	{
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root = newNode(0,
 			"root", null);
@@ -163,16 +165,16 @@ class NodeDuplicationKdbxExportTest
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> copy = duplicate(
 			root, group);
 
-		assertEquals(groupUuid,
+		assertNotEquals(groupUuid,
 			copy.getValue().getProperties().get(KeePassTreeConverter.KEEPASS_UUID_PROPERTY),
-			"today the copy carries the UUID of its original");
+			"the copy carries the UUID of its original");
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> copiedSubGroup = copy
 			.getChildren().iterator().next();
-		assertEquals(
+		assertNotEquals(
 			subGroup.getValue().getProperties().get(KeePassTreeConverter.KEEPASS_UUID_PROPERTY),
 			copiedSubGroup.getValue().getProperties()
 				.get(KeePassTreeConverter.KEEPASS_UUID_PROPERTY),
-			"today the copied sub-group carries the UUID of its original");
+			"the copied sub-group carries the UUID of its original");
 		assertEquals(groupUuid,
 			group.getValue().getProperties().get(KeePassTreeConverter.KEEPASS_UUID_PROPERTY),
 			"copying does not change the original");
