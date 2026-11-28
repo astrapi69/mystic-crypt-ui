@@ -16,6 +16,9 @@ task javadocJar(type: Jar) {
 
 javadoc {
     failOnError = false
+    // javadoc writes its pages in the language of the machine that runs it; English always, so two
+    // builds of one commit on machines of different languages give the same jar (#920)
+    options.locale = 'en'
     if(JavaVersion.current().isJava9Compatible()) {
         options.addBooleanOption("html5", true)
     }
