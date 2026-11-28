@@ -25,8 +25,11 @@
 package io.github.astrapi69.mystic.crypt.plugin.sharing;
 
 import java.awt.Component;
+import java.awt.image.BaseMultiResolutionImage;
 import java.util.List;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
 
@@ -34,7 +37,6 @@ import org.pf4j.Extension;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
-import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.util.JInternalFrameExtensions;
@@ -46,13 +48,21 @@ import io.github.astrapi69.swing.util.JInternalFrameExtensions;
 public class SecretSharingMenuContribution implements PluginMenuContribution
 {
 
+	/**
+	 * The plugin's icon on its menu items: the 16 px image, with the 32 px image as the variant a
+	 * scaled screen draws (#1192)
+	 */
+	private final Icon icon = new ImageIcon(new BaseMultiResolutionImage(
+		new ImageIcon(getClass().getResource("icon-16.png")).getImage(),
+		new ImageIcon(getClass().getResource("icon-32.png")).getImage()));
+
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
-		JMenuItem splitAndCombine = new JMenuItem("Split and Combine");
+		JMenuItem splitAndCombine = new JMenuItem("Split and Combine", icon);
 		splitAndCombine.addActionListener(
 			event -> openInternalFrame("Split and Combine", new SecretSharingPanel()));
-		return PluginIcon.onEvery(List.of(splitAndCombine), getClass(), "secret-sharing-plugin");
+		return List.of(splitAndCombine);
 	}
 
 	@Override

@@ -26,6 +26,8 @@ package io.github.astrapi69.mystic.crypt.plugin.api;
 
 import java.awt.Component;
 
+import javax.swing.Icon;
+
 import org.pf4j.ExtensionPoint;
 
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
@@ -37,8 +39,8 @@ import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
  * and as a copy. A plugin never sees any other entry through this, and changing the copy changes
  * nothing in the vault.
  * <p>
- * The host shows the action with the plugin's icon (#1192) and enables it only while exactly one
- * entry is selected.
+ * The host shows the action with the icon {@link #getIcon()} returns and enables it only while
+ * exactly one entry is selected.
  */
 public interface EntryActionContribution extends ExtensionPoint
 {
@@ -49,6 +51,15 @@ public interface EntryActionContribution extends ExtensionPoint
 	 * @return the text
 	 */
 	String getActionName();
+
+	/**
+	 * The plugin's icon, the same a plugin with a menu sets on its menu items (#1192): its
+	 * {@code icon-16.png} and {@code icon-32.png}, read next to the contribution class, as one
+	 * {@code BaseMultiResolutionImage}
+	 *
+	 * @return the icon the host shows on the action's menu item
+	 */
+	Icon getIcon();
 
 	/**
 	 * Runs the action on the event thread, at the user's click

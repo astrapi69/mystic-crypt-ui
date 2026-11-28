@@ -25,8 +25,11 @@
 package io.github.astrapi69.mystic.crypt.plugin.obfuscation;
 
 import java.awt.Component;
+import java.awt.image.BaseMultiResolutionImage;
 import java.util.List;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
 
@@ -36,7 +39,6 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.character.OperationRulePanel;
 import io.github.astrapi69.mystic.crypt.plugin.obfuscation.simple.RulePanel;
-import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.util.JInternalFrameExtensions;
@@ -58,19 +60,26 @@ import io.github.astrapi69.swing.util.JInternalFrameExtensions;
 public class ObfuscationMenuContribution implements PluginMenuContribution
 {
 
+	/**
+	 * The plugin's icon on its menu items: the 16 px image, with the 32 px image as the variant a
+	 * scaled screen draws (#1192)
+	 */
+	private final Icon icon = new ImageIcon(new BaseMultiResolutionImage(
+		new ImageIcon(getClass().getResource("icon-16.png")).getImage(),
+		new ImageIcon(getClass().getResource("icon-32.png")).getImage()));
+
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
-		JMenuItem simpleObfuscation = new JMenuItem("Simple Obfuscation");
+		JMenuItem simpleObfuscation = new JMenuItem("Simple Obfuscation", icon);
 		simpleObfuscation
 			.addActionListener(event -> openInternalFrame("Simple Obfuscation", new RulePanel()));
 
-		JMenuItem operatedObfuscation = new JMenuItem("Operated Obfuscation");
+		JMenuItem operatedObfuscation = new JMenuItem("Operated Obfuscation", icon);
 		operatedObfuscation.addActionListener(
 			event -> openInternalFrame("Operated Obfuscation", new OperationRulePanel()));
 
-		return PluginIcon.onEvery(List.of(simpleObfuscation, operatedObfuscation), getClass(),
-			"obfuscation-plugin");
+		return List.of(simpleObfuscation, operatedObfuscation);
 	}
 
 	@Override

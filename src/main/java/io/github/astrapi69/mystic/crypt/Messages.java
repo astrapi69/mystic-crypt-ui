@@ -57,14 +57,25 @@ public class Messages
 	}
 
 	/**
-	 * Gets the string.
+	 * Gets the string of the key, or the given default when the bundle has no such key. The default
+	 * is the literal default also when it is empty: the library hands back its warning text for a
+	 * missing key when the default is empty ({@code ResourceBundleExtensions.getStringQuietly}
+	 * treats an empty default as none).
 	 *
 	 * @param key
 	 *            the key
+	 * @param defaultValue
+	 *            the text shown when the bundle has no such key
 	 * @return the string
 	 */
 	public static String getString(final String key, final String defaultValue)
 	{
+		// TODO(resourcebundle-core#60): remove the guard once the library returns an empty default
+		if (defaultValue != null && key != null && !key.isEmpty()
+			&& !RESOURCE_BUNDLE.containsKey(key))
+		{
+			return defaultValue;
+		}
 		return ResourceBundleExtensions.getStringQuietly(RESOURCE_BUNDLE, key, defaultValue);
 	}
 

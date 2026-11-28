@@ -24,8 +24,11 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.keygen;
 
+import java.awt.image.BaseMultiResolutionImage;
 import java.util.List;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
 
@@ -35,7 +38,6 @@ import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.api.IModel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
-import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.util.JInternalFrameExtensions;
@@ -50,10 +52,18 @@ import io.github.astrapi69.swing.util.JInternalFrameExtensions;
 public class KeygenMenuContribution implements PluginMenuContribution
 {
 
+	/**
+	 * The plugin's icon on its menu items: the 16 px image, with the 32 px image as the variant a
+	 * scaled screen draws (#1192)
+	 */
+	private final Icon icon = new ImageIcon(new BaseMultiResolutionImage(
+		new ImageIcon(getClass().getResource("icon-16.png")).getImage(),
+		new ImageIcon(getClass().getResource("icon-32.png")).getImage()));
+
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
-		JMenuItem keyGeneration = new JMenuItem("Key Generation");
+		JMenuItem keyGeneration = new JMenuItem("Key Generation", icon);
 		keyGeneration.addActionListener(event -> {
 			MysticCryptApplicationFrame instance = MysticCryptApplicationFrame.getInstance();
 			if (!FrameMode.DESKTOP_PANE.equals(instance.getFrameMode()))
@@ -67,7 +77,7 @@ public class KeygenMenuContribution implements PluginMenuContribution
 			JInternalFrameExtensions.addInternalFrameToMainFrame(new GenerateKeysPanel(model),
 				internalFrame, instance);
 		});
-		return PluginIcon.onEvery(List.of(keyGeneration), getClass(), "keygen-plugin");
+		return List.of(keyGeneration);
 	}
 
 	@Override

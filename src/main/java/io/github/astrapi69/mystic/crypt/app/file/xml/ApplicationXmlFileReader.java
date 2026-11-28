@@ -37,6 +37,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 
 import javax.crypto.AEADBadTagException;
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 
@@ -128,22 +129,43 @@ public class ApplicationXmlFileReader
 	 * @param applicationFile
 	 *            the file the user actually opened
 	 * @return the same model, pointing at the file it was read from
+	 * @throws VaultContentUnreadableException
+	 *             when the model holds no sign-in data, which the sign-in takes over
 	 */
 	private static ApplicationModelBean openedFrom(final ApplicationModelBean applicationModelBean,
 		final File applicationFile, final MasterPwFileModelBean credentials)
 	{
-		if (applicationModelBean == null || applicationModelBean.getMasterPwFileModelBean() == null
-			|| applicationFile == null || credentials == null)
+		MasterPwFileModelBean signInModelBean = signInDataOf(applicationModelBean);
+		if (applicationFile == null || credentials == null)
 		{
 			return applicationModelBean;
 		}
-		MasterPwFileModelBean signInModelBean = applicationModelBean.getMasterPwFileModelBean();
 		signInModelBean.setApplicationFileInfo(FileInfo.toFileInfo(applicationFile));
 		signInModelBean.setSelectedApplicationFilePath(applicationFile.getAbsolutePath());
 		// the password is not in the file and must not be: it comes from whoever just signed in,
 		// and the model needs it for the next save and for the unlock dialog
 		signInModelBean.setMasterPw(credentials.getMasterPw());
 		return applicationModelBean;
+	}
+
+	/**
+	 * The sign-in data of the model that was read. A vault holds them, and the sign-in takes them
+	 * over; content that is a vault and holds none was decrypted and cannot be signed in with
+	 *
+	 * @param applicationModelBean
+	 *            the model read out of the file
+	 * @return its sign-in data
+	 * @throws VaultContentUnreadableException
+	 *             when it holds none
+	 */
+	private static MasterPwFileModelBean signInDataOf(
+		final ApplicationModelBean applicationModelBean)
+	{
+		if (applicationModelBean == null || applicationModelBean.getMasterPwFileModelBean() == null)
+		{
+			throw VaultContentUnreadableException.withoutItsSignInData();
+		}
+		return applicationModelBean.getMasterPwFileModelBean();
 	}
 
 	public static ApplicationModelBean readApplicationFileWithPasswordAndPrivateKey(
@@ -265,11 +287,13 @@ public class ApplicationXmlFileReader
 	 * them being taken for a wrong password or key file. A file the format reader refuses as no
 	 * database (an {@link IllegalArgumentException}, or a block size no password database has) says
 	 * that, and a failed decryption says in the unlock prompt's words that the password or the key
-	 * file is wrong (#1005). A decryption that authenticates nothing and gave back no xml at all is
-	 * such a failed decryption, not a database that was decrypted: its padding check passed by
-	 * chance ({@link VaultNotDecryptedException}, #1188). The text of the exception is never shown:
-	 * it stays in the log. Only a failure that carries a message written for the user, such as a
-	 * missing key file, keeps showing it.
+	 * file is wrong (#1005). A decryption that authenticates nothing whose padding check refused
+	 * the key, or let it through with content a wrong key could leave, is such a failed decryption,
+	 * not a database that was decrypted ({@link VaultNotDecryptedException}, #1188). A database of
+	 * the key file alone, opened with a password as well, says that it opens with its key file
+	 * alone. The text of the exception is never shown, and the log names the failure by the types
+	 * along its chain ({@link ReaderFailureTrace}). Only a failure that carries a message written
+	 * for the user, such as a missing key file, keeps showing it.
 	 *
 	 * @param factors
 	 *            what the sign-in asked for
@@ -279,11 +303,22 @@ public class ApplicationXmlFileReader
 	 */
 	private static RuntimeException notOpened(final Factors factors, final Exception exception)
 	{
-		// first: its cause is the VaultContentUnreadableException the next branches would show
-		if (causeOf(exception, VaultNotDecryptedException.class) != null)
+		VaultNotDecryptedException notDecrypted = causeOf(exception,
+			VaultNotDecryptedException.class);
+		if (notDecrypted != null)
 		{
-			log.log(Level.SEVERE, exception.getMessage(), exception);
+			// logged as it is: it has no cause, and its message is fixed
+			log.log(Level.SEVERE, notDecrypted.getMessage(), notDecrypted);
 			return refusal(factors.title(), factors.wrong(), exception);
+		}
+		VaultOpensWithTheKeyFileAloneException keyFileAlone = causeOf(exception,
+			VaultOpensWithTheKeyFileAloneException.class);
+		if (keyFileAlone != null)
+		{
+			return databaseNotOpened("dialog.vault.key.file.alone",
+				"This database opens with its key file alone, without a master password. It was "
+					+ "not opened, and the file is unchanged.",
+				"", keyFileAlone, exception);
 		}
 		VaultHoldsAForeignTypeException foreign = causeOf(exception,
 			VaultHoldsAForeignTypeException.class);
@@ -314,7 +349,7 @@ public class ApplicationXmlFileReader
 		}
 		if (causeOf(exception, KeyFileUnavailableException.class) != null)
 		{
-			log.log(Level.SEVERE, exception.getMessage(), exception);
+			logByItsTypes(exception);
 			return refusal(factors.title(), exception.getMessage(), exception);
 		}
 		if (isNoDatabase(factors, exception))
@@ -322,9 +357,9 @@ public class ApplicationXmlFileReader
 			return databaseNotOpened("dialog.vault.not.a.database",
 				"This file is not a database this application can open. It was not opened, and "
 					+ "the file is unchanged.",
-				"", exception, exception);
+				"", ReaderFailureTrace.of(exception), exception);
 		}
-		log.log(Level.SEVERE, exception.getMessage(), exception);
+		logByItsTypes(exception);
 		if (causeOf(exception, GeneralSecurityException.class) != null
 			|| causeOf(exception, SecurityException.class) != null)
 		{
@@ -351,8 +386,21 @@ public class ApplicationXmlFileReader
 	private static RuntimeException refusal(final String title, final String html,
 		final Exception exception)
 	{
-		return new RuntimeException(
-			title + "::" + "<html><body width='350'><h2>" + title + "</h2><p>" + html, exception);
+		return new SignInRefusedException(title, SignInRefusal.asTheDialogShowsIt(title, html),
+			exception);
+	}
+
+	/**
+	 * Logs the failure by the type of each exception of its chain and the line a parser names,
+	 * never by their messages
+	 *
+	 * @param failure
+	 *            what opening threw
+	 */
+	private static void logByItsTypes(final Exception failure)
+	{
+		ReaderFailureTrace toldByItsTypes = ReaderFailureTrace.of(failure);
+		log.log(Level.SEVERE, toldByItsTypes.getMessage(), toldByItsTypes);
 	}
 
 	/**
@@ -366,7 +414,8 @@ public class ApplicationXmlFileReader
 	 * @param detail
 	 *            what the message names, never any of the content
 	 * @param cause
-	 *            the failure that decides the message, logged
+	 *            the failure that decides the message, logged: one of the reader's own exceptions,
+	 *            whose cause is told by its types, or a failure told by its types
 	 * @param exception
 	 *            what opening threw
 	 * @return the exception to throw
@@ -380,8 +429,8 @@ public class ApplicationXmlFileReader
 		// %1$s rather than {0}: the bundle lookup formats braces itself and fills them with null
 		String notOpenedReason = String
 			.format(Messages.getString(keyPrefix + ".message", defaultMessage), detail);
-		return new RuntimeException(notOpenedTitle + "::" + "<html><body width='350'>" + "<h2>"
-			+ notOpenedTitle + "</h2>" + "<p>" + notOpenedReason, exception);
+		return new SignInRefusedException(notOpenedTitle,
+			SignInRefusal.asTheDialogShowsIt(notOpenedTitle, notOpenedReason), exception);
 	}
 
 	private static <T extends Throwable> T causeOf(final Throwable failure, final Class<T> type)
@@ -401,61 +450,166 @@ public class ApplicationXmlFileReader
 	{
 		// PasswordVaultFormat decides by the marker in the file which of the two formats this is,
 		// and reads a database written before the marker existed just as well
-		char[] xml = PasswordVaultFormat.decrypt(applicationFile, password);
+		char[] xml = null;
 		try
 		{
+			xml = PasswordVaultFormat.decrypt(applicationFile, password);
 			return VaultXmlCodec.toModel(xml);
 		}
-		catch (VaultContentUnreadableException unreadable)
+		catch (BadPaddingException | VaultContentUnreadableException
+			| VaultHoldsAForeignTypeException failure)
 		{
 			// the marker is read again only here, where it decides what the failure means: the
 			// format it names authenticates, the one before it does not (#1188)
-			if (PasswordVaultFormat.isCurrentFormat(Files.readAllBytes(applicationFile.toPath())))
+			if (PasswordVaultFormat.isCurrentFormat(Files.readAllBytes(applicationFile.toPath()))
+				|| !isWhatAWrongKeyLeaves(failure))
 			{
-				throw unreadable;
+				throw failure;
 			}
-			throw notDecryptedWhenNoXml(unreadable);
 		}
 		finally
 		{
-			SecretBuffers.wipe(xml);
+			if (xml != null)
+			{
+				SecretBuffers.wipe(xml);
+			}
 		}
+		// the password did not decrypt the database (#1188)
+		throw new VaultNotDecryptedException();
 	}
 
 	public static ApplicationModelBean getApplicationModelBean(File applicationFile,
 		char[] password, File keyFile) throws Exception
 	{
-		ApplicationModelBean applicationModelBean;
-		PrivateKey privateKey;
-		privateKey = KeyFileOnDisk.readKey(keyFile, true);
-
+		PrivateKey privateKey = KeyFileOnDisk.readKey(keyFile, true);
 		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
-		String encryptedXml = decryptedWithKeyFile(privateKey, encryptedBytes);
+		String passwordLayer = decryptedWithKeyFile(privateKey, encryptedBytes);
+		requireAPasswordLayer(passwordLayer);
 		// one unwipeable copy of the master password, and one of the xml: this path decrypts
 		// through PasswordStringDecryptor, which takes a String and is a library class that is not
 		// changed from this repository (#294, architecture.md)
 		String passwordText = String.valueOf(password);
-		String xml = decryptedWithPassword(encryptedXml, passwordText);
-		try
-		{
-			applicationModelBean = throughTheCodec(xml);
-		}
-		catch (VaultContentUnreadableException unreadable)
-		{
-			// the password layer authenticates in neither of its formats (#1188)
-			if (!unreadable.isNoXml())
-			{
-				throw unreadable;
-			}
-			applicationModelBean = readTheWayEightWroteIt(encryptedXml, passwordText)
-				.orElseThrow(() -> new VaultNotDecryptedException(unreadable));
-		}
+		// the password layer authenticates in neither of its formats (#1188): when the password
+		// does not decrypt it, the database was not decrypted
+		ApplicationModelBean applicationModelBean = behindThePasswordLayer(passwordLayer,
+			passwordText).orElseThrow(VaultNotDecryptedException::new);
 		// the key is not in the file and must not be (#350): it comes from the key file whoever
 		// signed in just picked, and the model needs it for the next save and for the plugins that
 		// read it. The key-only path below does the same thing for the same reason
-		applicationModelBean.getMasterPwFileModelBean()
+		signInDataOf(applicationModelBean)
 			.setPrivateKeyInfo(KeyModelExtensions.toKeyModel(privateKey));
 		return applicationModelBean;
+	}
+
+	/**
+	 * The model behind the password layer, or nothing when the password did not decrypt it: both
+	 * formats refused the key, or one of them let it through and what came out is content a wrong
+	 * key could leave, and the layer does not read in 8's format either
+	 * ({@link #readTheWayEightWroteIt}). Each of these is the same answer: the password did not
+	 * decrypt the layer
+	 *
+	 * @param passwordLayer
+	 *            the password layer, in Base64
+	 * @param passwordText
+	 *            the master password
+	 * @return the model, or empty when the password did not decrypt the layer
+	 * @throws Exception
+	 *             when the content cannot be read for another reason
+	 */
+	private static Optional<ApplicationModelBean> behindThePasswordLayer(final String passwordLayer,
+		final String passwordText) throws Exception
+	{
+		String xml;
+		try
+		{
+			xml = decryptedWithPassword(passwordLayer, passwordText);
+		}
+		catch (GeneralSecurityException refusedByBothFormats)
+		{
+			// the answer, not a failure to pass on: the password did not decrypt the layer, which
+			// the caller reports and the sign-in records as such
+			return Optional.empty();
+		}
+		try
+		{
+			return Optional.of(throughTheCodec(xml));
+		}
+		catch (VaultContentUnreadableException | VaultHoldsAForeignTypeException failure)
+		{
+			if (!isWhatAWrongKeyLeaves(failure))
+			{
+				throw failure;
+			}
+			return readTheWayEightWroteIt(passwordLayer, passwordText);
+		}
+	}
+
+	/**
+	 * Whether a failure of a decryption that authenticates nothing is what a wrong key leaves: the
+	 * padding check refused the key, or let it through by chance - about once in 256 tries - and
+	 * what came out is no xml at all, or a root the reader fails on before it converts anything: a
+	 * name it cannot decode or resolve, or a type other than the vault (#1188). Well-formed xml
+	 * whose root is the vault stays what it is on these paths as on every other, the database that
+	 * was decrypted and holds what this version cannot build (#624), as a newer version's database
+	 * does
+	 *
+	 * @param failure
+	 *            what the decryption or the reader threw
+	 * @return true if a wrong key leaves such a failure
+	 */
+	private static boolean isWhatAWrongKeyLeaves(final Exception failure)
+	{
+		if (failure instanceof VaultContentUnreadableException unreadable)
+		{
+			return unreadable.isNoXml() || unreadable.isAtTheRoot();
+		}
+		if (failure instanceof VaultHoldsAForeignTypeException foreign)
+		{
+			return foreign.isAtTheRoot();
+		}
+		return failure instanceof BadPaddingException;
+	}
+
+	/**
+	 * Requires that what the key file opened is a password layer, which is Base64. A database of
+	 * the key file alone holds the vault's xml there instead, and says so; anything else is in no
+	 * format this version reads
+	 *
+	 * @param passwordLayer
+	 *            what the key file opened
+	 * @throws VaultOpensWithTheKeyFileAloneException
+	 *             when it is the xml of a database of the key file alone
+	 * @throws VaultFormatUnknownException
+	 *             when it is neither a password layer nor xml
+	 */
+	private static void requireAPasswordLayer(final String passwordLayer)
+	{
+		try
+		{
+			Base64.getDecoder().decode(passwordLayer);
+		}
+		catch (IllegalArgumentException noBase64)
+		{
+			if (couldBeginAnXmlDocument(passwordLayer))
+			{
+				throw new VaultOpensWithTheKeyFileAloneException();
+			}
+			throw new VaultFormatUnknownException(noBase64);
+		}
+	}
+
+	/**
+	 * Whether the text could begin an xml document: after white space and a byte order mark, a
+	 * {@code <}
+	 */
+	private static boolean couldBeginAnXmlDocument(final String text)
+	{
+		int index = 0;
+		while (index < text.length() && " \t\r\n\uFEFF".indexOf(text.charAt(index)) >= 0)
+		{
+			index++;
+		}
+		return index < text.length() && text.charAt(index) == '<';
 	}
 
 	public static ApplicationModelBean getApplicationModelBean(File applicationFile, File keyFile)
@@ -467,11 +621,10 @@ public class ApplicationXmlFileReader
 	public static ApplicationModelBean getApplicationModelBean(File applicationFile,
 		PrivateKey privateKey) throws Exception
 	{
-		ApplicationModelBean applicationModelBean;
 		byte[] encryptedBytes = ReadFileExtensions.readFileToBytearray(applicationFile);
 		String xml = decryptedWithKeyFile(privateKey, encryptedBytes);
-		applicationModelBean = throughTheCodec(xml);
-		applicationModelBean.getMasterPwFileModelBean()
+		ApplicationModelBean applicationModelBean = throughTheCodec(xml);
+		signInDataOf(applicationModelBean)
 			.setPrivateKeyInfo(KeyModelExtensions.toKeyModel(privateKey));
 		return applicationModelBean;
 	}
@@ -514,12 +667,12 @@ public class ApplicationXmlFileReader
 
 	/**
 	 * The model behind the password layer read the way 8 wrote it, for a layer whose decryption
-	 * gave back no xml. This version's format is tried first, and a layer of 8 whose length after
-	 * the salt is a whole number of that format's cipher blocks passes its padding check for about
-	 * one password in 256: the text it then gives back is noise, at every sign-in, and the layer is
-	 * one that only 8's format reads. Only a layer that reads in 8's format changes the outcome;
-	 * when it does not, the failure the decryption already gave stands as it is, and a wrong
-	 * password is still a wrong password (#1188)
+	 * gave back content a wrong key could leave. This version's format is tried first, and a layer
+	 * of 8 whose length after the salt is a whole number of that format's cipher blocks passes its
+	 * padding check for about one password in 256: the text it then gives back is noise, at every
+	 * sign-in, and the layer is one that only 8's format reads. Only a layer that reads in 8's
+	 * format changes the outcome; when it does not, the password did not decrypt the layer, and a
+	 * wrong password is still a wrong password (#1188)
 	 *
 	 * @param encryptedXml
 	 *            the password layer, in Base64
@@ -543,26 +696,6 @@ public class ApplicationXmlFileReader
 			// the outcome is the one the first decryption gave, which the caller reports
 			return Optional.empty();
 		}
-	}
-
-	/**
-	 * What content that a decryption without authentication gave back, and that the reader could
-	 * not read, means: the format before the marker, and the password layer of a database with a
-	 * password and a key file in either of its formats, end their decryption with a padding check
-	 * and nothing else. A wrong key passes it about once in 256 tries (#1188), and what comes out
-	 * then is no xml at all: that is a failed decryption, which the sign-in calls a wrong password
-	 * or key file (#1005). Well-formed xml this version cannot read stays what it is on these paths
-	 * as on every other, the database that was decrypted and holds what this version cannot build
-	 * (#624), as a newer version's database does
-	 *
-	 * @param unreadable
-	 *            what the reader threw for the content
-	 * @return the failure to throw: a {@link VaultNotDecryptedException} when the content is no
-	 *         xml, the given one otherwise
-	 */
-	private static Exception notDecryptedWhenNoXml(final VaultContentUnreadableException unreadable)
-	{
-		return unreadable.isNoXml() ? new VaultNotDecryptedException(unreadable) : unreadable;
 	}
 
 	/**

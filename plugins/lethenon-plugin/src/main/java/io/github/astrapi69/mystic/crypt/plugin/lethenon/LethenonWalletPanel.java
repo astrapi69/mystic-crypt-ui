@@ -121,6 +121,11 @@ public class LethenonWalletPanel extends JPanel
 
 	private final JTextArea txtBalanceExact = message("txtBalanceExact", false);
 
+	/**
+	 * What waits for a block and what stays spendable after it (#921); hidden while nothing waits
+	 */
+	private final JTextArea txtWaiting = message("txtWaiting", false);
+
 	/** When this program last synced the chain and how old its last block is (#831) */
 	private final JTextArea txtChainState = message("txtChainState", false);
 
@@ -556,6 +561,25 @@ public class LethenonWalletPanel extends JPanel
 			locale, exact, LethAmounts.rounded(incoming.total(), locale), incoming.count());
 	}
 
+	/**
+	 * The transfers that wait for a block, their sum with the fees, and what the accounts can still
+	 * spend after them; nothing while none waits
+	 */
+	private void showWhatWaits()
+	{
+		String waiting = balance == null || balance.waiting().count() == 0
+			? ""
+			: LethenonMessages.format("lethenon.wallet.balance.waiting",
+				"{0,choice,1#1 transfer of yours waits|1<{0,number,integer} transfers of yours wait} for a block: "
+					+ "{1}, fees included. After {0,choice,1#it|1<them}, {2} is spendable.",
+				locale, balance.waiting().count(),
+				LethAmounts.format(balance.waiting().amount(), locale),
+				LethAmounts.format(balance.afterWaiting(), locale));
+		modelObject.setWaiting(waiting);
+		txtWaiting.setText(waiting);
+		txtWaiting.setVisible(!waiting.isEmpty());
+	}
+
 	private void showTheBalance(final String exact)
 	{
 		String rounded = balance == null ? "" : LethAmounts.rounded(balance.total(), locale);
@@ -563,6 +587,7 @@ public class LethenonWalletPanel extends JPanel
 		modelObject.setBalanceExact(exact);
 		lblBalance.setText(rounded);
 		txtBalanceExact.setText(exact);
+		showWhatWaits();
 		pnlTakeOver.setVisible(paymentsToTakeOver());
 	}
 
@@ -839,6 +864,9 @@ public class LethenonWalletPanel extends JPanel
 			"the exact balance, and whether payments to your address were checked"));
 		view.add(lblBalance, ToolForm.WIDE + ", gaptop 6, hidemode 3");
 		view.add(txtBalanceExact, ToolForm.WIDE + ", wmin 0, hidemode 3");
+		txtWaiting.setToolTipText(text("lethenon.wallet.tooltip.waiting",
+			"transfers you sent that are not in a block yet; they leave your accounts with the next one"));
+		view.add(txtWaiting, ToolForm.WIDE + ", wmin 0, hidemode 3");
 		pnlTakeOver = ToolForm.buttons(LethenonSwing.button("btnTakeOverIncoming",
 			text("lethenon.wallet.button.take.over.incoming", "Take over"),
 			event -> onTakeOverIncoming(),

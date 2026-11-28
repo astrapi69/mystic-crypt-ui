@@ -29,6 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
+import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 import org.assertj.swing.edt.GuiActionRunner;
@@ -39,6 +40,7 @@ import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MenuId;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
+import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
 
 /**
  * Who owns the sign-in dialog and where it opens (#63).
@@ -48,12 +50,21 @@ import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
  * on the screen; when "Open Database File" shows it again the main window is visible and the dialog
  * opens centred over it. The display of the tests has one screen, so the second case moves the main
  * window far from the middle of it.
+ * <p>
+ * "Create your master key", which the sign-in opens for a new database, belongs to the main window
+ * too and, as long as that is not shown, is centred on the screen as well.
  */
 class TheSignInDialogBelongsToTheMainWindowUiTest extends AbstractUiTest
 {
 
 	/** How far a centre may be off, for the window manager's frame decorations */
 	private static final int TOLERANCE = 40;
+
+	/**
+	 * How far a dialog may be off the place it is given: a few pixels, for the rounding of a half
+	 * width. Its bounds are read once they have settled (#1131)
+	 */
+	private static final int PLACEMENT_TOLERANCE = 8;
 
 	@Test
 	@DisplayName("at the start the sign-in dialog belongs to the main window and is centred on the screen")
@@ -110,6 +121,38 @@ class TheSignInDialogBelongsToTheMainWindowUiTest extends AbstractUiTest
 			+ windowCentre + ", at " + dialogCentre + ", not over the screen at " + screenCentre);
 	}
 
+	/**
+	 * "Create your master key", opened from the sign-in for a new database, is centred on the
+	 * screen: the main window it belongs to is not shown yet. It used to centre itself in its
+	 * constructor, while it was still 0 by 0 pixels, and was given its size only afterwards, so its
+	 * upper left corner landed on the middle of the screen
+	 */
+	@Test
+	@DisplayName("Create your master key, opened from the sign-in, is centred on the screen")
+	void createYourMasterKey_isCentredOnTheScreen()
+	{
+		SignInDialogSteps signIn = launchApplication();
+		CreateMasterKeySteps createMasterKey = signIn
+			.startNewDatabase(new File(tempHome, "master-key-placement.mcrdb"));
+		Window dialog = createMasterKey.dialog().target();
+		Rectangle settled = UiTestSpeed.awaitSettled(dialog)[0];
+		Point dialogCentre = centreOf(settled);
+		Point usableCentre = usableCentreOf(dialog);
+		createMasterKey.cancelAndAwaitClose();
+		signIn.cancel();
+
+		assertTrue(near(dialogCentre, usableCentre, PLACEMENT_TOLERANCE),
+			"the dialog " + settled + " is centred on the screen's usable area: its centre "
+				+ dialogCentre + ", the area's " + usableCentre);
+	}
+
+	private static Point usableCentreOf(final Window window)
+	{
+		Rectangle usable = GuiActionRunner
+			.execute(() -> ScreenPlacement.usableBoundsOf(window.getGraphicsConfiguration()));
+		return new Point(usable.x + usable.width / 2, usable.y + usable.height / 2);
+	}
+
 	private static void assertOwnerIs(final Window dialog)
 	{
 		String ownerClass = GuiActionRunner.execute(() -> dialog.getOwner().getClass().getName());
@@ -132,6 +175,11 @@ class TheSignInDialogBelongsToTheMainWindowUiTest extends AbstractUiTest
 
 	private static boolean near(final Point one, final Point other)
 	{
-		return Math.abs(one.x - other.x) <= TOLERANCE && Math.abs(one.y - other.y) <= TOLERANCE;
+		return near(one, other, TOLERANCE);
+	}
+
+	private static boolean near(final Point one, final Point other, final int tolerance)
+	{
+		return Math.abs(one.x - other.x) <= tolerance && Math.abs(one.y - other.y) <= tolerance;
 	}
 }

@@ -29,10 +29,13 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.PrivateKey;
+import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import org.bouncycastle.asn1.x500.X500Name;
@@ -240,10 +243,26 @@ public final class KeyStoreSupport
 			? KeyPairFactory.newKeyPair(algorithm, keySize)
 			: KeyPairFactory.newKeyPair(algorithm);
 		X500Name name = parseDistinguishedName(distinguishedName);
-		X509Certificate certificate = CertFactory.newX509CertificateV3(keyPair, name, daysValid,
-			name, signatureAlgorithm);
+		Date notBefore = new Date();
+		Date notAfter = Date.from(notBefore.toInstant().plus(daysValid, ChronoUnit.DAYS));
+		X509Certificate certificate = CertFactory.newX509CertificateV3(keyPair, name,
+			newSerialNumber(), notBefore, notAfter, name, signatureAlgorithm);
 		KeyStoreExtensions.addAndStorePrivateKey(keyStore, file, alias, keyPair.getPrivate(),
 			storePassword.toCharArray(), new Certificate[] { certificate });
+	}
+
+	/**
+	 * A serial number the way crypt-data 13.3 draws it for the overload that chose one itself: 158
+	 * random bits from {@link SecureRandom} below a set 159th bit, so it is positive and its DER
+	 * encoding takes the 20 octets RFC 5280 section 4.1.2.2 allows. That overload is deprecated
+	 * ("the caller should choose the serial number") and the library's own helper is private.
+	 *
+	 * @return a new random serial number
+	 */
+	static BigInteger newSerialNumber()
+	{
+		// TODO(crypt-data#171): take the library's helper once it is public
+		return new BigInteger(158, new SecureRandom()).setBit(158);
 	}
 
 	/**

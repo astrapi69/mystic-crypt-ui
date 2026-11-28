@@ -27,9 +27,11 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.List;
 
 import io.github.astrapi69.lethenon.Amount;
 import io.github.astrapi69.lethenon.Bytes;
+import io.github.astrapi69.lethenon.ChainFile;
 import io.github.astrapi69.lethenon.ChainState;
 import io.github.astrapi69.lethenon.PublishedAddress;
 
@@ -60,11 +62,14 @@ final class OverviewBalance
 	{
 		ChainReplaySupport.Replayed replayed = ChainReplaySupport.replayed(chainFile);
 		ChainState state = replayed.replay().finalState();
-		Amount ed25519 = state.balanceOf(PublishedAddress.parse(wallet.address()).spendKey());
-		Amount mlDsa = wallet.mlDsaAccount().isEmpty()
-			? Amount.ZERO
-			: state.balanceOf(Bytes.ofHex(wallet.mlDsaAccount()));
+		Bytes ed25519Account = PublishedAddress.parse(wallet.address()).spendKey();
+		List<Bytes> accounts = wallet.mlDsaAccount().isEmpty()
+			? List.of(ed25519Account)
+			: List.of(ed25519Account, Bytes.ofHex(wallet.mlDsaAccount()));
+		Amount ed25519 = state.balanceOf(ed25519Account);
+		Amount mlDsa = accounts.size() == 1 ? Amount.ZERO : state.balanceOf(accounts.get(1));
 		return new AccountsBalance(ed25519, mlDsa,
-			Instant.ofEpochMilli(replayed.chain().getLast().timestamp()));
+			Instant.ofEpochMilli(replayed.chain().getLast().timestamp()),
+			WaitingTransfers.outgoing(new ChainFile(chainFile).readPending(), accounts));
 	}
 }

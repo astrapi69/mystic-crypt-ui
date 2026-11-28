@@ -26,8 +26,10 @@ package io.github.astrapi69.mystic.crypt.plugin.wifiqr;
 
 import java.awt.Component;
 import java.awt.Window;
+import java.awt.image.BaseMultiResolutionImage;
 import java.util.Arrays;
 
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -51,6 +53,19 @@ import net.miginfocom.swing.MigLayout;
 @Extension
 public class WifiQrEntryAction implements EntryActionContribution
 {
+
+	/**
+	 * The plugin's icon, its 16 px image with the 32 px variant a scaled screen draws (#1192)
+	 */
+	private final Icon icon = new ImageIcon(new BaseMultiResolutionImage(
+		new ImageIcon(getClass().getResource("icon-16.png")).getImage(),
+		new ImageIcon(getClass().getResource("icon-32.png")).getImage()));
+
+	@Override
+	public Icon getIcon()
+	{
+		return icon;
+	}
 
 	@Override
 	public String getActionName()

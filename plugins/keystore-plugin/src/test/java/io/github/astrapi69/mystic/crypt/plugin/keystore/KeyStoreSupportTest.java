@@ -296,4 +296,24 @@ class KeyStoreSupportTest
 		assertTrue(exception.getMessage().contains("CN="),
 			"the message must show the expected format: " + exception.getMessage());
 	}
+
+	@Test
+	@DisplayName("a certificate made here has a serial of its own, positive and 159 bits long")
+	void addKeyPair_givesEveryCertificateARandomSerialNumberOfItsOwn(@TempDir File directory)
+		throws Exception
+	{
+		File file = newStoreFile(directory, "serials.p12");
+		KeyStore keyStore = KeyStoreSupport.create(file, KeystoreType.PKCS12, STORE_PASSWORD);
+
+		KeyStoreSupport.addKeyPair(keyStore, file, STORE_PASSWORD, "first", "CN=first",
+			KeyPairGeneratorAlgorithm.RSA);
+		KeyStoreSupport.addKeyPair(keyStore, file, STORE_PASSWORD, "second", "CN=second",
+			KeyPairGeneratorAlgorithm.RSA);
+
+		java.math.BigInteger first = KeyStoreSupport.serialNumber(keyStore, "first");
+		java.math.BigInteger second = KeyStoreSupport.serialNumber(keyStore, "second");
+		assertEquals(159, first.bitLength(), "158 random bits below a set 159th bit");
+		assertEquals(159, second.bitLength(), "158 random bits below a set 159th bit");
+		assertFalse(first.equals(second), "two certificates do not share a serial number");
+	}
 }

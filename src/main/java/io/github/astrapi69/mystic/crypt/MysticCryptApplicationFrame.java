@@ -178,6 +178,34 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		return instance;
 	}
 
+	/**
+	 * The main window is the same only as itself. The base classes derive {@code equals} and
+	 * {@code hashCode} from fields that change while the window is built, and the JDK's keyboard
+	 * manager keeps the keystrokes of the menus in a hash table keyed by this window: a key whose
+	 * hash code changed is not found again, and the manager writes a stack trace for every
+	 * keystroke of a menu that is removed (#1245).
+	 *
+	 * @param other
+	 *            the object to compare with
+	 * @return true only for this very window
+	 */
+	@Override
+	public boolean equals(final Object other)
+	{
+		return this == other;
+	}
+
+	/**
+	 * The identity hash code, see {@link #equals(Object)}
+	 *
+	 * @return the identity hash code
+	 */
+	@Override
+	public int hashCode()
+	{
+		return System.identityHashCode(this);
+	}
+
 	public LongIdGenerator getIdGenerator()
 	{
 		if (this.idGenerator == null)
@@ -321,12 +349,13 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 	{
 		try
 		{
-			PluginArchives.unpackChanged(pluginManager.getPluginsRoot());
+			PluginArchives.unpackChanged(pluginManager.getPluginsRoots().getFirst());
 		}
 		catch (IOException exception)
 		{
-			log.log(Level.WARNING, "could not unpack the plugin zips in "
-				+ pluginManager.getPluginsRoot() + " by their content: " + exception.getMessage(),
+			log.log(Level.WARNING,
+				"could not unpack the plugin zips in " + pluginManager.getPluginsRoots().getFirst()
+					+ " by their content: " + exception.getMessage(),
 				exception);
 		}
 	}
@@ -420,14 +449,23 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		setTitle(Messages.getString("mainframe.title"));
 		MysticCryptSettings persistedSettings = MysticCryptSettings
 			.load(getConfigurationDirectory());
-		// on the event thread: re-installing the UI of every component takes the AWT tree lock,
-		// and from this thread it blocked against the event thread writing a text document (#1097)
-		EventThreadTask.runAndWait(() -> {
-			setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
-			// apply a persisted look-and-feel choice on top of the Nimbus default
-			GeneralSettingsPanel.applyLookAndFeel(persistedSettings.getLookAndFeel(),
-				persistedSettings.getMetalTheme());
-		});
+		// the sign-in dialog applied the persisted look before the components of this window were
+		// built, so it is normally in use already; a switch now only re-installs the UI of the
+		// finished menus and makes the JDK's keyboard manager write 14 stack traces (#1245). Only
+		// a persisted look that could not be applied then falls back to Nimbus and tries again
+		if (!GeneralSettingsPanel.isLookAndFeelActive(persistedSettings.getLookAndFeel(),
+			persistedSettings.getMetalTheme()))
+		{
+			// on the event thread: re-installing the UI of every component takes the AWT tree lock,
+			// and from this thread it blocked against the event thread writing a text document
+			// (#1097)
+			EventThreadTask.runAndWait(() -> {
+				setDefaultLookAndFeel(LookAndFeels.NIMBUS, this);
+				// apply a persisted look-and-feel choice on top of the Nimbus default
+				GeneralSettingsPanel.applyLookAndFeel(persistedSettings.getLookAndFeel(),
+					persistedSettings.getMetalTheme());
+			});
+		}
 		// same for a persisted "no tooltips" preference (#170)
 		GeneralSettingsPanel.applyTooltipsEnabled(persistedSettings.isTooltipsEnabled());
 		// the sign-in dialog has already been on screen at this point, and the screen it was on is

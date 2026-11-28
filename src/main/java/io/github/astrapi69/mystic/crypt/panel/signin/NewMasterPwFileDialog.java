@@ -30,16 +30,14 @@ import java.awt.event.ActionEvent;
 import javax.swing.*;
 
 import io.github.astrapi69.model.api.IModel;
-import io.github.astrapi69.mystic.crypt.ui.screen.ScreenPlacement;
-import io.github.astrapi69.swing.base.PanelDialog;
+import io.github.astrapi69.mystic.crypt.ui.screen.CentredPanelDialog;
 
-public class NewMasterPwFileDialog extends PanelDialog<MasterPwFileModelBean>
+public class NewMasterPwFileDialog extends CentredPanelDialog<MasterPwFileModelBean>
 {
 	public NewMasterPwFileDialog(Frame owner, String title, boolean modal,
 		IModel<MasterPwFileModelBean> model)
 	{
 		super(owner, title, modal, model);
-		ScreenPlacement.centerOnScreenOf(this, owner);
 	}
 
 	protected JPanel newContent(IModel<MasterPwFileModelBean> model)

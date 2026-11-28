@@ -26,10 +26,10 @@ package io.github.astrapi69.mystic.crypt.plugin.wifiqr;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.MultiResolutionImage;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
@@ -40,7 +40,6 @@ import javax.swing.ImageIcon;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 import io.nayuki.qrcodegen.QrCode;
 import io.nayuki.qrcodegen.QrSegment;
 
@@ -90,12 +89,15 @@ class WifiQrEntryActionTest
 	}
 
 	@Test
-	@DisplayName("the plugin's icon loads under its plugin id, the way the host sets it on the action (#1192)")
-	void theIcon_loadsUnderThePluginId()
+	@DisplayName("the action brings the plugin's icon, 16 px with the 32 px variant, read next to its class (#1192)")
+	void theIcon_isReadNextToTheAction()
 	{
-		Icon icon = PluginIcon.of(WifiQrEntryAction.class, "wifi-qr-plugin");
+		Icon icon = new WifiQrEntryAction().getIcon();
 
-		assertNotNull(icon);
 		assertEquals(16, icon.getIconWidth());
+		assertEquals(16, icon.getIconHeight());
+		MultiResolutionImage images = (MultiResolutionImage)((ImageIcon)icon).getImage();
+		assertTrue(images.getResolutionVariants().stream()
+			.anyMatch(variant -> variant.getWidth(null) == 32), "the 32 px variant is there");
 	}
 }

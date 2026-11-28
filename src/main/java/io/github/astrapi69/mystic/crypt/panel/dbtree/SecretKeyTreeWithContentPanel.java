@@ -29,8 +29,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -57,7 +57,6 @@ import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.gen.tree.TreeIdNode;
 import io.github.astrapi69.gen.tree.convert.BaseTreeNodeTransformer;
 import io.github.astrapi69.gen.tree.visitor.MaxIndexFinderTreeNodeVisitor;
-import io.github.astrapi69.gen.tree.visitor.ReindexTreeNodeVisitor;
 import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
@@ -554,9 +553,6 @@ public class SecretKeyTreeWithContentPanel
 		// get the selected tree node from the DefaultMutableTreeNode
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> selectedTreeNode = (BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>)selectedDefaultMutableTreeNode
 			.getUserObject();
-		// declare a visitor for reindex the new tree nodes
-		ReindexTreeNodeVisitor<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long, BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> reindexTreeNodeVisitor;
-
 		// declare a visitor for find the maximum index
 		MaxIndexFinderTreeNodeVisitor<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long, BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> maxIndexFinderTreeNodeVisitor;
 
@@ -602,9 +598,6 @@ public class SecretKeyTreeWithContentPanel
 			// set new name ...
 			clonedTreeNode.getValue().setName(newName);
 			clonedTreeNode.setDisplayValue(newName);
-			clonedTreeNode.setParent(parentTreeNode);
-
-			parentTreeNode.addChild(clonedTreeNode);
 
 			selectedTreeNode.getRoot().accept(maxIndexFinderTreeNodeVisitor);
 			maxIndex = maxIndexFinderTreeNodeVisitor.getMaxIndex();
@@ -613,8 +606,7 @@ public class SecretKeyTreeWithContentPanel
 			MysticCryptApplicationFrame.getInstance().setIdGenerator(LongIdGenerator.of(nextId));
 			LongIdGenerator idGenerator = MysticCryptApplicationFrame.getInstance()
 				.getIdGenerator();
-			reindexTreeNodeVisitor = new ReindexTreeNodeVisitor<>(idGenerator);
-			clonedTreeNode.accept(reindexTreeNodeVisitor);
+			NodeDuplication.attach(clonedTreeNode, parentTreeNode, idGenerator);
 
 			BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> rootTreeNode = selectedTreeNode
 				.getRoot();
@@ -1259,13 +1251,17 @@ public class SecretKeyTreeWithContentPanel
 		return EntryActions.menuItems(frame.getEntryActions(), selected, this);
 	}
 
-	private static boolean validateUrlString(String urlString)
+	static boolean validateUrlString(String urlString)
 	{
+		if (urlString == null)
+		{
+			return false;
+		}
 		try
 		{
-			new URL(urlString).toURI();
+			new URI(urlString).toURL();
 		}
-		catch (MalformedURLException | URISyntaxException e)
+		catch (MalformedURLException | URISyntaxException | IllegalArgumentException e)
 		{
 			return false;
 		}
@@ -1416,11 +1412,10 @@ public class SecretKeyTreeWithContentPanel
 			String urlString = EntryText.asText(tableEntry.getUrl());
 			try
 			{
-				URL url = new URL(urlString);
-				url.toExternalForm();
+				new URI(urlString).toURL();
 				BrowserControlExtensions.displayURLonStandardBrowser(this, urlString);
 			}
-			catch (MalformedURLException e)
+			catch (MalformedURLException | URISyntaxException e)
 			{
 				throw new RuntimeException(e);
 			}

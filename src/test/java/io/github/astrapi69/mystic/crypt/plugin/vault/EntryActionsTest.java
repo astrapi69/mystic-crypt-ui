@@ -28,15 +28,19 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Component;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 
@@ -59,6 +63,8 @@ class EntryActionsTest
 
 	private final JPanel parent = new JPanel();
 
+	private final Icon icon = new ImageIcon(new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB));
+
 	private final char[] password = TestPasswords.throwaway().toCharArray();
 
 	private final MysticCryptEntryModelBean entry = MysticCryptEntryModelBean.builder()
@@ -79,6 +85,12 @@ class EntryActionsTest
 		}
 
 		@Override
+		public Icon getIcon()
+		{
+			return icon;
+		}
+
+		@Override
 		public void act(final MysticCryptEntryModelBean picked, final Component where)
 		{
 			handed.add(picked);
@@ -86,7 +98,7 @@ class EntryActionsTest
 	};
 
 	@Test
-	@DisplayName("the item carries the action's name and is enabled while one entry is selected")
+	@DisplayName("the item carries the action's name and icon and is enabled while one entry is selected")
 	void theItem_isEnabledWhileOneEntryIsSelected()
 	{
 		List<JMenuItem> items = EntryActions.menuItems(List.of(action(recording)),
@@ -95,6 +107,7 @@ class EntryActionsTest
 		assertEquals(1, items.size());
 		assertEquals("Show Wi-Fi QR code", items.get(0).getText());
 		assertEquals("mnuEntryAction-wifi-qr-plugin", items.get(0).getName());
+		assertSame(icon, items.get(0).getIcon(), "the item shows the icon the plugin brings");
 		assertTrue(items.get(0).isEnabled());
 		assertTrue(handed.isEmpty(), "nothing is handed over before the click");
 	}
@@ -137,6 +150,12 @@ class EntryActionsTest
 			public String getActionName()
 			{
 				return "fails";
+			}
+
+			@Override
+			public Icon getIcon()
+			{
+				return icon;
 			}
 
 			@Override

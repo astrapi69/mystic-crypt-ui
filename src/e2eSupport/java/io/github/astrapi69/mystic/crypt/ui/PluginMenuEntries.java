@@ -25,7 +25,9 @@
 package io.github.astrapi69.mystic.crypt.ui;
 
 import java.awt.Component;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.JMenu;
@@ -55,20 +57,68 @@ final class PluginMenuEntries
 	{
 		return GuiActionRunner.execute(() -> {
 			Map<String, Boolean> entries = new LinkedHashMap<>();
-			JMenuBar menuBar = MysticCryptApplicationFrame.getInstance().getJMenuBar();
-			for (int index = 0; index < menuBar.getMenuCount(); index++)
+			for (Component child : pluginsMenuComponents())
 			{
-				JMenu menu = menuBar.getMenu(index);
-				if (menu != null && "Plugins".equals(menu.getText()))
-				{
-					for (Component child : menu.getMenuComponents())
-					{
-						collect(child, "Plugins", entries);
-					}
-				}
+				collect(child, "Plugins", entries);
 			}
 			return entries;
 		});
+	}
+
+	/**
+	 * The menu items a user clicks in each plugin's submenu of the Plugins menu, by the submenu's
+	 * text. The items of a submenu inside a plugin's submenu are that plugin's items too
+	 *
+	 * @return the clickable items by plugin submenu, both in menu order
+	 */
+	static Map<String, List<JMenuItem>> clickableItemsByPlugin()
+	{
+		return GuiActionRunner.execute(() -> {
+			Map<String, List<JMenuItem>> itemsByPlugin = new LinkedHashMap<>();
+			for (Component child : pluginsMenuComponents())
+			{
+				if (child instanceof JMenu pluginSubmenu)
+				{
+					List<JMenuItem> items = new ArrayList<>();
+					collectClickable(pluginSubmenu, items);
+					itemsByPlugin.put(pluginSubmenu.getText(), items);
+				}
+			}
+			return itemsByPlugin;
+		});
+	}
+
+	/**
+	 * What the Plugins menu holds, empty when the menu bar has none. Must be called on the event
+	 * dispatch thread
+	 */
+	private static List<Component> pluginsMenuComponents()
+	{
+		JMenuBar menuBar = MysticCryptApplicationFrame.getInstance().getJMenuBar();
+		for (int index = 0; index < menuBar.getMenuCount(); index++)
+		{
+			JMenu menu = menuBar.getMenu(index);
+			if (menu != null && "Plugins".equals(menu.getText()))
+			{
+				return List.of(menu.getMenuComponents());
+			}
+		}
+		return List.of();
+	}
+
+	private static void collectClickable(final JMenu menu, final List<JMenuItem> items)
+	{
+		for (Component child : menu.getMenuComponents())
+		{
+			if (child instanceof JMenu submenu)
+			{
+				collectClickable(submenu, items);
+			}
+			else if (child instanceof JMenuItem item)
+			{
+				items.add(item);
+			}
+		}
 	}
 
 	private static void collect(final Component component, final String parentPath,

@@ -32,14 +32,12 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
-import javax.swing.Icon;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
 import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.mystic.crypt.plugin.api.EntryActionContribution;
-import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 import lombok.extern.java.Log;
 
 /**
@@ -61,7 +59,7 @@ public final class EntryActions
 	 * @param contribution
 	 *            the action
 	 * @param pluginId
-	 *            its plugin's id, which names its icon
+	 *            its plugin's id, which names its menu item
 	 */
 	public record Offered(EntryActionContribution contribution, String pluginId) {
 	}
@@ -85,11 +83,7 @@ public final class EntryActions
 		{
 			JMenuItem item = new JMenuItem(action.contribution().getActionName());
 			item.setName("mnuEntryAction-" + action.pluginId());
-			Icon icon = PluginIcon.of(action.contribution().getClass(), action.pluginId());
-			if (icon != null)
-			{
-				item.setIcon(icon);
-			}
+			item.setIcon(action.contribution().getIcon());
 			item.setEnabled(selected.isPresent());
 			selected.ifPresent(
 				entry -> item.addActionListener(event -> perform(action, entry, parent)));

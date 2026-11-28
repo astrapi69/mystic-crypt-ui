@@ -27,11 +27,13 @@ package io.github.astrapi69.mystic.crypt.panel.signin;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.Serial;
+import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import javax.swing.*;
@@ -41,7 +43,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import org.apache.commons.lang3.StringUtils;
 
 import io.github.astrapi69.browser.BrowserControlExtensions;
-import io.github.astrapi69.collection.pair.ValueBox;
 import io.github.astrapi69.file.create.model.FileInfo;
 import io.github.astrapi69.model.BaseModel;
 import io.github.astrapi69.model.LambdaModel;
@@ -51,10 +52,12 @@ import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.app.file.JsonFileStore;
 import io.github.astrapi69.mystic.crypt.app.file.xml.ApplicationXmlFileReader;
+import io.github.astrapi69.mystic.crypt.app.file.xml.SignInRefusal;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkComponentStateEnum;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.BtnOkStateMachine;
 import io.github.astrapi69.mystic.crypt.panel.signin.button.state.ok.DocumentExtensions;
 import io.github.astrapi69.mystic.crypt.settings.MysticCryptSettings;
+import io.github.astrapi69.mystic.crypt.ui.form.LayoutSafePasswordField;
 import io.github.astrapi69.mystic.crypt.ui.work.CancellableWork;
 import io.github.astrapi69.mystic.crypt.vault.EntryIdentitySupport;
 import io.github.astrapi69.mystic.crypt.write.DataClass;
@@ -173,7 +176,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		lblSignInWorking.setName("lblSignInWorking");
 		cbxMasterPw = new JMCheckBox();
 		cbxKeyFile = new JMCheckBox();
-		txtMasterPw = new JMPasswordField();
+		txtMasterPw = new LayoutSafePasswordField();
 		btnMasterPw = new javax.swing.JButton();
 		btnKeyFileChooser = new javax.swing.JButton();
 		btnHelp = new javax.swing.JButton();
@@ -274,13 +277,12 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 		String selectedKeyFilePath = modelObject.getSelectedKeyFilePath();
 
 
-		ValueBox<String> keyFileValueBox;
+		AtomicReference<String> keyFileSelection;
 		IModel<String> selectedKeyFileItemModel;
 		cmbKeyFileModel = new GenericMutableComboBoxModel<>(modelObject.getKeyFilePaths(),
 			selectedKeyFilePath);
-		keyFileValueBox = ValueBox.<String> builder().value(selectedKeyFilePath).build();
-		selectedKeyFileItemModel = LambdaModel.of(keyFileValueBox::getValue,
-			keyFileValueBox::setValue);
+		keyFileSelection = new AtomicReference<>(selectedKeyFilePath);
+		selectedKeyFileItemModel = LambdaModel.of(keyFileSelection::get, keyFileSelection::set);
 		cmbKeyFile = new JMComboBox<>(cmbKeyFileModel, selectedKeyFileItemModel);
 		cmbKeyFile.setName("cmbKeyFile");
 
@@ -296,12 +298,11 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			modelObject.getApplicationFilePaths().add(selectedApplicationFilePath);
 		}
 
-		ValueBox<String> applicationFileValueBox;
+		AtomicReference<String> applicationFileSelection;
 		IModel<String> selectedApplicationFileItemModel;
-		applicationFileValueBox = ValueBox.<String> builder().value(selectedApplicationFilePath)
-			.build();
-		selectedApplicationFileItemModel = LambdaModel.of(applicationFileValueBox::getValue,
-			applicationFileValueBox::setValue);
+		applicationFileSelection = new AtomicReference<>(selectedApplicationFilePath);
+		selectedApplicationFileItemModel = LambdaModel.of(applicationFileSelection::get,
+			applicationFileSelection::set);
 
 		cmbApplicationFileModel = new GenericMutableComboBoxModel<>(
 			modelObject.getApplicationFilePaths(), selectedApplicationFilePath);
@@ -474,7 +475,7 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 	 */
 	protected boolean isHelpPageReachable(final String helpLink)
 	{
-		URL helpUrl = RuntimeExceptionDecorator.decorate(() -> new URL(helpLink));
+		URL helpUrl = RuntimeExceptionDecorator.decorate(() -> new URI(helpLink).toURL());
 		return URLExtensions.isReachable(helpUrl);
 	}
 
@@ -896,24 +897,16 @@ public class MasterPwWithApplicationFilePanel extends BasePanel<MasterPwFileMode
 			MemoizedSigninModelBean.class);
 	}
 
-	/** Shows why the sign-in was refused, and logs it */
+	/**
+	 * Shows why the sign-in was refused, in the bundle's words, and logs the failure by its types
+	 * ({@link SignInRefusal})
+	 */
 	private void showRefusal(final Exception exception)
 	{
-		String exceptionMessage = exception.getMessage();
-		if (StringUtils.isNotEmpty(exceptionMessage) && exceptionMessage.contains("::"))
-		{
-			String[] split = exceptionMessage.split("::");
-			String title = split[0];
-			String htmlMessage = split[1];
-			JOptionPane.showMessageDialog(this, htmlMessage, title, JOptionPane.ERROR_MESSAGE);
-		}
-		else
-		{
-			String localizedMessage = exception.getLocalizedMessage();
-			JOptionPane.showMessageDialog(this, localizedMessage, exceptionMessage,
-				JOptionPane.ERROR_MESSAGE);
-		}
-		log.log(Level.SEVERE, exception.getMessage(), exception);
+		SignInRefusal refusal = SignInRefusal.of(exception);
+		JOptionPane.showMessageDialog(this, refusal.getHtml(), refusal.getTitle(),
+			JOptionPane.ERROR_MESSAGE);
+		log.log(Level.SEVERE, refusal.getTitle(), refusal.getToldByItsTypes());
 	}
 
 	/**

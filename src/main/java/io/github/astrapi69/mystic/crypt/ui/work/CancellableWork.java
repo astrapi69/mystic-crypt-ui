@@ -25,6 +25,7 @@
 package io.github.astrapi69.mystic.crypt.ui.work;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 
 import javax.swing.SwingUtilities;
@@ -69,10 +70,11 @@ public final class CancellableWork<T>
 		void done(T value);
 
 		/**
-		 * The work ended with an exception and nobody cancelled it
+		 * The work ended with an exception or an error and nobody cancelled it. An error comes in
+		 * an {@link ExecutionException} whose cause it is, as {@code FutureTask} hands one over
 		 *
 		 * @param failure
-		 *            what the work threw
+		 *            what the work threw, or the error it ended with in an ExecutionException
 		 */
 		void failed(Exception failure);
 
@@ -146,6 +148,14 @@ public final class CancellableWork<T>
 			}
 			catch (Exception failure)
 			{
+				screen.execute(() -> answer(started, () -> answer.failed(failure)));
+			}
+			catch (Error error)
+			{
+				// an error ends the work as an exception does, so the answer still comes exactly
+				// once; it is handed over the way FutureTask hands one over, in an
+				// ExecutionException
+				ExecutionException failure = new ExecutionException(error);
 				screen.execute(() -> answer(started, () -> answer.failed(failure)));
 			}
 		});

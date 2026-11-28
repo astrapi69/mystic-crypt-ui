@@ -25,8 +25,11 @@
 package io.github.astrapi69.mystic.crypt.plugin.password;
 
 import java.awt.Component;
+import java.awt.image.BaseMultiResolutionImage;
 import java.util.List;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
 
@@ -34,7 +37,6 @@ import org.pf4j.Extension;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
-import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.util.JInternalFrameExtensions;
@@ -60,13 +62,21 @@ public class PasswordHashMenuContribution implements PluginMenuContribution
 		return true;
 	}
 
+	/**
+	 * The plugin's icon on its menu items: the 16 px image, with the 32 px image as the variant a
+	 * scaled screen draws (#1192)
+	 */
+	private final Icon icon = new ImageIcon(new BaseMultiResolutionImage(
+		new ImageIcon(getClass().getResource("icon-16.png")).getImage(),
+		new ImageIcon(getClass().getResource("icon-32.png")).getImage()));
+
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
-		JMenuItem passwordHashing = new JMenuItem("Password Hashing");
+		JMenuItem passwordHashing = new JMenuItem("Password Hashing", icon);
 		passwordHashing.addActionListener(
 			event -> openInternalFrame("Password Hashing", new PasswordHashPanel()));
-		return PluginIcon.onEvery(List.of(passwordHashing), getClass(), "password-hash-plugin");
+		return List.of(passwordHashing);
 	}
 
 	@Override

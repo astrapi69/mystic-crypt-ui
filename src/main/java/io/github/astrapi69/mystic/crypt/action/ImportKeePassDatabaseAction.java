@@ -53,6 +53,7 @@ import io.github.astrapi69.mystic.crypt.ApplicationPanel;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassCredentials;
+import io.github.astrapi69.mystic.crypt.keepass.KeePassDialogTexts;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassEntryConverter;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassImportRefusal;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverter;
@@ -90,8 +91,8 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 		ApplicationPanel applicationPanel = instance.getApplicationPanel();
 		if (applicationPanel == null)
 		{
-			JOptionPane.showMessageDialog(instance, "Please sign in first.", "Import failed",
-				JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(instance, KeePassImportRefusal.notSignedIn(),
+				KeePassImportRefusal.title(), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		MemoizedKeePassModelBean memoized = MemoizedKeePassModelBean
@@ -99,7 +100,7 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 		ImportKeePassPanel panel = new ImportKeePassPanel(memoized.getLastImportFilePath(),
 			memoized.getLastImportKeyFilePath());
 		int option = OwnedDialogs.selectedOption(instance, panel, JOptionPane.PLAIN_MESSAGE,
-			JOptionPane.OK_CANCEL_OPTION, "Import from KeePass", panel.getTxtFile());
+			JOptionPane.OK_CANCEL_OPTION, KeePassDialogTexts.importTitle(), panel.getTxtFile());
 		if (option != JOptionPane.OK_OPTION)
 		{
 			return;
@@ -107,8 +108,8 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 		File file = panel.getSelectedFile();
 		if (file == null)
 		{
-			JOptionPane.showMessageDialog(instance, "No KeePass file selected.", "Import failed",
-				JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(instance, KeePassImportRefusal.noFileSelected(),
+				KeePassImportRefusal.title(), JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		// remember the chosen paths regardless of whether the import below succeeds, so a wrong
@@ -163,8 +164,8 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 		// toolbar button stay disabled and the imported data cannot be saved
 		ApplicationEventBus.getSaveState().fireEvent(new EventObject<>(RenderMode.EDITABLE));
 
-		JOptionPane.showMessageDialog(instance, "KeePass database imported successfully.",
-			"Import successful", JOptionPane.INFORMATION_MESSAGE);
+		JOptionPane.showMessageDialog(instance, KeePassDialogTexts.importDone(),
+			KeePassDialogTexts.importDoneTitle(), JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	/**

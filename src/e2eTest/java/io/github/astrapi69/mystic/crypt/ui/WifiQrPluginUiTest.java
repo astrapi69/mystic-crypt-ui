@@ -26,11 +26,15 @@ package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.awt.Dialog;
+import java.awt.image.MultiResolutionImage;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
 import org.assertj.swing.core.GenericTypeMatcher;
@@ -41,6 +45,7 @@ import org.assertj.swing.fixture.FrameFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
@@ -85,6 +90,17 @@ class WifiQrPluginUiTest extends AbstractUiTest
 				GuiActionRunner.execute(() -> dialog.label("lblWifiNetwork").target().getText()));
 			JLabel code = dialog.label("lblWifiQr").target();
 			assertNotNull(GuiActionRunner.execute(code::getIcon), "the window shows the code");
+			Icon actionIcon = GuiActionRunner
+				.execute(() -> MysticCryptApplicationFrame.getInstance().getEntryActions().stream()
+					.filter(offered -> "wifi-qr-plugin".equals(offered.pluginId())).findFirst()
+					.orElseThrow().contribution().getIcon());
+			assertEquals(16, actionIcon.getIconWidth(), "the action's icon is the 16 px image");
+			assertTrue(
+				actionIcon instanceof ImageIcon imageIcon
+					&& imageIcon.getImage()instanceof MultiResolutionImage images
+					&& images.getResolutionVariants().stream()
+						.anyMatch(variant -> variant.getWidth(null) == 32),
+				"the action's icon carries the 32 px variant a scaled screen draws (#1192)");
 		}
 		finally
 		{

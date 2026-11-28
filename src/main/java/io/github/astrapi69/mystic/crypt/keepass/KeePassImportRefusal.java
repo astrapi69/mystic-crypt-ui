@@ -39,7 +39,8 @@ import io.github.astrapi69.mystic.crypt.Messages;
  * KDBX 4 in KeePassXC, the file is imported with its attachments
  * ({@code AKdbx31FileSavedAsKdbx4InKeePassXcIsImportedUiTest}). Every other refusal gets the
  * bundle's words for a refused import, from whichever step of the import it comes: the text of the
- * exception is never shown (#1005).
+ * exception is never shown (#1005). So does an import refused before it reads a file, because no
+ * vault is open or no file was chosen.
  */
 public final class KeePassImportRefusal
 {
@@ -56,6 +57,26 @@ public final class KeePassImportRefusal
 	public static String title()
 	{
 		return Messages.getString("keepass.import.failed.title", "Import failed");
+	}
+
+	/**
+	 * The message for an import asked for while no vault is open
+	 *
+	 * @return the message for the person
+	 */
+	public static String notSignedIn()
+	{
+		return Messages.getString("keepass.import.failed.not.signed.in", "Please sign in first.");
+	}
+
+	/**
+	 * The message for an import confirmed without a KeePass file
+	 *
+	 * @return the message for the person
+	 */
+	public static String noFileSelected()
+	{
+		return Messages.getString("keepass.import.failed.no.file", "No KeePass file selected.");
 	}
 
 	/**

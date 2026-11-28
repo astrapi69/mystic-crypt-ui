@@ -33,6 +33,9 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.thoughtworks.xstream.XStream;
+import com.thoughtworks.xstream.core.util.HierarchicalStreams;
+import com.thoughtworks.xstream.io.HierarchicalStreamReader;
+import com.thoughtworks.xstream.io.xml.XppDriver;
 import com.thoughtworks.xstream.security.ForbiddenClassException;
 import com.thoughtworks.xstream.security.NoTypePermission;
 
@@ -196,7 +199,7 @@ public final class VaultXmlCodec
 	 *             when the xml cannot be read for any other reason: a type this version does not
 	 *             know (#624), and every other failure of the reader, XStream's own or not, such as
 	 *             a root name it cannot decode before it converts anything, or a root of another
-	 *             type than the vault
+	 *             type than the vault; each exception says whether the reader failed on the root
 	 */
 	public static ApplicationModelBean toModel(final char[] xml)
 	{
@@ -207,11 +210,47 @@ public final class VaultXmlCodec
 		catch (RuntimeException failure)
 		{
 			ForbiddenClassException refused = refusalIn(failure);
+			boolean atTheRoot = !rootIsTheVault(xml);
 			if (refused != null)
 			{
-				throw new VaultHoldsAForeignTypeException(refused.getMessage(), refused);
+				throw new VaultHoldsAForeignTypeException(refused.getMessage(),
+					ReaderFailureTrace.of(refused), atTheRoot);
 			}
-			throw new VaultContentUnreadableException(failure);
+			throw new VaultContentUnreadableException(failure, atTheRoot);
+		}
+	}
+
+	/**
+	 * Whether the root of the document is the vault: the type its name or its class attribute
+	 * resolves to is {@link ApplicationModelBean}, as the reader resolves it before it converts
+	 * anything. Read again only for a document the reader failed on, through the driver
+	 * {@code new XStream()} reads with, which is what {@link XStreamFactory} hands out
+	 *
+	 * @param xml
+	 *            the document
+	 * @return false when the root cannot be read, decoded or resolved, or is of another type
+	 */
+	private static boolean rootIsTheVault(final char[] xml)
+	{
+		XStream xStream = newXStream();
+		try
+		{
+			HierarchicalStreamReader root = new XppDriver().createReader(new CharArrayReader(xml));
+			try
+			{
+				return ApplicationModelBean.class == HierarchicalStreams.readClassType(root,
+					xStream.getMapper());
+			}
+			finally
+			{
+				root.close();
+			}
+		}
+		catch (RuntimeException notTheVault)
+		{
+			// a root that cannot be read, decoded or resolved is the answer, not a failure: it is
+			// not the vault
+			return false;
 		}
 	}
 

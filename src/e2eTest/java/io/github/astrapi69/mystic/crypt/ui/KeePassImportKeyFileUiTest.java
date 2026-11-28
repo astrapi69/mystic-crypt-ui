@@ -34,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import org.junit.jupiter.api.Test;
+import org.linguafranca.pwdb.Entry;
 import org.linguafranca.pwdb.format.KdbxCredentials;
 import org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase;
 import org.linguafranca.pwdb.kdbx.jackson.KdbxEntry;
@@ -68,12 +69,12 @@ class KeePassImportKeyFileUiTest extends AbstractUiTest
 		KdbxEntry entry = keePassDatabase.newEntry();
 		entry.setTitle("KeyFileProtectedSecret");
 		entry.setUsername("kf-user");
-		entry.setPassword(TestPasswords.throwaway());
+		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_PASSWORD, TestPasswords.throwaway());
 		rootGroup.addEntry(entry);
 		try (OutputStream out = new FileOutputStream(keePassFile))
 		{
 			keePassDatabase
-				.save(new KdbxCredentials(KEEPASS_PASSWORD.getBytes(StandardCharsets.UTF_8),
+				.write(new KdbxCredentials(KEEPASS_PASSWORD.getBytes(StandardCharsets.UTF_8),
 					new ByteArrayInputStream(keyFileBytes)), out);
 		}
 
@@ -101,11 +102,11 @@ class KeePassImportKeyFileUiTest extends AbstractUiTest
 		KdbxEntry entry = keePassDatabase.newEntry();
 		entry.setTitle("KeyFileOnlySecret");
 		entry.setUsername("kfo-user");
-		entry.setPassword(TestPasswords.throwaway());
+		entry.setProperty(Entry.STANDARD_PROPERTY_NAME_PASSWORD, TestPasswords.throwaway());
 		keePassDatabase.getRootGroup().addEntry(entry);
 		try (OutputStream out = new FileOutputStream(keePassFile))
 		{
-			keePassDatabase.save(new KdbxCredentials(new ByteArrayInputStream(keyFileBytes)), out);
+			keePassDatabase.write(new KdbxCredentials(new ByteArrayInputStream(keyFileBytes)), out);
 		}
 
 		File databaseFile = new File(tempHome, "import-keyfile-only-target.mcrdb");
