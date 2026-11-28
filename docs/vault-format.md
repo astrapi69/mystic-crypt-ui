@@ -37,6 +37,9 @@ Note that the file does not record which variant produced it. The routing comes 
 dialog's model, not from the bytes. A key-file database therefore does not carry the MCRDB2 marker,
 and reading it through the password-only path will not yield the XML.
 
+This is the format of 8.x. From 9.0 the XML inside the envelope gives way to a versioned container, whose
+bytes are laid out in [the 9.0 container](vault-container-9.0.md); nothing of it is built yet (#865).
+
 ## MCRDB2: the byte layout
 
 `PasswordVaultFormat.encrypt` hands the UTF-8 bytes of the XML to
