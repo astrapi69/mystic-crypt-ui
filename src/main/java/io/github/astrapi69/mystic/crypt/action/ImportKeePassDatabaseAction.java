@@ -30,6 +30,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 import javax.swing.AbstractAction;
@@ -55,6 +56,7 @@ import io.github.astrapi69.mystic.crypt.eventbus.ApplicationEventBus;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassCredentials;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassDialogTexts;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassEntryConverter;
+import io.github.astrapi69.mystic.crypt.keepass.KeePassEntryMerge;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassImportRefusal;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverter;
 import io.github.astrapi69.mystic.crypt.keepass.MemoizedKeePassModelBean;
@@ -67,7 +69,8 @@ import io.github.astrapi69.swing.tree.factory.BaseTreeNodeFactory;
 
 /**
  * Imports a KeePass {@code .kdbx} database into the currently open application database, under a
- * new top-level group named after the imported file
+ * new top-level group named after the imported file. An entry whose UUID the vault already holds is
+ * merged into the vault's entry instead of being added again (#1119)
  */
 public class ImportKeePassDatabaseAction extends AbstractAction
 {
@@ -194,11 +197,18 @@ public class ImportKeePassDatabaseAction extends AbstractAction
 		// the KeePass root goes in under its own name. It used to be renamed "Imported from" and
 		// the file's name, and the export then hung it under a new root of its own: every round
 		// trip added a level and lost the name (#377)
-		KeePassTreeConverter.toTreeNode(keePassRoot, root, () -> {
-			Long nextId = idGenerator.getNextId();
-			applicationModelBean.setLastId(nextId);
-			return nextId;
-		}, entryConverter);
+		// an entry whose UUID the vault holds is merged into it and not added again (#1119): the
+		// vault's entries are listed before the file is converted, and merged only once the whole
+		// file converted, so a refused import changes no entry either
+		Map<UUID, List<MysticCryptEntryModelBean>> inTheVault = KeePassEntryMerge.entriesById(root,
+			applicationModelBean);
+		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> imported = KeePassTreeConverter
+			.toTreeNode(keePassRoot, root, () -> {
+				Long nextId = idGenerator.getNextId();
+				applicationModelBean.setLastId(nextId);
+				return nextId;
+			}, entryConverter);
+		KeePassEntryMerge.mergeInto(imported, inTheVault);
 
 		Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> updatedTreeAsMap = BaseTreeNodeTransformer
 			.toKeyMap(root);
