@@ -4,8 +4,10 @@
 # release and protection combinations that #624 and #650 did not write: each one by that release's own application
 # jar, through the save path of its protection (scripts/fixtures/WriteWithAnOldRelease.java), with the two groups and
 # entries the other vaults there hold. Then each is opened again by the release that wrote it
-# (scripts/fixtures/OpenWithAnOldRelease.java), and its entries have to read back as they were written. Nothing of this
-# checkout is on the class path. It runs in GitHub Actions, write-vaults-of-old-releases.yml (AG-021):
+# (scripts/fixtures/OpenWithAnOldRelease.java), and its entries have to read back as they were written; the one
+# release that cannot open its own vault, 8 with a password alone, has to refuse it in exactly the way it is known to
+# (see below). Nothing of this checkout is on the class path. It runs in GitHub Actions,
+# write-vaults-of-old-releases.yml (AG-021):
 #
 #   scripts/fixtures/write-vaults-of-every-variant.sh <empty output directory>
 #
@@ -29,6 +31,14 @@ die() { printf 'write-vaults-of-every-variant: %s\n' "$*" >&2; exit 1; }
 # password-and-key-file that have no vault in src/testSupport/resources/compat/vaults yet
 combinations="7.2:key-file 7.2:password-and-key-file 7.3:key-file 7.3:password-and-key-file 8:password
 8.1.1:password 8.1.1:key-file 8.1.1:password-and-key-file"
+
+# 8 cannot open a vault with a password alone, its own included: its password path reads the decrypted file through
+# xstream-extensions' XmlFileToObjectExtensions.toObject, which calls ReadFileExtensions.readFromFile(File), and the
+# ReadFileExtensions 8's application jar packs has fromFile and no readFromFile (javap on that jar, 2026-11-28; the
+# first run of this script stopped on it, 46117556216). For that vault the refusal is required word for word, so a
+# change in it stops the run instead of passing, and the vault is proven by this build's open test.
+refused_by_its_own_release="8:password"
+refusal_of_8="REFUSED NoSuchMethodError: 'java.lang.String io.github.astrapi69.file.read.ReadFileExtensions.readFromFile(java.io.File)'"
 
 installer_sha256() {
   case "$1" in
@@ -88,14 +98,21 @@ for combination in $combinations; do
     > "$work/written.txt" 2> "$work/written.err" \
     || { cat "$work/written.err" >&2; die "$version could not write its vault with $protection"; }
   grep -qx WRITTEN "$work/written.txt" || die "$version did not say WRITTEN for $protection"
+  [ "$(grep -c '^ENTRY ' "$work/written.txt")" = 2 ] || { cat "$work/written.txt" >&2; die "$version did not write two entries"; }
+  opened=0
   printf '%s' "$password" | "$java" -cp "$jar" "$fixtures/OpenWithAnOldRelease.java" "$vault" "${options[@]}" \
-    > "$work/opened.txt" 2> "$work/opened.err" \
-    || { cat "$work/opened.txt" "$work/opened.err" >&2; die "$version could not open the vault it wrote with $protection"; }
+    > "$work/opened.txt" 2> "$work/opened.err" || opened=$?
   { printf '== written by %s with %s\n' "$version" "$protection"; cat "$work/written.txt"
-    printf '== opened by %s with %s\n' "$version" "$protection"; cat "$work/opened.txt"; } > "$log"
+    printf '== opened by %s with %s, exit %s\n' "$version" "$protection" "$opened"; cat "$work/opened.txt"; } > "$log"
+  if [ "$combination" = "$refused_by_its_own_release" ]; then
+    [ "$opened" != 0 ] && grep -qxF "$refusal_of_8" "$work/opened.txt" \
+      || { cat "$log" "$work/opened.err" >&2; die "$version did not refuse its own vault with $protection the known way"; }
+    printf '==> %s with %s: refused by %s itself, as known\n' "$version" "$protection" "$version"
+    continue
+  fi
+  [ "$opened" = 0 ] || { cat "$log" "$work/opened.err" >&2; die "$version could not open the vault it wrote with $protection"; }
   diff <(grep '^ENTRY ' "$work/written.txt") <(grep '^ENTRY ' "$work/opened.txt") > /dev/null \
     || { cat "$log" >&2; die "$version read back other entries than it wrote with $protection"; }
-  [ "$(grep -c '^ENTRY ' "$work/opened.txt")" = 2 ] || { cat "$log" >&2; die "$version did not write two entries"; }
   printf '==> %s with %s: %s\n' "$version" "$protection" "$(grep '^OPENED' "$work/opened.txt")"
 done
 
