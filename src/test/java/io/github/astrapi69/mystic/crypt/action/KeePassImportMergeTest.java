@@ -25,6 +25,8 @@
 package io.github.astrapi69.mystic.crypt.action;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -59,15 +61,17 @@ import io.github.astrapi69.gen.tree.convert.BaseTreeNodeTransformer;
 import io.github.astrapi69.id.generate.LongIdGenerator;
 import io.github.astrapi69.mystic.crypt.ApplicationModelBean;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
+import io.github.astrapi69.mystic.crypt.app.file.xml.VaultXmlCodec;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassEntryConverter;
 import io.github.astrapi69.mystic.crypt.keepass.KeePassLibraryFields;
 import io.github.astrapi69.mystic.crypt.panel.dbtree.MysticCryptEntryModelBean;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
 /**
- * Pins today's behaviour before #1119 changes it: importing a KeePass file whose entries the vault
- * already holds adds them again, so the vault holds each UUID twice. The commit that merges by UUID
- * turns this assertion.
+ * Importing a KeePass file whose entries the vault already holds (#1119): an entry is matched by
+ * its UUID whatever its group, stays in the group the vault has it in, and of the two versions the
+ * one modified later becomes current while the other goes into the entry's history. Equal times
+ * keep the vault's version, and two versions with the same content write no history.
  * <p>
  * Every file is written at runtime with a password made up per run and read back through the
  * library before it is imported, the way the import action reads it. The model side of the import,
@@ -97,8 +101,8 @@ class KeePassImportMergeTest
 	Path directory;
 
 	@Test
-	@DisplayName("today a second import of the same file adds every entry again under its own UUID")
-	void aSecondImportOfTheSameFile_addsEveryEntryAgain() throws Exception
+	@DisplayName("importing the same file twice leaves one entry per UUID, and no history")
+	void aSecondImportOfTheSameFile_addsNoEntryAndWritesNoHistory() throws Exception
 	{
 		Vault vault = new Vault();
 		File file = file(Map.of(WORK, List.of(mail("mail", T1), bank("bank", T1)), PRIVATE,
@@ -107,9 +111,200 @@ class KeePassImportMergeTest
 		vault.importFile(file);
 		vault.importFile(file);
 
-		assertEquals(6, vault.entries().size(), "pinned: every entry is in the vault twice");
-		assertEquals(List.of(2L, 2L, 2L),
+		assertEquals(3, vault.entries().size(), "the second import added entries again");
+		assertEquals(List.of(1L, 1L, 1L),
 			List.of(vault.countOf(MAIL), vault.countOf(BANK), vault.countOf(SHOP)));
+		vault.entries().forEach(entry -> assertNull(entry.getHistory(),
+			"two versions with the same content wrote a history"));
+	}
+
+	@Test
+	@DisplayName("a version in the file modified later becomes current, the vault's goes into the history")
+	void aLaterVersionInTheFile_becomesCurrent_andTheVaultsGoesIntoTheHistory() throws Exception
+	{
+		Vault vault = new Vault();
+		vault.importFile(file(Map.of(WORK, List.of(mail("mail old", T1), bank("bank", T1)))));
+
+		vault.importFile(file(Map.of(WORK, List.of(mail("mail new", T2)))));
+
+		MysticCryptEntryModelBean mail = vault.only(MAIL);
+		assertEquals("mail new", title(mail));
+		assertEquals(T2, mail.getLastModificationTime().toInstant());
+		assertEquals(List.of("mail old"), titlesOf(mail.getHistory()));
+		assertEquals(1L, vault.countOf(BANK), "an entry the file does not hold changed");
+		assertNull(vault.only(BANK).getHistory());
+	}
+
+	@Test
+	@DisplayName("a version in the file modified earlier goes into the history, the vault's stays current")
+	void anEarlierVersionInTheFile_goesIntoTheHistory_andTheVaultsStaysCurrent() throws Exception
+	{
+		Vault vault = new Vault();
+		vault.importFile(file(Map.of(WORK, List.of(mail("mail new", T2)))));
+
+		vault.importFile(file(Map.of(WORK, List.of(mail("mail old", T1)))));
+
+		MysticCryptEntryModelBean mail = vault.only(MAIL);
+		assertEquals("mail new", title(mail));
+		assertEquals(T2, mail.getLastModificationTime().toInstant());
+		assertEquals(List.of("mail old"), titlesOf(mail.getHistory()));
+	}
+
+	@Test
+	@DisplayName("equal modification times keep the vault's version current and put the other one into the history")
+	void equalTimes_keepTheVaultsVersion() throws Exception
+	{
+		Vault vault = new Vault();
+		vault.importFile(file(Map.of(WORK, List.of(mail("mail vault", T1)))));
+
+		vault.importFile(file(Map.of(WORK, List.of(mail("mail file", T1)))));
+
+		MysticCryptEntryModelBean mail = vault.only(MAIL);
+		assertEquals("mail vault", title(mail));
+		assertEquals(List.of("mail file"), titlesOf(mail.getHistory()));
+	}
+
+	@Test
+	@DisplayName("an entry moved to another group in the file stays in the group of the vault")
+	void anEntryInAnotherGroupOfTheFile_staysInItsGroupInTheVault() throws Exception
+	{
+		Vault vault = new Vault();
+		vault.importFile(file(Map.of(WORK, List.of(mail("mail", T1)))));
+		assertEquals(List.of(KEEPASS_ROOT, WORK), vault.groupPathOf(MAIL));
+
+		vault.importFile(file(Map.of(PRIVATE, List.of(mail("mail moved", T2), shop("shop", T1)))));
+
+		assertEquals(1L, vault.countOf(MAIL));
+		assertEquals(List.of(KEEPASS_ROOT, WORK), vault.groupPathOf(MAIL),
+			"the merged entry left its group");
+		assertEquals("mail moved", title(vault.only(MAIL)));
+		assertEquals(List.of(KEEPASS_ROOT, PRIVATE), vault.groupPathOf(SHOP),
+			"an entry with a new UUID is added where the file has it");
+	}
+
+	@Test
+	@DisplayName("an entry with a UUID the vault does not hold is added, as before")
+	void anEntryWithANewUuid_isAdded() throws Exception
+	{
+		Vault vault = new Vault();
+		vault.importFile(file(Map.of(WORK, List.of(mail("mail", T1)))));
+
+		vault.importFile(file(Map.of(WORK, List.of(mail("mail", T1), bank("bank", T1)))));
+
+		assertEquals(2, vault.entries().size());
+		assertEquals(1L, vault.countOf(BANK));
+	}
+
+	@Test
+	@DisplayName("an entry the vault never edited counts as modified at its creation")
+	void aMissingModificationTime_countsAsTheCreationTime() throws Exception
+	{
+		Vault vault = new Vault();
+		MysticCryptEntryModelBean neverEdited = vault.addEntryToExistingGroup(MAIL, "mail vault",
+			T2, null);
+
+		vault.importFile(file(Map.of(WORK, List.of(mail("mail file", T1)))));
+
+		assertEquals("mail vault", title(neverEdited),
+			"a file version edited before the vault's creation replaced it");
+		assertEquals(List.of("mail file"), titlesOf(neverEdited.getHistory()));
+
+		Vault later = new Vault();
+		MysticCryptEntryModelBean created = later.addEntryToExistingGroup(MAIL, "mail vault", T1,
+			null);
+		later.importFile(file(Map.of(WORK, List.of(mail("mail file", T3)))));
+		assertEquals("mail file", title(created));
+		assertEquals(List.of("mail vault"), titlesOf(created.getHistory()));
+	}
+
+	@Test
+	@DisplayName("an entry that only the node data of the vault holds is found")
+	void anEntryOnlyTheNodeDataHolds_isFound() throws Exception
+	{
+		Vault vault = new Vault();
+		MysticCryptEntryModelBean inNodeData = entryBean(MAIL, "mail vault", T1);
+		vault.model.setDataOfNodes(new LinkedHashMap<>());
+		vault.model.getDataOfNodes().put(1L, new ArrayList<>(List.of(inNodeData)));
+
+		vault.importFile(file(Map.of(WORK, List.of(mail("mail file", T2)))));
+
+		assertEquals("mail file", title(inNodeData));
+		assertEquals(0L, vault.countOf(MAIL), "the entry was added to the tree as well");
+	}
+
+	@Test
+	@DisplayName("a history that is there stays, and the replaced version joins it without a cap")
+	void anExistingHistoryStays_andTheReplacedVersionJoinsIt() throws Exception
+	{
+		Vault vault = new Vault();
+		vault.importFile(file(Map.of(WORK, List.of(mail("mail 1", T1)))));
+		vault.importFile(file(Map.of(WORK, List.of(mail("mail 2", T2)))));
+
+		vault.importFile(file(Map.of(WORK, List.of(mail("mail 3", T3)))));
+
+		MysticCryptEntryModelBean mail = vault.only(MAIL);
+		assertEquals("mail 3", title(mail));
+		assertEquals(List.of("mail 1", "mail 2"), titlesOf(mail.getHistory()));
+	}
+
+	@Test
+	@DisplayName("the history of the file's version is taken over, each version once")
+	void theHistoryOfTheFilesVersion_isTakenOver() throws Exception
+	{
+		Vault vault = new Vault();
+		vault.importFile(file(Map.of(WORK, List.of(mail("mail 1", T1)))));
+		File withHistory = file(Map.of(WORK, List.of(mail("mail 3", T3, mail("mail 2", T2)))));
+
+		vault.importFile(withHistory);
+		vault.importFile(withHistory);
+
+		MysticCryptEntryModelBean mail = vault.only(MAIL);
+		assertEquals("mail 3", title(mail));
+		assertEquals(List.of("mail 1", "mail 2"), titlesOf(mail.getHistory()));
+	}
+
+	@Test
+	@DisplayName("a refused import changes no entry of the vault")
+	void aRefusedImport_changesNoEntryOfTheVault() throws Exception
+	{
+		Vault vault = new Vault();
+		vault.importFile(file(Map.of(WORK, List.of(mail("mail old", T1)))));
+		File newer = file(
+			Map.of(WORK, List.of(mail("mail new", T2)), PRIVATE, List.of(shop("shop", T1))));
+
+		assertThrows(NumberFormatException.class,
+			() -> ImportKeePassDatabaseAction.importUnder(vault.root, read(newer), vault.model,
+				LongIdGenerator.of(vault.model.getLastId() + 1), entry -> {
+					if ("shop".equals(entry.getTitle()))
+					{
+						throw new NumberFormatException("refused by the test");
+					}
+					return KeePassEntryConverter.toEntryModelBean(entry);
+				}));
+
+		assertEquals("mail old", title(vault.only(MAIL)));
+		assertNull(vault.only(MAIL).getHistory());
+	}
+
+	@Test
+	@DisplayName("saved and reopened, the merged vault holds the current versions and their history")
+	void savedAndReopened_theMergedEntriesAndTheirHistoryAreThere() throws Exception
+	{
+		Vault vault = new Vault();
+		vault.importFile(file(Map.of(WORK, List.of(mail("mail old", T1), bank("bank", T1)))));
+		vault.importFile(file(Map.of(WORK, List.of(mail("mail new", T2), bank("bank", T1)))));
+
+		char[] xml = VaultXmlCodec.toXml(vault.model);
+		ApplicationModelBean reopened = VaultXmlCodec.toModel(xml);
+
+		Vault reread = new Vault(reopened);
+		assertEquals(2, reread.entries().size());
+		MysticCryptEntryModelBean mail = reread.only(MAIL);
+		assertEquals("mail new", title(mail));
+		assertEquals(T2, mail.getLastModificationTime().toInstant());
+		assertEquals(List.of("mail old"), titlesOf(mail.getHistory()));
+		assertEquals(T1, mail.getHistory().get(0).getLastModificationTime().toInstant());
+		assertNull(reread.only(BANK).getHistory());
 	}
 
 	private static String title(final MysticCryptEntryModelBean entry)
