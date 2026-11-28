@@ -26,27 +26,34 @@ package io.github.astrapi69.mystic.crypt.ui;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.File;
+
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.TestPasswords;
 
 /**
- * The sign-in dialog is laid out without an exception after the user typed into it. Its password
- * field is a key in the dialog's layout, and a field whose hash code follows its text is lost there
- * as soon as the text changes: the layout then finds no spring for it and throws a
- * {@code NullPointerException} on the event dispatch thread at every layout of the dialog.
+ * The sign-in dialog is laid out without an exception after the user typed into it and chose a
+ * file. Its password field is a key in the dialog's layout, and a field whose hash code follows its
+ * text is lost there as soon as the text changes: the layout then finds no spring for it and throws
+ * a {@code NullPointerException} on the event dispatch thread at every layout of the dialog.
  */
 class ASignInDialogLaysOutWithoutAnExceptionUiTest extends AbstractUiTest
 {
 
+	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
+
 	@Test
-	void signInDialog_isLaidOutWithoutAnException_whenThePasswordIsTyped()
+	void signInDialog_isLaidOutWithoutAnException_whenThePasswordIsTypedAndAFileIsChosen()
+		throws Exception
 	{
+		File databaseFile = new File(tempHome, "layout-database.mcrdb");
+		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
 		try (StartupWatch watch = StartupWatch.begin())
 		{
 			SignInDialogSteps signIn = launchApplication();
-			signIn.requireOkDisabled().checkMasterPassword()
-				.typeMasterPassword(TestPasswords.throwaway());
+			signIn.requireOkDisabled().checkMasterPassword().typeMasterPassword(MASTER_PASSWORD)
+				.browseApplicationFile(databaseFile);
 			robot.waitForIdle();
 			signIn.cancel();
 
