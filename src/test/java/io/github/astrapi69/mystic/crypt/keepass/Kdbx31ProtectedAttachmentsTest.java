@@ -98,6 +98,9 @@ class Kdbx31ProtectedAttachmentsTest
 	/** The id of the outer header field of the compression flags, four bytes */
 	private static final int COMPRESSION_FLAGS = 3;
 
+	/** The header version of a KDBX 3.1 file, as the library's header takes it */
+	private static final int KDBX_3 = 3;
+
 	@TempDir
 	File directory;
 
@@ -321,8 +324,8 @@ class Kdbx31ProtectedAttachmentsTest
 		File written = new File(directory, "written.kdbx");
 		try (OutputStream out = new FileOutputStream(written))
 		{
-			database.write(new KdbxStreamFormat(KdbxStreamFormat.Version.KDBX31),
-				credentials(password), out);
+			database.write(new KdbxStreamFormat(new KdbxHeader(KDBX_3)), credentials(password),
+				out);
 		}
 		KdbxHeader header = new KdbxHeader();
 		String xml;
@@ -332,6 +335,7 @@ class Kdbx31ProtectedAttachmentsTest
 		{
 			xml = new String(plain.readAllBytes(), StandardCharsets.UTF_8);
 		}
+		assertEquals(KDBX_3, header.getVersion(), "the library wrote a KDBX 3.1 file");
 		assertTrue(xml.contains(NAME_TO_REPLACE), "the library wrote the database name");
 		File changed = new File(directory, "changed.kdbx");
 		try (OutputStream out = new FileOutputStream(changed);
