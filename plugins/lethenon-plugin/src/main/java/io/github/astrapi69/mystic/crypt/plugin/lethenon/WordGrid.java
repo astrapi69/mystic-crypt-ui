@@ -27,9 +27,11 @@ package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
+import java.awt.event.ActionEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,10 +42,15 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.KeyStroke;
 import javax.swing.TransferHandler;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -72,6 +79,11 @@ import net.miginfocom.swing.MigLayout;
  * list marks the field and is named at once, in the sentence the window shows for it when the form
  * is sent, not only then; correcting it removes the mark. A field that is not marked is not checked
  * while it is typed into, so a word half typed is not called wrong.
+ * <p>
+ * While a word is typed, the field offers the words of the word list that begin with it
+ * ({@link WordSuggestions}) in a list below the field: the arrow keys move through it, Enter or a
+ * click takes the word and moves on to the next field, Escape closes the list. A paste and an
+ * emptied grid offer nothing.
  */
 final class WordGrid extends JPanel
 {
@@ -95,6 +107,18 @@ final class WordGrid extends JPanel
 
 	private final String fieldTooltip;
 
+	private final String componentName;
+
+	private final JPopupMenu suggestions = new JPopupMenu();
+
+	private List<String> offered = List.of();
+
+	private int offeredAt;
+
+	private int chosen;
+
+	private boolean filling;
+
 	/**
 	 * Instantiates the grid
 	 *
@@ -117,6 +141,9 @@ final class WordGrid extends JPanel
 		this.words = words;
 		this.locale = locale;
 		this.unknownWord = unknownWord;
+		this.componentName = name;
+		suggestions.setFocusable(false);
+		suggestions.setName("pop" + name + "Suggestions");
 		this.fieldTooltip = LethenonMessages.getString("lethenon.backup.tooltip.answer",
 			"the word at this position in your note", locale);
 		setToolTipText(LethenonMessages.getString("lethenon.wallet.tooltip.words",
@@ -172,7 +199,7 @@ final class WordGrid extends JPanel
 	 */
 	void clear()
 	{
-		fields.forEach(field -> field.setText(""));
+		fillingDo(() -> fields.forEach(field -> field.setText("")));
 		words.clear();
 		for (int position = 1; position <= fields.size(); position++)
 		{
@@ -195,6 +222,7 @@ final class WordGrid extends JPanel
 			@Override
 			public void focusLost(final FocusEvent focusEvent)
 			{
+				closeSuggestions();
 				check(position);
 			}
 		});
@@ -204,12 +232,14 @@ final class WordGrid extends JPanel
 			public void insertUpdate(final DocumentEvent documentEvent)
 			{
 				recheckIfMarked(position);
+				typed(position);
 			}
 
 			@Override
 			public void removeUpdate(final DocumentEvent documentEvent)
 			{
 				recheckIfMarked(position);
+				typed(position);
 			}
 
 			@Override
@@ -218,7 +248,178 @@ final class WordGrid extends JPanel
 				recheckIfMarked(position);
 			}
 		});
+		bindSuggestionKeys(field);
 		return field;
+	}
+
+	/**
+	 * The words the list below a field offers now, empty when it offers none
+	 *
+	 * @return the offered words, in the order the list shows them
+	 */
+	List<String> offered()
+	{
+		return offered;
+	}
+
+	/**
+	 * Takes an offered word into the field it was offered for, checks the field and moves on to the
+	 * next one
+	 *
+	 * @param index
+	 *            the word's place in {@link #offered()}
+	 */
+	void take(final int index)
+	{
+		if (index < 0 || index >= offered.size())
+		{
+			return;
+		}
+		takeWord(offeredAt, offered.get(index));
+	}
+
+	/**
+	 * Takes a word into a field, checks the field and moves on to the next one. A click on the list
+	 * names its word and field itself, so a focus change that closed the list first loses nothing
+	 */
+	private void takeWord(final int position, final String word)
+	{
+		closeSuggestions();
+		fillingDo(() -> fields.get(position - 1).setText(word));
+		check(position);
+		if (position < fields.size())
+		{
+			fields.get(position).requestFocusInWindow();
+		}
+	}
+
+	private void fillingDo(final Runnable filler)
+	{
+		filling = true;
+		try
+		{
+			filler.run();
+		}
+		finally
+		{
+			filling = false;
+		}
+		closeSuggestions();
+	}
+
+	/** Offers the words that begin with what the field holds now, unless the grid fills it */
+	private void typed(final int position)
+	{
+		if (filling)
+		{
+			return;
+		}
+		List<String> offer = WordSuggestions.offerFor(fields.get(position - 1).getText());
+		if (offer.isEmpty())
+		{
+			closeSuggestions();
+			return;
+		}
+		offered = offer;
+		offeredAt = position;
+		chosen = 0;
+		showSuggestions(fields.get(position - 1));
+	}
+
+	private void showSuggestions(final JMTextField field)
+	{
+		suggestions.removeAll();
+		for (int index = 0; index < offered.size(); index++)
+		{
+			int position = offeredAt;
+			String word = offered.get(index);
+			JMenuItem item = new JMenuItem(word);
+			item.setName("mnu" + componentName + "Suggestion" + (index + 1));
+			item.addActionListener(actionEvent -> takeWord(position, word));
+			suggestions.add(item);
+		}
+		arm();
+		if (!field.isShowing())
+		{
+			return;
+		}
+		if (suggestions.isVisible())
+		{
+			suggestions.pack();
+		}
+		else
+		{
+			suggestions.show(field, 0, field.getHeight());
+		}
+	}
+
+	private void closeSuggestions()
+	{
+		offered = List.of();
+		suggestions.setVisible(false);
+		suggestions.removeAll();
+	}
+
+	private void arm()
+	{
+		for (int index = 0; index < suggestions.getComponentCount(); index++)
+		{
+			((JMenuItem)suggestions.getComponent(index)).setArmed(index == chosen);
+		}
+	}
+
+	private void move(final int step)
+	{
+		chosen = Math.floorMod(chosen + step, offered.size());
+		arm();
+	}
+
+	/**
+	 * Down, Up, Enter and Escape act on the list while it offers words, and do what the field does
+	 * without the list otherwise
+	 */
+	private void bindSuggestionKeys(final JMTextField field)
+	{
+		onKey(field, KeyEvent.VK_DOWN, () -> move(1));
+		onKey(field, KeyEvent.VK_UP, () -> move(-1));
+		onKey(field, KeyEvent.VK_ENTER, () -> take(chosen));
+		onKey(field, KeyEvent.VK_ESCAPE, this::closeSuggestions);
+	}
+
+	private void onKey(final JMTextField field, final int keyCode, final Runnable whileOffered)
+	{
+		KeyStroke key = KeyStroke.getKeyStroke(keyCode, 0);
+		Object before = field.getInputMap(JComponent.WHEN_FOCUSED).get(key);
+		Action standard = before == null ? null : field.getActionMap().get(before);
+		String actionName = "lethenon.suggestions." + keyCode;
+		field.getInputMap(JComponent.WHEN_FOCUSED).put(key, actionName);
+		field.getActionMap().put(actionName, new AbstractAction()
+		{
+			private static final long serialVersionUID = 1L;
+
+			/**
+			 * Disabled while nothing is offered and the field has no action of its own for the key,
+			 * so the key reaches the window: Escape still closes a dialog
+			 */
+			@Override
+			public boolean isEnabled()
+			{
+				return !offered.isEmpty() || standard != null && standard.isEnabled();
+			}
+
+			@Override
+			public void actionPerformed(final ActionEvent actionEvent)
+			{
+				if (!offered.isEmpty())
+				{
+					whileOffered.run();
+				}
+				else if (standard != null)
+				{
+					standard.actionPerformed(actionEvent);
+				}
+			}
+		});
 	}
 
 	/**
@@ -228,10 +429,12 @@ final class WordGrid extends JPanel
 	private void spread(final List<String> pasted)
 	{
 		words.spread(pasted);
-		for (int position = 1; position <= fields.size(); position++)
-		{
-			fields.get(position - 1).setText(words.get(position));
-		}
+		fillingDo(() -> {
+			for (int position = 1; position <= fields.size(); position++)
+			{
+				fields.get(position - 1).setText(words.get(position));
+			}
+		});
 		for (int position = 1; position <= fields.size(); position++)
 		{
 			mark(position);
