@@ -26,7 +26,6 @@ package io.github.astrapi69.mystic.crypt.ui.icon;
 
 import java.awt.Component;
 import java.awt.Image;
-import java.awt.image.BaseMultiResolutionImage;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,7 +34,6 @@ import java.util.logging.Level;
 
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
