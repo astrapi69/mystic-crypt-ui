@@ -65,15 +65,7 @@ public class MasterPwFileDialog extends PanelDialog<MasterPwFileModelBean>
 	public void sizeAndCentre(final int width, final int height)
 	{
 		setSize(width, height);
-		Window owner = getOwner();
-		if (owner != null && owner.isShowing())
-		{
-			setLocationRelativeTo(owner);
-		}
-		else
-		{
-			ScreenPlacement.centerOnScreenOf(this, null);
-		}
+		ScreenPlacement.centerOverOwner(this);
 	}
 
 	/**
