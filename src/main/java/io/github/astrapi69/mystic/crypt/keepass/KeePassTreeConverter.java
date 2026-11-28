@@ -77,7 +77,8 @@ public final class KeePassTreeConverter
 
 	/**
 	 * Recursively converts the given KeePass group (and its subgroups/entries) into a new
-	 * {@link BaseTreeNode}, attached as a child of the given parent node
+	 * {@link BaseTreeNode}, attached as a child of the given parent node once every group under it
+	 * converted: a conversion that fails leaves the parent as it was (#1208)
 	 *
 	 * @param group
 	 *            the KeePass group to convert
@@ -97,9 +98,15 @@ public final class KeePassTreeConverter
 
 	/**
 	 * Recursively converts the given KeePass group (and its subgroups/entries) into a new
-	 * {@link BaseTreeNode}, attached as a child of the given parent node, each entry through the
-	 * given conversion. The import passes {@link KeePassEntryConverter#toEntryModelBean}; a test
-	 * passes one that refuses an entry, since no file is known that makes the real one fail (#1208)
+	 * {@link BaseTreeNode}, each entry through the given conversion. The import passes
+	 * {@link KeePassEntryConverter#toEntryModelBean}; a test passes one that refuses an entry,
+	 * since no file is known that makes the real one fail.
+	 * <p>
+	 * The new node is built without a parent and attached to the given one only once every group
+	 * under it converted, the way a group's entries are all converted before its node is built. The
+	 * import converts onto the live root of the vault tree, so a conversion that fails half way
+	 * leaves that root as it was instead of with the groups converted so far, which the next edit
+	 * of the tree would save (#1208)
 	 *
 	 * @param group
 	 *            the KeePass group to convert
@@ -123,18 +130,17 @@ public final class KeePassTreeConverter
 
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> treeNode = BaseTreeNode
 			.<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> builder().id(nextId.get())
-			.value(treeElement).parent(parent).displayValue(group.getName()).leaf(leaf).build();
-
-		if (parent != null)
-		{
-			parent.addChild(treeNode);
-		}
+			.value(treeElement).displayValue(group.getName()).leaf(leaf).build();
 
 		for (Group subGroup : group.getGroups())
 		{
 			toTreeNode((KdbxGroup)subGroup, treeNode, nextId, entryConverter);
 		}
 
+		if (parent != null)
+		{
+			parent.addChild(treeNode);
+		}
 		return treeNode;
 	}
 

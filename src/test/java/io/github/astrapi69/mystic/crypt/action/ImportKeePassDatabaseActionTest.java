@@ -37,13 +37,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.linguafranca.pwdb.kdbx.jackson.KdbxDatabase;
 import org.linguafranca.pwdb.kdbx.jackson.KdbxEntry;
 import org.linguafranca.pwdb.kdbx.jackson.KdbxGroup;
@@ -100,13 +98,14 @@ class ImportKeePassDatabaseActionTest
 	}
 
 	@ParameterizedTest(name = "a refused entry in the group {0}")
-	@MethodSource("refusalsAndTheGroupsTheyLeaveToday")
-	@DisplayName("a refused import leaves the groups converted before the refusal under the vault root, today")
-	void importUnder_refusedHalfWay_leavesTheGroupsConvertedSoFar_andTheVaultNotDirty(
-		final String refusedGroup, final List<String> groupsLeftUnderTheVaultRoot)
+	@ValueSource(strings = { KEEPASS_ROOT, NESTED_SUBGROUP, LAST_SUBGROUP })
+	@DisplayName("a refused import leaves the vault root as it was and the vault not dirty")
+	void importUnder_refusedHalfWay_leavesTheVaultRootAsItWas_andTheVaultNotDirty(
+		final String refusedGroup)
 	{
 		BaseTreeNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long> root = vaultRootWithOneGroup();
 		ApplicationModelBean model = modelOf(root);
+		List<String> groupsBefore = namesUnder(root);
 		Map<Long, TreeIdNode<GenericTreeElement<List<MysticCryptEntryModelBean>>, Long>> treeMapBefore = model
 			.getRootTreeAsMap();
 
@@ -114,18 +113,10 @@ class ImportKeePassDatabaseActionTest
 			() -> ImportKeePassDatabaseAction.importUnder(root, keePassFile(), model,
 				LongIdGenerator.of(2L), refusingTheEntryOf(refusedGroup)));
 
-		assertEquals(groupsLeftUnderTheVaultRoot, namesUnder(root),
-			"today the groups converted before the refusal stay under the vault root (#1208)");
+		assertEquals(groupsBefore, namesUnder(root),
+			"a refused import leaves the vault root as it was: no group of the file under it (#1208)");
 		assertSame(treeMapBefore, model.getRootTreeAsMap(), "a refused import records no tree");
 		assertFalse(model.isDirty(), "a refused import does not mark the vault changed");
-	}
-
-	private static Stream<Arguments> refusalsAndTheGroupsTheyLeaveToday()
-	{
-		return Stream.of(Arguments.of(KEEPASS_ROOT, List.of(EXISTING_GROUP)),
-			Arguments.of(NESTED_SUBGROUP, List.of(EXISTING_GROUP, KEEPASS_ROOT, FIRST_SUBGROUP)),
-			Arguments.of(LAST_SUBGROUP,
-				List.of(EXISTING_GROUP, KEEPASS_ROOT, FIRST_SUBGROUP, NESTED_SUBGROUP)));
 	}
 
 	/**
