@@ -30,6 +30,8 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.File;
 
+import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 
 import org.assertj.swing.edt.GuiActionRunner;
@@ -39,8 +41,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.github.astrapi69.mystic.crypt.MenuId;
+import io.github.astrapi69.mystic.crypt.Messages;
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.TestPasswords;
+import io.github.astrapi69.mystic.crypt.panel.signin.NewMasterPwFilePanel;
 
 /**
  * Where the dialogs of the application open when the main window is not in the middle of the screen
@@ -142,6 +146,38 @@ class ADialogOpensOverTheMainWindowUiTest extends AbstractUiTest
 		generator.close();
 		newEntry.close();
 		return settled;
+	}
+
+	/**
+	 * The offline help of the sign-in panels, shown when the wiki cannot be reached, was sized and
+	 * never placed: its upper left corner landed on the middle of the screen, far from the main
+	 * window it belongs to
+	 */
+	@Test
+	@DisplayName("the offline help of the sign-in opens centred over the moved main window")
+	void theOfflineHelp_opensCentredOverTheMainWindow() throws Exception
+	{
+		MovedMainWindow moved = signInAndMoveTheMainWindowAway("help-placement.mcrdb");
+		JComponent panel = GuiActionRunner.execute(() -> new NewMasterPwFilePanel()
+		{
+			@Override
+			protected boolean isHelpPageReachable(final String helpLink)
+			{
+				return false;
+			}
+		});
+		JButton help = HelpFallbackDialogsUiTest.helpButton(panel);
+		SwingUtilities.invokeLater(help::doClick);
+		DialogFixture helpDialog = moved.application()
+			.findDialogWithTitle(Messages.getString("signin.help.create.dialog.title", ""));
+		Rectangle[] settled = UiTestSpeed.awaitSettled(helpDialog.target(), moved.window());
+		Point dialogCentre = centreOf(settled[0]);
+		Point windowCentre = centreOf(settled[1]);
+		helpDialog.close();
+
+		assertTrue(near(dialogCentre, windowCentre),
+			"the offline help is centred over the main window " + windowCentre + ", at "
+				+ dialogCentre + ", not over the screen at " + moved.screenCentre());
 	}
 
 	/**

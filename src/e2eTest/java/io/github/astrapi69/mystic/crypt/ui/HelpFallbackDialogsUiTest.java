@@ -58,7 +58,7 @@ import io.github.astrapi69.mystic.crypt.panel.signin.NewMasterPwFilePanel;
 class HelpFallbackDialogsUiTest extends AbstractUiTest
 {
 
-	private static JButton helpButton(final Container container)
+	static JButton helpButton(final Container container)
 	{
 		for (Component child : container.getComponents())
 		{
