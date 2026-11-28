@@ -1,9 +1,10 @@
 The Lethenon plugin of mystic-crypt-ui, and what its zip carries besides its own classes
 =====================================================================================
 
-The plugin's own classes are under the MIT License of mystic-crypt-ui. Its zip also carries two
+The plugin's own classes are under the MIT License of mystic-crypt-ui. Its zip also carries three
 libraries under lib/, which are not covered by that licence. Their licence texts are in this
-directory, taken unchanged from the jars they belong to.
+directory, taken unchanged from the jars they belong to, or from the sources where a jar carries
+none.
 
 lib/lethenon-<version>.jar
     lethenon, the chain library: https://github.com/astrapi69/lethenon
@@ -18,3 +19,9 @@ lib/sqlite-jdbc-<version>.jar
     distribution - this is that notice.
     It carries a native build of SQLite for each platform it supports. SQLite is in the public
     domain: https://sqlite.org/copyright.html
+
+lib/qrcodegen-<version>.jar
+    QR Code generator library by Project Nayuki: https://www.nayuki.io/page/qr-code-generator-library
+    MIT License, Copyright (c) Project Nayuki. The licence: qrcodegen/LICENSE.txt, which its jar
+    does not carry; the text is the header of the library's own sources, unchanged
+    (qrcodegen-1.8.0-sources.jar, io/nayuki/qrcodegen/QrCode.java).

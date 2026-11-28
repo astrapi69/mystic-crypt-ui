@@ -181,6 +181,10 @@ class LethenonWalletUiTest extends AbstractUiTest
 		assertEquals(wallet.address().toText(), textOf(tool, "txtAddress"),
 			"the overview shows the restored wallet's address");
 		assertEquals(1, walletsOfTheVault().size(), "the restored wallet is an entry of the vault");
+		assertTrue(GuiActionRunner.execute(() -> {
+			JLabel qr = tool.label("lblAddressQr").target();
+			return qr.isShowing() && qr.getIcon() != null;
+		}), "the overview shows the address as a QR code (#874)");
 	}
 
 	/**

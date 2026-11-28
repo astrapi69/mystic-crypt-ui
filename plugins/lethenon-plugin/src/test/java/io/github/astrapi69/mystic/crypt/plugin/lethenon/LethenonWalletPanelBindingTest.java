@@ -38,6 +38,7 @@ import java.util.Locale;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import javax.swing.JLabel;
 import javax.swing.JTextField;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -288,6 +289,10 @@ class LethenonWalletPanelBindingTest
 
 		assertEquals(WalletView.OVERVIEW, panel.getModelObject().getView());
 		assertEquals(lost.address().toText(), textOf(panel, "txtAddress"));
+		JLabel qr = Windows.component(panel, "lblAddressQr", JLabel.class);
+		assertTrue(qr.isVisible(), "the overview shows the address as a QR code (#874)");
+		assertEquals(AddressQrCode.imageOf(lost.address().toText()).orElseThrow().getWidth(),
+			qr.getIcon().getIconWidth(), "the code of the address the overview shows");
 		assertEquals("", textOf(panel, "txtWords1"), "the typed words are cleared");
 	}
 
