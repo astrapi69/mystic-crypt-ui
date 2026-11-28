@@ -113,11 +113,27 @@ class EveryPluginCarriesItsIconTest
 		assertTrue(Files.isRegularFile(source), "missing " + source);
 	}
 
+	/**
+	 * A plugin that brings menu items hands them to {@link PluginIcon#onEvery}. A plugin that
+	 * brings no menu and only an action on an entry (#1120) needs no call: the host sets its icon
+	 * on that item by its plugin id, in {@code EntryActions}
+	 */
 	@ParameterizedTest(name = "{0} sets its icon on its menu items, under its own name")
 	@MethodSource("plugins")
 	void everyPlugin_setsItsIconOnItsMenuItems(final String plugin) throws IOException
 	{
-		String contribution = menuContributionOf(plugin);
+		List<Path> contributions = sourcesOf(plugin, "MenuContribution.java");
+		if (contributions.isEmpty())
+		{
+			assertTrue(
+				sourcesOf(plugin, ".java").stream().map(EveryPluginCarriesItsIconTest::read)
+					.anyMatch(source -> source.contains("implements EntryActionContribution")),
+				plugin + " has neither a menu contribution nor an entry action");
+			return;
+		}
+		assertEquals(1, contributions.size(),
+			plugin + " has " + contributions.size() + " menu contributions: " + contributions);
+		String contribution = read(contributions.get(0));
 		Matcher matcher = ON_EVERY.matcher(contribution);
 
 		assertTrue(matcher.find(),
@@ -142,17 +158,24 @@ class EveryPluginCarriesItsIconTest
 		}
 	}
 
-	private static String menuContributionOf(final String plugin) throws IOException
+	private static List<Path> sourcesOf(final String plugin, final String ending) throws IOException
 	{
 		Path main = PLUGINS.resolve(plugin).resolve("src/main/java");
 		try (Stream<Path> files = Files.walk(main))
 		{
-			List<Path> contributions = files
-				.filter(path -> path.getFileName().toString().endsWith("MenuContribution.java"))
-				.toList();
-			assertEquals(1, contributions.size(),
-				plugin + " has " + contributions.size() + " menu contributions: " + contributions);
-			return Files.readString(contributions.get(0));
+			return files.filter(path -> path.getFileName().toString().endsWith(ending)).toList();
+		}
+	}
+
+	private static String read(final Path source)
+	{
+		try
+		{
+			return Files.readString(source);
+		}
+		catch (IOException exception)
+		{
+			throw new UncheckedIOException(exception);
 		}
 	}
 }

@@ -69,6 +69,7 @@ import io.github.astrapi69.mystic.crypt.lock.OpenEditors;
 import io.github.astrapi69.mystic.crypt.panel.keepass.ExportSelectedEntriesToKeePass;
 import io.github.astrapi69.mystic.crypt.panel.table.NewTableEntryModel;
 import io.github.astrapi69.mystic.crypt.panel.table.NewTableEntryPanel;
+import io.github.astrapi69.mystic.crypt.plugin.vault.EntryActions;
 import io.github.astrapi69.mystic.crypt.ui.screen.OwnedDialogs;
 import io.github.astrapi69.mystic.crypt.vault.EntryIdentitySupport;
 import io.github.astrapi69.swing.dialog.DialogExtensions;
@@ -1222,6 +1223,10 @@ public class SecretKeyTreeWithContentPanel
 		exportSelected.setName("mnuExportSelectedToKeePass");
 		exportSelected.setEnabled(rowsSelected);
 		popup.add(exportSelected);
+		// the plugins' actions on one entry, each handed a copy of it at the click (#1120)
+		pluginEntryActions(
+			singleSelectedRow ? Optional.of(allSelectedRowData.get(0)) : Optional.empty())
+				.forEach(popup::add);
 		// Separator
 		popup.addSeparator();
 
@@ -1238,6 +1243,20 @@ public class SecretKeyTreeWithContentPanel
 		popup.add(clearSelection);
 
 		popup.show(getTblTreeEntryTable(), x, y);
+	}
+
+	/**
+	 * The menu items of the plugins' entry actions; none while the application frame is not there,
+	 * as in a test of this panel alone
+	 */
+	private List<JMenuItem> pluginEntryActions(final Optional<MysticCryptEntryModelBean> selected)
+	{
+		MysticCryptApplicationFrame frame = MysticCryptApplicationFrame.getInstance();
+		if (frame == null)
+		{
+			return List.of();
+		}
+		return EntryActions.menuItems(frame.getEntryActions(), selected, this);
 	}
 
 	private static boolean validateUrlString(String urlString)

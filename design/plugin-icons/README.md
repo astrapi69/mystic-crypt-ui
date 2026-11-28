@@ -3,7 +3,8 @@
 One icon for each internal plugin, in the style of the application icon (`design/app-icon/`): the
 same dark tile with its light edge, the same teal (`#35d0bd`), a glyph drawn pixel by pixel on the
 16 px grid, on columns and rows 3 to 12. The sheet was put to the maintainer on 2026-11-26 and the
-icons were built in on his instruction of 2026-11-28 (#1192).
+icons were built in on his instruction of 2026-11-28 (#1192). The Wi-Fi QR plugin's icon
+was drawn the same way when the plugin came (#1120).
 
 | file | what it is |
 |---|---|
@@ -27,12 +28,14 @@ icons were built in on his instruction of 2026-11-28 (#1192).
 | pqc-signature | a pen |
 | release-key | a tag with a hole |
 | secret-sharing | three shares that belong together |
+| wifi-qr | radio waves of a wireless network |
 
 The images the application loads are `plugins/<plugin>/src/main/resources/icon/<plugin>-16.png`
 and `-32.png`, square and with an alpha channel. `PluginIcon` reads them through the plugin's class
 loader and sets them, as one `BaseMultiResolutionImage`, on the plugin's menu items.
 `EveryPluginCarriesItsIconTest` requires both images, this SVG and the call for every directory
-under `plugins/`.
+under `plugins/`; a plugin with no menu and only an action on an entry gets its icon from the host,
+which sets it on that action's item by the plugin's id (`EntryActions`).
 
 ## How the images are made
 

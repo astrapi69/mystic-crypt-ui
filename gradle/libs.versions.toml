@@ -46,6 +46,7 @@ menu-action-version = "5.1"
 miglayout-swing-version = "11.5.2"
 model-data-version = "3.2.1"
 lethenon-version = "0.9.0"
+qrcodegen-version = "1.8.0"
 mystic-crypt-version = "13.11.1"
 picocli-version = "4.7.7"
 net-extensions-version = "6.1"
@@ -111,6 +112,7 @@ menu-action = { module = "io.github.astrapi69:menu-action", version.ref = "menu-
 miglayout-swing = { module = "com.miglayout:miglayout-swing", version.ref = "miglayout-swing-version" }
 model-data = { module = "io.github.astrapi69:model-data", version.ref = "model-data-version" }
 lethenon = { module = "io.github.astrapi69:lethenon", version.ref = "lethenon-version" }
+qrcodegen = { module = "io.nayuki:qrcodegen", version.ref = "qrcodegen-version" }
 mystic-crypt = { module = "io.github.astrapi69:mystic-crypt", version.ref = "mystic-crypt-version" }
 picocli = { module = "info.picocli:picocli", version.ref = "picocli-version" }
 net-extensions = { module = "io.github.astrapi69:net-extensions", version.ref = "net-extensions-version" }

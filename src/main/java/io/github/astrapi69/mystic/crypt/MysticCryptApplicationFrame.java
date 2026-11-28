@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.Serial;
 import java.security.Security;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 
 import javax.swing.*;
@@ -73,8 +74,10 @@ import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileDialog;
 import io.github.astrapi69.mystic.crypt.panel.signin.MasterPwFileModelBean;
 import io.github.astrapi69.mystic.crypt.panel.signin.MemoizedSigninModelBean;
 import io.github.astrapi69.mystic.crypt.plugin.PluginArchives;
+import io.github.astrapi69.mystic.crypt.plugin.api.EntryActionContribution;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
 import io.github.astrapi69.mystic.crypt.plugin.api.VaultAccessContribution;
+import io.github.astrapi69.mystic.crypt.plugin.vault.EntryActions;
 import io.github.astrapi69.mystic.crypt.plugin.vault.ModelVaultState;
 import io.github.astrapi69.mystic.crypt.plugin.vault.PluginVaultConnections;
 import io.github.astrapi69.mystic.crypt.settings.FlatLafTheme;
@@ -881,6 +884,30 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		{
 			pluginVaultConnections.vaultClosing();
 		}
+	}
+
+	/**
+	 * The entry actions of the started plugins, each with its plugin's id (#1120); empty before the
+	 * plugins are loaded
+	 *
+	 * @return the actions, in the order of the started plugins
+	 */
+	public List<EntryActions.Offered> getEntryActions()
+	{
+		if (pluginManager == null)
+		{
+			return List.of();
+		}
+		List<EntryActions.Offered> offered = new ArrayList<>();
+		for (PluginWrapper plugin : pluginManager.getStartedPlugins())
+		{
+			for (EntryActionContribution contribution : pluginManager
+				.getExtensions(EntryActionContribution.class, plugin.getPluginId()))
+			{
+				offered.add(new EntryActions.Offered(contribution, plugin.getPluginId()));
+			}
+		}
+		return offered;
 	}
 
 	/**
