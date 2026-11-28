@@ -77,12 +77,12 @@ class MessagesTest
 			Messages.getString("no.such.key.in.the.host.bundle", defaultValue));
 	}
 
-	@ParameterizedTest(name = "a missing key with the default [{0}] shows the library's warning today")
-	@ValueSource(strings = { "" })
-	@DisplayName("pin: a missing key with an empty default shows the library's warning text")
-	void getString_aMissingKeyWithAnEmptyDefault_returnsTheWarningToday(final String defaultValue)
+	@ParameterizedTest(name = "a missing key with the default [{0}] shows the default")
+	@ValueSource(strings = { "", " " })
+	@DisplayName("a missing key with an empty default shows the literal default (i18n.md)")
+	void getString_aMissingKeyWithAnEmptyDefault_returnsTheLiteralDefault(final String defaultValue)
 	{
-		assertEquals("Warning:!!!Missing key is 'no.such.key.in.the.host.bundle'!!!",
+		assertEquals(defaultValue,
 			Messages.getString("no.such.key.in.the.host.bundle", defaultValue));
 	}
 }
