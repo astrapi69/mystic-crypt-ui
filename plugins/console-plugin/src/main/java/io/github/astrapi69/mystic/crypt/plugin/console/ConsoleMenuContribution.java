@@ -27,9 +27,12 @@ package io.github.astrapi69.mystic.crypt.plugin.console;
 import java.awt.BorderLayout;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.image.BaseMultiResolutionImage;
 import java.io.PrintStream;
 import java.util.List;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JDesktopPane;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
@@ -57,10 +60,18 @@ import io.github.astrapi69.swing.util.JInternalFrameExtensions;
 public class ConsoleMenuContribution implements PluginMenuContribution
 {
 
+	/**
+	 * The plugin's icon on its menu items: the 16 px image, with the 32 px image as the variant a
+	 * scaled screen draws (#1192)
+	 */
+	private final Icon icon = new ImageIcon(new BaseMultiResolutionImage(
+		new ImageIcon(getClass().getResource("icon-16.png")).getImage(),
+		new ImageIcon(getClass().getResource("icon-32.png")).getImage()));
+
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
-		JMenuItem console = new JMenuItem("Console");
+		JMenuItem console = new JMenuItem("Console", icon);
 		console.addActionListener(event -> {
 			MysticCryptApplicationFrame instance = MysticCryptApplicationFrame.getInstance();
 			if (ConsoleSession.isOpen())

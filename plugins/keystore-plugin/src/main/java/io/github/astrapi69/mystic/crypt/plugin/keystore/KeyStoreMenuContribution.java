@@ -28,11 +28,14 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.image.BaseMultiResolutionImage;
 import java.io.File;
 import java.security.KeyStore;
 import java.util.List;
 
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
@@ -64,13 +67,21 @@ import io.github.astrapi69.swing.util.JInternalFrameExtensions;
 public class KeyStoreMenuContribution implements PluginMenuContribution
 {
 
+	/**
+	 * The plugin's icon on its menu items: the 16 px image, with the 32 px image as the variant a
+	 * scaled screen draws (#1192)
+	 */
+	private final Icon icon = new ImageIcon(new BaseMultiResolutionImage(
+		new ImageIcon(getClass().getResource("icon-16.png")).getImage(),
+		new ImageIcon(getClass().getResource("icon-32.png")).getImage()));
+
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
-		JMenuItem manageKeyStore = new JMenuItem("Manage Key Store");
+		JMenuItem manageKeyStore = new JMenuItem("Manage Key Store", icon);
 		manageKeyStore
 			.addActionListener(event -> openInternalFrame("Manage Key Store", new KeyStorePanel()));
-		JMenuItem createKeyStore = new JMenuItem("Create Key Store...");
+		JMenuItem createKeyStore = new JMenuItem("Create Key Store...", icon);
 		createKeyStore.addActionListener(event -> openCreateWizard());
 		return List.of(manageKeyStore, createKeyStore);
 	}

@@ -25,8 +25,11 @@
 package io.github.astrapi69.mystic.crypt.plugin.kem;
 
 import java.awt.Component;
+import java.awt.image.BaseMultiResolutionImage;
 import java.util.List;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
 
@@ -46,13 +49,21 @@ import io.github.astrapi69.swing.util.JInternalFrameExtensions;
 public class KemDemoMenuContribution implements PluginMenuContribution
 {
 
+	/**
+	 * The plugin's icon on its menu items: the 16 px image, with the 32 px image as the variant a
+	 * scaled screen draws (#1192)
+	 */
+	private final Icon icon = new ImageIcon(new BaseMultiResolutionImage(
+		new ImageIcon(getClass().getResource("icon-16.png")).getImage(),
+		new ImageIcon(getClass().getResource("icon-32.png")).getImage()));
+
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
-		JMenuItem keyExchange = new JMenuItem("Key Exchange");
+		JMenuItem keyExchange = new JMenuItem("Key Exchange", icon);
 		keyExchange
 			.addActionListener(event -> openInternalFrame("Key Exchange", new KeyExchangePanel()));
-		JMenuItem kemDemo = new JMenuItem("Key Encapsulation Demo");
+		JMenuItem kemDemo = new JMenuItem("Key Encapsulation Demo", icon);
 		kemDemo.addActionListener(
 			event -> openInternalFrame("Key Encapsulation Demo", new KemDemoPanel()));
 		return List.of(keyExchange, kemDemo);

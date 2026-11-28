@@ -37,7 +37,9 @@ plugins/checksum-plugin/
     │   ├── ChecksumPanel.java, ...              the tool windows and their logic
     ├── main/resources/
     │   ├── plugin.properties
-    │   └── checksum/messages.properties
+    │   ├── checksum/messages.properties
+    │   └── io/github/astrapi69/mystic/crypt/plugin/checksum/
+    │       └── icon-16.png, icon-32.png        the plugin's icon, next to its menu contribution
     └── test/java/...
 ```
 
@@ -110,8 +112,11 @@ A menu contribution that opens a tool window the way every internal plugin does:
 package io.github.astrapi69.mystic.crypt.plugin.checksum;
 
 import java.awt.Component;
+import java.awt.image.BaseMultiResolutionImage;
 import java.util.List;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
 
@@ -126,10 +131,14 @@ import io.github.astrapi69.swing.util.JInternalFrameExtensions;
 @Extension
 public class ChecksumMenuContribution implements PluginMenuContribution
 {
+	private final Icon icon = new ImageIcon(new BaseMultiResolutionImage(
+		new ImageIcon(getClass().getResource("icon-16.png")).getImage(),
+		new ImageIcon(getClass().getResource("icon-32.png")).getImage()));
+
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
-		JMenuItem checksumAndMac = new JMenuItem("Checksum and MAC");
+		JMenuItem checksumAndMac = new JMenuItem("Checksum and MAC", icon);
 		checksumAndMac.addActionListener(
 			event -> openInternalFrame("Checksum and MAC", new ChecksumAndMacPanel()));
 		return List.of(checksumAndMac);
@@ -163,6 +172,29 @@ with `LambdaModel.of(getter, setter)`, so the panel's state can be read at any m
 itself belongs in a class without Swing in it, such as `ChecksumSupport`, where it can be tested
 without a display. Cryptography always comes from the libraries the application ships with
 (mystic-crypt, crypt-data, crypt-api, Bouncy Castle), never from code of the plugin's own.
+
+# The plugin's icon
+
+Every plugin shows an icon of its own on each of its menu items. It carries the icon in its own
+jar, as two PNG files next to its menu contribution class, in the resource directory of the same
+package: `icon-16.png`, 16 x 16 px, and `icon-32.png`, the same drawing at 32 x 32 px, both
+square and with an alpha channel. 16 px is the size of the application's own menu icons; a scaled
+screen draws 32 px in the same place.
+
+The contribution builds one icon of both images, with `java.awt.image.BaseMultiResolutionImage`
+from the JDK, and hands it to every `JMenuItem` it returns, as in the example above. The 16 px
+image comes first and decides the icon's size; Swing picks the 32 px variant itself when the screen
+is scaled, so the icon stays sharp there. `getClass().getResource(...)` looks the files up next
+to the class, through the plugin's own class loader, so two plugins never see each other's
+`icon-16.png`. `PluginMenuContribution` has no method for an icon: the icon belongs to the items.
+
+The internal plugins' icons are drawn in the style of the application icon: the same dark tile
+with its light edge, the same teal (`#35d0bd`), a 16 unit grid with the picture on columns and
+rows 3 to 12. Their SVG sources, and how the PNG files are made from them, are in
+[`design/plugin-icons/`](https://github.com/astrapi69/mystic-crypt-ui/tree/develop/design/plugin-icons).
+A new internal plugin gets its icon the same way; the end-to-end test
+`EveryPluginShowsAnIconOfItsOwnUiTest` installs every plugin under `plugins/` and fails for a menu
+item without an icon, without the 32 px variant, or with a picture another plugin already shows.
 
 # The plugin's own text
 
@@ -325,7 +357,9 @@ checksum-plugin-1.0.0.zip
 └── classes/
     ├── META-INF/extensions.idx
     ├── checksum/messages.properties
-    └── io/github/astrapi69/mystic/crypt/plugin/checksum/*.class
+    └── io/github/astrapi69/mystic/crypt/plugin/checksum/
+        ├── *.class
+        └── icon-16.png, icon-32.png
 ```
 
 `META-INF/extensions.idx` is the index the pf4j annotation processor writes; without it the
@@ -361,6 +395,8 @@ A new plugin under `plugins/` is wired in the same change that adds it:
 - `src/main/izpack/install.xml`: a `singlefile` line in the `plugins` pack, and the plugin's name
   in that pack's description, which `InstallerPackDescriptionTest` counts against the pack;
 - tests, with at least one end-to-end test of what the user sees;
+- an icon of its own, see "The plugin's icon" above; its SVG source goes into
+  `design/plugin-icons/`;
 - a plugin whose `isUsableWithoutAVault()` returns `true` is added, with its reason, to
   `PublicPluginGrantTest`, which fails on every other plugin that declares it.
 

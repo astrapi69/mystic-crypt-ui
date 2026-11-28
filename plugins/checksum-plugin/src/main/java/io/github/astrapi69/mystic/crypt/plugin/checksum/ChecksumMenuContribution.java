@@ -24,8 +24,11 @@
  */
 package io.github.astrapi69.mystic.crypt.plugin.checksum;
 
+import java.awt.image.BaseMultiResolutionImage;
 import java.util.List;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
 
@@ -60,13 +63,21 @@ public class ChecksumMenuContribution implements PluginMenuContribution
 		return true;
 	}
 
+	/**
+	 * The plugin's icon on its menu items: the 16 px image, with the 32 px image as the variant a
+	 * scaled screen draws (#1192)
+	 */
+	private final Icon icon = new ImageIcon(new BaseMultiResolutionImage(
+		new ImageIcon(getClass().getResource("icon-16.png")).getImage(),
+		new ImageIcon(getClass().getResource("icon-32.png")).getImage()));
+
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
-		JMenuItem verifyChecksum = new JMenuItem("Verify Checksum");
+		JMenuItem verifyChecksum = new JMenuItem("Verify Checksum", icon);
 		verifyChecksum
 			.addActionListener(event -> openInternalFrame("Verify Checksum", new ChecksumPanel()));
-		JMenuItem checksumAndMac = new JMenuItem("Checksum and MAC");
+		JMenuItem checksumAndMac = new JMenuItem("Checksum and MAC", icon);
 		checksumAndMac.addActionListener(
 			event -> openInternalFrame("Checksum and MAC", new ChecksumAndMacPanel()));
 		return List.of(verifyChecksum, checksumAndMac);

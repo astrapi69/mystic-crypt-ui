@@ -27,6 +27,7 @@ package io.github.astrapi69.mystic.crypt.plugin.certificate;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.image.BaseMultiResolutionImage;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.math.BigInteger;
@@ -68,10 +69,18 @@ import io.github.astrapi69.mystic.crypt.wizard.state.CertificateWizardState;
 public class CertificateMenuContribution implements PluginMenuContribution
 {
 
+	/**
+	 * The plugin's icon on its menu items: the 16 px image, with the 32 px image as the variant a
+	 * scaled screen draws (#1192)
+	 */
+	private final Icon icon = new ImageIcon(new BaseMultiResolutionImage(
+		new ImageIcon(getClass().getResource("icon-16.png")).getImage(),
+		new ImageIcon(getClass().getResource("icon-32.png")).getImage()));
+
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
-		JMenuItem createCertificate = new JMenuItem("Create Certificate...");
+		JMenuItem createCertificate = new JMenuItem("Create Certificate...", icon);
 		createCertificate.addActionListener(event -> openWizard());
 		return List.of(createCertificate);
 	}

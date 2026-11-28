@@ -25,8 +25,11 @@
 package io.github.astrapi69.mystic.crypt.plugin.signature;
 
 import java.awt.Component;
+import java.awt.image.BaseMultiResolutionImage;
 import java.util.List;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenuItem;
 
@@ -45,10 +48,18 @@ import io.github.astrapi69.swing.util.JInternalFrameExtensions;
 public class PqcSignatureMenuContribution implements PluginMenuContribution
 {
 
+	/**
+	 * The plugin's icon on its menu items: the 16 px image, with the 32 px image as the variant a
+	 * scaled screen draws (#1192)
+	 */
+	private final Icon icon = new ImageIcon(new BaseMultiResolutionImage(
+		new ImageIcon(getClass().getResource("icon-16.png")).getImage(),
+		new ImageIcon(getClass().getResource("icon-32.png")).getImage()));
+
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
-		JMenuItem signAndVerify = new JMenuItem("Sign and Verify");
+		JMenuItem signAndVerify = new JMenuItem("Sign and Verify", icon);
 		signAndVerify.addActionListener(
 			event -> openInternalFrame("Sign and Verify", new PqcSignaturePanel()));
 		return List.of(signAndVerify);
