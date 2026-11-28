@@ -7,6 +7,8 @@ name: Write the vaults of old releases
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ test/compat-fixtures-of-every-release ]
 
 permissions:
   contents: read
