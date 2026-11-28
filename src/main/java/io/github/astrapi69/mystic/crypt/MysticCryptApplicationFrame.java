@@ -175,6 +175,34 @@ public class MysticCryptApplicationFrame extends ApplicationPanelFrame<Applicati
 		return instance;
 	}
 
+	/**
+	 * The main window is the same only as itself. The base classes derive {@code equals} and
+	 * {@code hashCode} from fields that change while the window is built, and the JDK's keyboard
+	 * manager keeps the keystrokes of the menus in a hash table keyed by this window: a key whose
+	 * hash code changed is not found again, and the manager writes a stack trace for every
+	 * keystroke of a menu that is removed (#1245).
+	 *
+	 * @param other
+	 *            the object to compare with
+	 * @return true only for this very window
+	 */
+	@Override
+	public boolean equals(final Object other)
+	{
+		return this == other;
+	}
+
+	/**
+	 * The identity hash code, see {@link #equals(Object)}
+	 *
+	 * @return the identity hash code
+	 */
+	@Override
+	public int hashCode()
+	{
+		return System.identityHashCode(this);
+	}
+
 	public LongIdGenerator getIdGenerator()
 	{
 		if (this.idGenerator == null)

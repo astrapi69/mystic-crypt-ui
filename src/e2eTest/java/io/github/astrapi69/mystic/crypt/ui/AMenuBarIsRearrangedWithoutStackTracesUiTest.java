@@ -24,7 +24,7 @@
  */
 package io.github.astrapi69.mystic.crypt.ui;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 
@@ -44,7 +44,7 @@ class AMenuBarIsRearrangedWithoutStackTracesUiTest extends AbstractUiTest
 	private static final String MASTER_PASSWORD = TestPasswords.throwaway();
 
 	@Test
-	void start_writesStackTracesFromReorganizeMenus_whenTheWindowHashCodeChanges() throws Exception
+	void start_writesNoStackTraceFromReorganizeMenus_whenTheVaultIsOpened() throws Exception
 	{
 		File databaseFile = new File(tempHome, "menu-bar-database.mcrdb");
 		createDatabaseFileHeadless(databaseFile, MASTER_PASSWORD);
@@ -53,7 +53,7 @@ class AMenuBarIsRearrangedWithoutStackTracesUiTest extends AbstractUiTest
 			signInWithExistingDatabase(databaseFile, MASTER_PASSWORD);
 			awaitApplicationInitialized();
 
-			assertTrue(watch.occurrences("DesktopMenu.reorganizeMenus") > 0,
+			assertEquals(0, watch.occurrences("DesktopMenu.reorganizeMenus"),
 				"standard error of the start:\n" + watch.standardError());
 		}
 	}
