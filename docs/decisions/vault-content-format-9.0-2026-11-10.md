@@ -137,9 +137,10 @@ whichever envelope the sign-in variant uses, exactly as the XML does today.
 
 ## 7. Fixtures first: the proof gate
 
-Before any building starts, the fixture set is completed - today 4 of the 12 release x variant
-combinations have a checked-in fixture (7.2 password, 7.3 password, 8 key-file, 8 password+key-file),
-though all 12 were measured open:
+Before any building starts, the fixture set is completed. It is since #864: all 12 release x variant
+combinations have a checked-in fixture and a test that opens it in the current build, four from #624 and
+#650 (7.2 password, 7.3 password, 8 key-file, 8 password+key-file) and the other eight written in GitHub
+Actions by `write-vaults-of-old-releases.yml`, as the fixtures' README records:
 
 - fixtures for **all 12 combinations** (7.2, 7.3, 8, 8.1.1 x password, key file, both), written by the
   published release jars through their own save paths, as `scripts/fixtures/WriteWithAnOldRelease.java`

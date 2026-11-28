@@ -95,6 +95,18 @@ public final class TestPasswords
 	public static final String VAULT_OF_8_14_FIXTURE = "written-by-eight-fourteen-for-864";
 
 	/**
+	 * The password of the checked-in vaults of 7.2, 7.3, 8 and 8.1.1 that carry a password and that
+	 * #624 and #650 did not write, in {@code src/testSupport/resources/compat/vaults} (#864): 7.2
+	 * and 7.3 with a password and a key file, 8 with a password, 8.1.1 with a password and with a
+	 * password and a key file.
+	 * <p>
+	 * It cannot be made up either: those releases wrote the files with it, through their own save
+	 * paths ({@code scripts/fixtures/write-vaults-of-every-variant.sh}, run in GitHub Actions).
+	 * They hold invented entries and guard nothing else.
+	 */
+	public static final String VAULTS_OF_EVERY_VARIANT_FIXTURE = "written-by-each-release-for-864";
+
+	/**
 	 * The passphrase of the checked-in file and text the file encryption window wrote,
 	 * {@code src/test/resources/compat/file-crypt} (#877).
 	 * <p>

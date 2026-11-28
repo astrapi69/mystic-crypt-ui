@@ -789,7 +789,7 @@ could sit, measured:
   record's minor rule (`:87-88`) and an edit to #865's model list, or a change to the record's rule that the host never interprets
   `extensions` (`:75-76`), which the maintainer decides separately. A host key among the plugins' namespaces would also need a rule
   that keeps plugins from writing it (an inference; nothing of 9.0 is built). Taken into 9.0, either adds no break of its own,
-  because 9.0 is a break already. Issues #862, #864, #865 and #866 are all open, and none names plugins or a vault-level setting;
+  because 9.0 is a break already. Issues #862, #864, #865 and #866 were all open on 2026-11-20, and none names plugins or a vault-level setting;
   the model list of #865 ("one optional `extensions` object per entity") has no field for it, so taking it in is an edit to the
   scope of #865, the maintainer's decision.
   Cost: nothing exists before 9.0, and released 7.x and 8.x cannot read a 9.0 vault, so the list protects nothing until 9.0 ships.
