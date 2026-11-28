@@ -25,7 +25,6 @@
 package io.github.astrapi69.mystic.crypt;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -46,17 +45,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
-
 /**
  * Every internal plugin under {@code plugins/} carries its own icon and sets it on its menu items
  * (#1192), so a new plugin without one turns this red instead of showing a bare menu entry.
  * <p>
  * The test reads the plugin directories, the way {@link PublicPluginGrantTest} does: the plugins
- * are not on this suite's class path. Per plugin it checks the two images {@link PluginIcon} reads,
- * the SVG they were rendered from, and that the plugin's menu contribution hands its items to
- * {@link PluginIcon#onEvery} under its own name - under another name it would find no image and its
- * items would stay without an icon, which only a log line would say.
+ * are not on this suite's class path. Per plugin it checks the two images next to its menu
+ * contribution class, the SVG they were rendered from, and that the contribution reads both of them
+ * next to itself. The end-to-end test {@code EveryPluginShowsAnIconOfItsOwnUiTest} checks the same
+ * through the built zips and the menu a user sees; this one answers in the everyday build.
  */
 class EveryPluginCarriesItsIconTest
 {
@@ -67,10 +64,8 @@ class EveryPluginCarriesItsIconTest
 	/** Where the sources of the plugin icons live, one SVG each */
 	private static final Path DESIGN = Path.of("design/plugin-icons");
 
-	/** A call of {@link PluginIcon#onEvery} and the plugin name it passes, in one match */
-	private static final Pattern ON_EVERY = Pattern.compile(
-		"PluginIcon\\s*\\.\\s*onEvery\\s*\\([^;]*?,\\s*getClass\\(\\)\\s*,\\s*\"([a-z0-9-]+)\"\\s*\\)",
-		Pattern.DOTALL);
+	/** The sizes every plugin carries: 16 px for the menu, 32 px for a scaled screen */
+	private static final List<Integer> SIZES = List.of(16, 32);
 
 	@Test
 	@DisplayName("the scan reads every plugin, so an empty answer cannot pass for a clean one")
@@ -88,10 +83,10 @@ class EveryPluginCarriesItsIconTest
 	@MethodSource("plugins")
 	void everyPlugin_carriesBothImages(final String plugin) throws IOException
 	{
-		for (int size : PluginIcon.SIZES)
+		Path resources = resourcesNextTo(plugin, menuContributionOf(plugin));
+		for (int size : SIZES)
 		{
-			Path file = PLUGINS.resolve(plugin).resolve("src/main/resources")
-				.resolve(PluginIcon.resource(plugin, size));
+			Path file = resources.resolve(imageName(size));
 			assertTrue(Files.isRegularFile(file), "missing " + file);
 			BufferedImage image = ImageIO.read(file.toFile());
 			assertNotNull(image, file + " is not an image ImageIO can read");
@@ -113,18 +108,23 @@ class EveryPluginCarriesItsIconTest
 		assertTrue(Files.isRegularFile(source), "missing " + source);
 	}
 
-	@ParameterizedTest(name = "{0} sets its icon on its menu items, under its own name")
+	@ParameterizedTest(name = "{0} reads both images next to its menu contribution, once each")
 	@MethodSource("plugins")
-	void everyPlugin_setsItsIconOnItsMenuItems(final String plugin) throws IOException
+	void everyPlugin_readsItsImagesNextToItsContribution(final String plugin) throws IOException
 	{
-		String contribution = menuContributionOf(plugin);
-		Matcher matcher = ON_EVERY.matcher(contribution);
-
-		assertTrue(matcher.find(),
-			plugin + ": getMenuItems() does not hand its items to PluginIcon.onEvery");
-		assertEquals(plugin, matcher.group(1),
-			plugin + " passes another plugin's name, so it would load no image");
-		assertFalse(matcher.find(), plugin + " sets its icon twice");
+		String contribution = Files.readString(menuContributionOf(plugin));
+		for (int size : SIZES)
+		{
+			Matcher matcher = Pattern.compile("getClass\\(\\)\\s*\\.\\s*getResource\\(\\s*\""
+				+ Pattern.quote(imageName(size)) + "\"\\s*\\)").matcher(contribution);
+			int reads = 0;
+			while (matcher.find())
+			{
+				reads++;
+			}
+			assertEquals(1, reads, plugin + " reads " + imageName(size) + " " + reads
+				+ " times next to its menu contribution, once is right");
+		}
 	}
 
 	static Stream<String> plugins()
@@ -142,7 +142,23 @@ class EveryPluginCarriesItsIconTest
 		}
 	}
 
-	private static String menuContributionOf(final String plugin) throws IOException
+	private static String imageName(final int size)
+	{
+		return "icon-" + size + ".png";
+	}
+
+	/**
+	 * The resource directory of the contribution's package, where {@code getClass().getResource}
+	 * finds a name without a path
+	 */
+	private static Path resourcesNextTo(final String plugin, final Path contribution)
+	{
+		Path pluginSources = PLUGINS.resolve(plugin).resolve("src/main/java");
+		return PLUGINS.resolve(plugin).resolve("src/main/resources")
+			.resolve(pluginSources.relativize(contribution.getParent()));
+	}
+
+	private static Path menuContributionOf(final String plugin) throws IOException
 	{
 		Path main = PLUGINS.resolve(plugin).resolve("src/main/java");
 		try (Stream<Path> files = Files.walk(main))
@@ -152,7 +168,7 @@ class EveryPluginCarriesItsIconTest
 				.toList();
 			assertEquals(1, contributions.size(),
 				plugin + " has " + contributions.size() + " menu contributions: " + contributions);
-			return Files.readString(contributions.get(0));
+			return contributions.get(0);
 		}
 	}
 }

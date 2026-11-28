@@ -25,10 +25,13 @@
 package io.github.astrapi69.mystic.crypt.plugin.lethenon;
 
 import java.awt.Component;
+import java.awt.image.BaseMultiResolutionImage;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.Supplier;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JInternalFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -37,7 +40,6 @@ import org.pf4j.Extension;
 
 import io.github.astrapi69.mystic.crypt.MysticCryptApplicationFrame;
 import io.github.astrapi69.mystic.crypt.plugin.api.PluginMenuContribution;
-import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 import io.github.astrapi69.swing.component.factory.JComponentFactory;
 import io.github.astrapi69.swing.enumeration.FrameMode;
 import io.github.astrapi69.swing.util.JInternalFrameExtensions;
@@ -67,11 +69,18 @@ public class LethenonMenuContribution implements PluginMenuContribution
 	/** The key of the menu item that opens the wallet window, the way into the plugin (#680) */
 	public static final String WALLET_KEY = "lethenon.menu.item.wallet";
 
+	/**
+	 * The plugin's icon on its menu items: the 16 px image, with the 32 px image as the variant a
+	 * scaled screen draws (#1192)
+	 */
+	private final Icon icon = new ImageIcon(new BaseMultiResolutionImage(
+		new ImageIcon(getClass().getResource("icon-16.png")).getImage(),
+		new ImageIcon(getClass().getResource("icon-32.png")).getImage()));
+
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
-		return PluginIcon.onEvery(List.of(
-			item(WALLET_KEY, "Wallet", LethenonWalletPanel::new, false),
+		return List.of(item(WALLET_KEY, "Wallet", LethenonWalletPanel::new, false),
 			item("lethenon.menu.item.verify", "Verify a Chain", LethenonChainPanel::new, true),
 			item("lethenon.menu.item.show.chain", "Show a Chain", LethenonChainViewPanel::new,
 				true),
@@ -83,8 +92,7 @@ public class LethenonMenuContribution implements PluginMenuContribution
 				true),
 			item("lethenon.menu.item.sync", "Synchronise with a Node", LethenonSyncPanel::new,
 				true),
-			item("lethenon.menu.item.node", "Run a Node", LethenonNodePanel::new, true), more()),
-			getClass(), "lethenon-plugin");
+			item("lethenon.menu.item.node", "Run a Node", LethenonNodePanel::new, true), more());
 	}
 
 	/**
@@ -118,7 +126,7 @@ public class LethenonMenuContribution implements PluginMenuContribution
 		final Supplier<Component> panel, final boolean withBadge)
 	{
 		String title = LethenonMessages.getString(key, defaultTitle);
-		JMenuItem item = new JMenuItem(title);
+		JMenuItem item = new JMenuItem(title, icon);
 		item.addActionListener(event -> openInternalFrame(title, panel.get(), withBadge));
 		return item;
 	}

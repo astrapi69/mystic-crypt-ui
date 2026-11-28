@@ -34,7 +34,13 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.assertj.swing.core.GenericTypeMatcher;
 import org.assertj.swing.core.Robot;
@@ -449,6 +455,42 @@ abstract class AbstractUiTest
 		}
 		Files.copy(pluginZip, pluginsDir.toPath().resolve(pluginZip.getFileName()),
 			StandardCopyOption.REPLACE_EXISTING);
+	}
+
+	/**
+	 * Installs the built zip of every directory under {@code plugins/} except the ones named, so a
+	 * new plugin joins every test that calls this by existing. Must be called BEFORE launching the
+	 * application. A missing zip fails the test (TestPrerequisites): a plugin that is not installed
+	 * here is a plugin the test silently does not measure
+	 *
+	 * @param notInstalled
+	 *            the names of the plugin directories to leave out
+	 * @return the names of the plugin directories whose zips were installed, in name order
+	 */
+	protected List<String> installEveryPluginRequiringItBuilt(final Set<String> notInstalled)
+		throws IOException
+	{
+		List<String> names = new ArrayList<>();
+		List<Path> zips = new ArrayList<>();
+		try (Stream<Path> directories = Files.list(Path.of("plugins")))
+		{
+			for (Path directory : directories.filter(Files::isDirectory)
+				.collect(Collectors.toCollection(TreeSet::new)))
+			{
+				String name = directory.getFileName().toString();
+				if (!notInstalled.contains(name))
+				{
+					names.add(name);
+					zips.add(directory.resolve("build/plugin-dist/" + name + "-1.0.0.zip"));
+				}
+			}
+		}
+		TestPrerequisites.requireBuiltPluginZips(zips.toArray(Path[]::new));
+		for (Path zip : zips)
+		{
+			installPluginRequiringItBuilt(zip);
+		}
+		return names;
 	}
 
 	/**

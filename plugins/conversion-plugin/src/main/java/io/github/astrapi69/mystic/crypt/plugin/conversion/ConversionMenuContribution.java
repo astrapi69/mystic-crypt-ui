@@ -27,10 +27,13 @@ package io.github.astrapi69.mystic.crypt.plugin.conversion;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.awt.image.BaseMultiResolutionImage;
 import java.io.File;
 import java.util.List;
 
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -48,7 +51,6 @@ import io.github.astrapi69.mystic.crypt.plugin.conversion.wizard.ConversionWizar
 import io.github.astrapi69.mystic.crypt.plugin.conversion.wizard.ConversionWizardPanel;
 import io.github.astrapi69.mystic.crypt.plugin.conversion.wizard.ConversionWizardState;
 import io.github.astrapi69.mystic.crypt.plugin.conversion.wizard.TargetPanel;
-import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 
 /**
  * Contributes the conversion wizard to the host's "Plugins" menu, replacing the two former menu
@@ -62,12 +64,20 @@ import io.github.astrapi69.mystic.crypt.ui.icon.PluginIcon;
 public class ConversionMenuContribution implements PluginMenuContribution
 {
 
+	/**
+	 * The plugin's icon on its menu items: the 16 px image, with the 32 px image as the variant a
+	 * scaled screen draws (#1192)
+	 */
+	private final Icon icon = new ImageIcon(new BaseMultiResolutionImage(
+		new ImageIcon(getClass().getResource("icon-16.png")).getImage(),
+		new ImageIcon(getClass().getResource("icon-32.png")).getImage()));
+
 	@Override
 	public List<JMenuItem> getMenuItems()
 	{
-		JMenuItem convert = new JMenuItem("Convert Key/Certificate...");
+		JMenuItem convert = new JMenuItem("Convert Key/Certificate...", icon);
 		convert.addActionListener(event -> openWizard());
-		return PluginIcon.onEvery(List.of(convert), getClass(), "conversion-plugin");
+		return List.of(convert);
 	}
 
 	@Override
