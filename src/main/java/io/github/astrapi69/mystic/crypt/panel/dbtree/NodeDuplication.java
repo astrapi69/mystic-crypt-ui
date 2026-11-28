@@ -30,6 +30,7 @@ import java.util.List;
 import io.github.astrapi69.gen.tree.BaseTreeNode;
 import io.github.astrapi69.gen.tree.visitor.ReindexTreeNodeVisitor;
 import io.github.astrapi69.id.generate.LongIdGenerator;
+import io.github.astrapi69.mystic.crypt.keepass.KeePassTreeConverter;
 import io.github.astrapi69.mystic.crypt.vault.EntryIdentitySupport;
 import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
 
@@ -38,7 +39,9 @@ import io.github.astrapi69.swing.renderer.tree.GenericTreeElement;
  * entries and children, sharing no mutable state with the source. Every entry in it is a new entry,
  * copied the way "Duplicate entry" copies one ({@link EntryIdentitySupport#duplicateAsNewEntry}):
  * with an identifier of its own and without the history, so the identifiers of a vault holding the
- * original and the copy stay unique (#856).
+ * original and the copy stay unique (#856). The groups are new groups too: the KeePass group UUID
+ * of the original ({@link KeePassTreeConverter#KEEPASS_UUID_PROPERTY}) stays behind, so the export
+ * gives each copied group a UUID of its own, as it does for any group made in this application.
  * <p>
  * Not {@code CloneQuietlyExtensions.clone(...)}: that resolves to a shallow {@code Object.clone()},
  * so original and duplicate shared the same {@link GenericTreeElement} - renaming the duplicate
@@ -55,7 +58,8 @@ public final class NodeDuplication
 
 	/**
 	 * Deep-copies the given tree node with its value, entries and children; each entry gets an
-	 * identifier of its own, and the node ids are kept and are reindexed by the caller
+	 * identifier of its own, no group keeps the KeePass UUID of its original, and the node ids are
+	 * kept and are reindexed by the caller
 	 *
 	 * @param source
 	 *            the tree node to copy
@@ -74,7 +78,8 @@ public final class NodeDuplication
 			.iconPath(sourceValue.getIconPath()).selectedIconPath(sourceValue.getSelectedIconPath())
 			.build();
 		sourceValue.getProperties().forEach((key, propertyValue) -> {
-			if (!GenericTreeElement.DEFAULT_CONTENT_KEY.equals(key))
+			if (!GenericTreeElement.DEFAULT_CONTENT_KEY.equals(key)
+				&& !KeePassTreeConverter.KEEPASS_UUID_PROPERTY.equals(key))
 			{
 				copiedValue.getProperties().put(key, propertyValue);
 			}

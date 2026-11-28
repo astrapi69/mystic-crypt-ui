@@ -162,8 +162,12 @@ public final class ScreenPlacement
 	}
 
 	/**
-	 * Centres the given window on the screen the given component is on. This is what every dialog
-	 * in this application uses instead of centring on the first screen.
+	 * Centres the given window on the screen the given component is on. This is what the dialogs of
+	 * this application use instead of centring on the first screen.
+	 * <p>
+	 * The place is worked out from the size the window has now, so it is called once the window has
+	 * its size: called on a window that is still 0 by 0 pixels, it puts the window's upper left
+	 * corner on the middle of the screen.
 	 *
 	 * @param window
 	 *            the window to place
@@ -175,6 +179,28 @@ public final class ScreenPlacement
 	{
 		Rectangle usableBounds = usableBoundsOf(screenOf(reference));
 		window.setLocation(centeredIn(usableBounds, window.getSize()));
+	}
+
+	/**
+	 * Centres the given window over its owner when the owner is showing, and on the screen under
+	 * the pointer when it is not, which is the case while signing in, before the main window has
+	 * been shown (#63).
+	 * <p>
+	 * The place is worked out from the size the window has now, so it is called once the window has
+	 * its size, as {@link CentredPanelDialog} does when it is shown.
+	 *
+	 * @param window
+	 *            the window to place
+	 */
+	public static void centerOverOwner(final Window window)
+	{
+		Window owner = window.getOwner();
+		if (owner != null && owner.isShowing())
+		{
+			window.setLocationRelativeTo(owner);
+			return;
+		}
+		centerOnScreenOf(window, null);
 	}
 
 	/**
