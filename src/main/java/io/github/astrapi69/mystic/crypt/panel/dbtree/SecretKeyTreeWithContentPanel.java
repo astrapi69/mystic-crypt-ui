@@ -1240,7 +1240,7 @@ public class SecretKeyTreeWithContentPanel
 		popup.show(getTblTreeEntryTable(), x, y);
 	}
 
-	private static boolean validateUrlString(String urlString)
+	static boolean validateUrlString(String urlString)
 	{
 		try
 		{
