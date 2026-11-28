@@ -1242,6 +1242,10 @@ public class SecretKeyTreeWithContentPanel
 
 	static boolean validateUrlString(String urlString)
 	{
+		if (urlString == null)
+		{
+			return false;
+		}
 		try
 		{
 			new URI(urlString).toURL();

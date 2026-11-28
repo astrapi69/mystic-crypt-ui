@@ -38,11 +38,11 @@ class UrlStringValidationTest
 {
 
 	@ParameterizedTest(name = "[{0}] is a URL: {1}")
-	@CsvSource(delimiter = '|', nullValues = "NULL", value = { "https://example.com|true",
-			"http://example.com/a/b?c=d#e|true", "ftp://example.com/file|true",
-			"mailto:someone@example.com|true", "file:///tmp/x|true", "example.com|false",
-			"foo://example.com|false", "http://example.com/a b|false", "https://|false", "''|false",
-			"' '|false" })
+	@CsvSource(delimiter = '|', nullValues = "NULL", value = { "NULL|false",
+			"https://example.com|true", "http://example.com/a/b?c=d#e|true",
+			"ftp://example.com/file|true", "mailto:someone@example.com|true", "file:///tmp/x|true",
+			"example.com|false", "foo://example.com|false", "http://example.com/a b|false",
+			"https://|false", "''|false", "' '|false" })
 	void validateUrlString_answersAsTheUrlConstructorDid(final String address,
 		final boolean expected)
 	{
